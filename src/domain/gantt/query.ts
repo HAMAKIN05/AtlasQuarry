@@ -1,5 +1,5 @@
 import type { TaskStatus } from '@/db/schema/enums';
-import { listFeatures } from '@/domain/product/service';
+import { listFeatures, listProducts } from '@/domain/product/service';
 import { listTasks } from '@/domain/task/service';
 
 /**
@@ -34,6 +34,32 @@ export type GanttData = {
   /** 帯が1本もない（＝全部が期間未設定）かどうか。表示側の出し分けに使う。 */
   hasAnyPeriod: boolean;
 };
+
+/**
+ * ホーム用。**進行中のプロジェクトだけ**を対象に、行数を絞ったガントを返す。
+ *
+ * ログイン直後に全体の状況が見えることが目的なので、細かい粒度より
+ * 「どのプロジェクトがいつまでか」が分かることを優先する。行が多すぎると
+ * ホームがガントで埋まるため、開発項目の行を主体にして上限を設ける。
+ */
+export async function getHomeGantt(limitRows = 14): Promise<
+  Array<{ productId: string; productName: string; rows: GanttRow[] }>
+> {
+  const products = await listProducts();
+  const active = products.filter((p) => p.status === 'active' || p.status === 'planning');
+
+  const out: Array<{ productId: string; productName: string; rows: GanttRow[] }> = [];
+
+  for (const product of active) {
+    const { rows } = await getGanttData(product.id);
+    // 期間が入っている行だけに絞る。帯が出ない行はホームでは意味がない
+    const dated = rows.filter((r) => r.startDate !== null || r.dueDate !== null);
+    if (dated.length === 0) continue;
+    out.push({ productId: product.id, productName: product.name, rows: dated.slice(0, limitRows) });
+  }
+
+  return out;
+}
 
 export async function getGanttData(productId: string): Promise<GanttData> {
   const [features, tasks] = await Promise.all([

@@ -55,9 +55,9 @@ export function ConvertForm({
 
   if (projects.length === 0) {
     return (
-      <section className="card">
-        <h2 className="card-title">タスクにする</h2>
-        <p className="hint">
+      <section className="rounded-lg border bg-card p-4">
+        <h2 className="mb-3 text-base font-bold">タスクにする</h2>
+        <p className="mb-3 text-sm text-muted-foreground">
           先にプロジェクトを作ってください。タスクはどれかのプロジェクトに属します。
         </p>
       </section>
@@ -65,19 +65,19 @@ export function ConvertForm({
   }
 
   return (
-    <section className="card">
-      <h2 className="card-title">タスクにする</h2>
-      <p className="hint">要望の内容がそのままタスクになります。担当と期限はあとから変えられます。</p>
+    <section className="rounded-lg border bg-card p-4">
+      <h2 className="mb-3 text-base font-bold">タスクにする</h2>
+      <p className="mb-3 text-sm text-muted-foreground">要望の内容がそのままタスクになります。担当と期限はあとから変えられます。</p>
 
-      <form className="stack" onSubmit={handleSubmit} noValidate>
+      <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
         {error && (
-          <p className="alert alert-error" role="alert">
+          <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
             {error}
           </p>
         )}
 
-        <label className="field">
-          <span className="field-label">どのプロジェクトのタスクにするか</span>
+        <label className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-sm font-semibold text-muted-foreground">どのプロジェクトのタスクにするか</span>
           <select value={productId} onChange={(e) => setProductId(e.target.value)} required>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
@@ -88,8 +88,8 @@ export function ConvertForm({
         </label>
 
         {features.length > 0 && (
-          <label className="field">
-            <span className="field-label">開発項目（任意）</span>
+          <label className="flex min-w-0 flex-col gap-1.5">
+            <span className="text-sm font-semibold text-muted-foreground">開発項目（任意）</span>
             <select value={featureId} onChange={(e) => setFeatureId(e.target.value)}>
               <option value="">指定しない</option>
               {features.map((f) => (
@@ -101,8 +101,8 @@ export function ConvertForm({
           </label>
         )}
 
-        <label className="field">
-          <span className="field-label">担当（任意）</span>
+        <label className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-sm font-semibold text-muted-foreground">担当（任意）</span>
           <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}>
             <option value="">まだ決めない</option>
             {members.map((m) => (
@@ -113,13 +113,13 @@ export function ConvertForm({
           </select>
         </label>
 
-        <label className="field">
-          <span className="field-label">期限（任意）</span>
+        <label className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-sm font-semibold text-muted-foreground">期限（任意）</span>
           <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
         </label>
 
-        <div className="actions">
-          <button type="submit" className="btn-primary" disabled={busy}>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="submit" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" disabled={busy}>
             {busy ? '作成中…' : 'タスクを作る'}
           </button>
         </div>

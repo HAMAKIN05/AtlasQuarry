@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
-import { Chip, EmptyState, PageHeader, priorityTone, taskStatusTone } from '@/components/ui';
+import { Badge, EmptyState, PageHeader, priorityTone, taskStatusTone } from '@/components/app-ui';
 import { useLabels } from '@/components/LabelsProvider';
 import type { TaskListItem } from '@/domain/task/service';
 import { dueLabel, isOverdue } from '@/lib/format';
@@ -72,9 +72,9 @@ export function TaskWorkspace({
         }
       />
 
-      <div className="toolbar">
-        <label className="field field-inline">
-          <span className="field-label">プロジェクト</span>
+      <div className="flex flex-wrap items-end gap-3 rounded-lg border bg-card p-3">
+        <label className="flex min-w-0 flex-col gap-1.5 flex min-w-0 flex-1 basis-40 flex-col gap-1.5">
+          <span className="text-sm font-semibold text-muted-foreground">プロジェクト</span>
           <select
             value={projectId}
             onChange={(e) => router.push(`/tasks?projectId=${e.target.value}&view=${view}`)}
@@ -87,8 +87,8 @@ export function TaskWorkspace({
           </select>
         </label>
 
-        <label className="field field-inline">
-          <span className="field-label">担当</span>
+        <label className="flex min-w-0 flex-col gap-1.5 flex min-w-0 flex-1 basis-40 flex-col gap-1.5">
+          <span className="text-sm font-semibold text-muted-foreground">担当</span>
           <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}>
             <option value="">全員</option>
             {members.map((m) => (
@@ -100,8 +100,8 @@ export function TaskWorkspace({
         </label>
 
         {features.length > 0 && (
-          <label className="field field-inline">
-            <span className="field-label">開発項目</span>
+          <label className="flex min-w-0 flex-col gap-1.5 flex min-w-0 flex-1 basis-40 flex-col gap-1.5">
+            <span className="text-sm font-semibold text-muted-foreground">開発項目</span>
             <select value={featureId} onChange={(e) => setFeatureId(e.target.value)}>
               <option value="">すべて</option>
               {features.map((f) => (
@@ -113,7 +113,7 @@ export function TaskWorkspace({
           </label>
         )}
 
-        <label className="check">
+        <label className="inline-flex min-h-11 items-center gap-2 text-sm">
           <input
             type="checkbox"
             checked={showClosed}
@@ -122,7 +122,7 @@ export function TaskWorkspace({
           終わったものも表示
         </label>
 
-        <div className="viewswitch" role="group" aria-label="表示の切り替え">
+        <div className="ml-auto inline-flex overflow-hidden rounded-md border" role="group" aria-label="表示の切り替え">
           <button
             type="button"
             className="viewswitch-btn"
@@ -156,23 +156,23 @@ export function TaskWorkspace({
       ) : view === 'board' ? (
         <KanbanBoard tasks={visible} allTasks={tasks} onTasksChange={setTasks} />
       ) : (
-        <ul className="rows">
+        <ul className="flex flex-col gap-2">
           {visible.map((t) => {
             const due = dueLabel(t.dueDate, t.status);
             return (
               <li key={t.id}>
-                <Link href={`/tasks/${t.key}`} className="row">
-                  <span className="row-key">{t.key}</span>
-                  <span className="row-main">{t.title}</span>
-                  <Chip tone={taskStatusTone(t.status)}>{labels[`task.status.${t.status}`]}</Chip>
+                <Link href={`/tasks/${t.key}`} className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md border bg-card p-3 hover:bg-muted">
+                  <span className="tabular shrink-0 font-mono text-xs text-muted-foreground">{t.key}</span>
+                  <span className="min-w-0 flex-1 basis-40 font-semibold">{t.title}</span>
+                  <Badge tone={taskStatusTone(t.status)}>{labels[`task.status.${t.status}`]}</Badge>
                   {t.priority !== 'normal' && (
-                    <Chip tone={priorityTone(t.priority)}>
+                    <Badge tone={priorityTone(t.priority)}>
                       {labels[`task.priority.${t.priority}`]}
-                    </Chip>
+                    </Badge>
                   )}
-                  {t.assigneeName && <span className="row-sub">{t.assigneeName}</span>}
+                  {t.assigneeName && <span className="text-xs text-muted-foreground">{t.assigneeName}</span>}
                   {due && (
-                    <span className={`row-due${isOverdue(t.dueDate, t.status) ? ' is-late' : ''}`}>
+                    <span className={isOverdue(t.dueDate, t.status) ? 'tabular shrink-0 text-xs font-bold text-destructive' : 'tabular shrink-0 text-xs text-muted-foreground'}>
                       {due}
                     </span>
                   )}

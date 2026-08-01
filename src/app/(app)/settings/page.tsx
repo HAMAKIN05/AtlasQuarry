@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { PageHeader } from '@/components/ui';
+import { PageHeader } from '@/components/app-ui';
 import { requireActor } from '@/lib/auth/cookies';
 import { can } from '@/lib/auth/rbac';
 
@@ -44,15 +44,15 @@ export default async function SettingsPage() {
   ].filter((item) => item.show);
 
   return (
-    <div className="page">
+    <div className="flex flex-col gap-5">
       <PageHeader title="設定" />
 
-      <ul className="cards">
+      <ul className="grid gap-3 sm:grid-cols-2">
         {items.map((item) => (
           <li key={item.href}>
-            <Link href={item.href} className="pcard">
-              <span className="pcard-name">{item.title}</span>
-              <span className="pcard-desc">{item.desc}</span>
+            <Link href={item.href} className="flex flex-col gap-2 rounded-lg border bg-card p-4 hover:border-primary">
+              <span className="flex-1 text-base font-bold">{item.title}</span>
+              <span className="text-sm text-muted-foreground">{item.desc}</span>
             </Link>
           </li>
         ))}

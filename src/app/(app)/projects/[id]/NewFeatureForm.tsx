@@ -59,18 +59,18 @@ export function NewFeatureForm({ productId }: { productId: string }) {
         </p>
       )}
 
-      <label className="field">
-        <span className="field-label">名前</span>
+      <label className="flex min-w-0 flex-col gap-1.5">
+        <span className="text-sm font-semibold text-muted-foreground">名前</span>
         <input value={name} onChange={(e) => setName(e.target.value)} maxLength={100} required />
       </label>
 
-      <label className="field">
-        <span className="field-label">開始日（任意）</span>
+      <label className="flex min-w-0 flex-col gap-1.5">
+        <span className="text-sm font-semibold text-muted-foreground">開始日（任意）</span>
         <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
       </label>
 
-      <label className="field">
-        <span className="field-label">期限日（任意）</span>
+      <label className="flex min-w-0 flex-col gap-1.5">
+        <span className="text-sm font-semibold text-muted-foreground">期限日（任意）</span>
         <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
       </label>
 

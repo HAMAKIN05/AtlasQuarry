@@ -13,10 +13,10 @@ export default async function LoginPage() {
   if (actor) redirect('/');
 
   return (
-    <main className="auth">
-      <div className="auth-head">
-        <h1 className="auth-title">AtlasQuarry</h1>
-        <p className="auth-sub">社内システム内製化のタスク管理</p>
+    <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-6 px-4 py-8">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold tracking-tight">AtlasQuarry</h1>
+        <p className="mt-1 text-sm text-muted-foreground">社内システム内製化のタスク管理</p>
       </div>
       <LoginForm />
     </main>

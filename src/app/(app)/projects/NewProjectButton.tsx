@@ -51,24 +51,24 @@ export function NewProjectButton() {
 
   if (!open) {
     return (
-      <button type="button" className="btn-primary" onClick={() => setOpen(true)}>
+      <button type="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setOpen(true)}>
         プロジェクトを作る
       </button>
     );
   }
 
   return (
-    <form className="panel" onSubmit={handleSubmit} noValidate>
-      <h2 className="panel-title">プロジェクトを作る</h2>
+    <form className="flex flex-col gap-4 rounded-lg border bg-card p-4" onSubmit={handleSubmit} noValidate>
+      <h2 className="text-base font-bold">プロジェクトを作る</h2>
 
       {error && (
-        <p className="alert alert-error" role="alert">
+        <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
 
-      <label className="field">
-        <span className="field-label">名前</span>
+      <label className="flex min-w-0 flex-col gap-1.5">
+        <span className="text-sm font-semibold text-muted-foreground">名前</span>
         <input
           value={name}
           onChange={(e) => {
@@ -82,8 +82,8 @@ export function NewProjectButton() {
         />
       </label>
 
-      <label className="field">
-        <span className="field-label">タスク番号の記号</span>
+      <label className="flex min-w-0 flex-col gap-1.5">
+        <span className="text-sm font-semibold text-muted-foreground">タスク番号の記号</span>
         <input
           value={key}
           onChange={(e) => {
@@ -94,16 +94,16 @@ export function NewProjectButton() {
           required
           placeholder="NIPPOU"
         />
-        <span className="field-hint">
+        <span className="text-xs leading-relaxed text-muted-foreground">
           タスクに付く番号の頭です（例：{key || 'NIPPOU'}-12）。英大文字で始まる2〜10文字。
         </span>
       </label>
 
-      <div className="actions">
-        <button type="submit" className="btn-primary" disabled={submitting}>
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="submit" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" disabled={submitting}>
           {submitting ? '作成中…' : '作る'}
         </button>
-        <button type="button" className="btn-quiet" onClick={() => setOpen(false)}>
+        <button type="button" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-accent disabled:opacity-50" onClick={() => setOpen(false)}>
           やめる
         </button>
       </div>

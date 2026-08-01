@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import { Chip } from '@/components/ui';
+import { Badge } from '@/components/app-ui';
 import { ACTOR_ROLES, type ActorRole } from '@/db/schema/enums';
 import type { MemberItem } from '@/domain/member/service';
 import { ApiError, api } from '@/lib/api/client';
@@ -58,28 +58,28 @@ export function MemberRow({ member, isSelf }: { member: MemberItem; isSelf: bool
   return (
     <li className={`member${member.isActive ? '' : ' is-off'}`}>
       {error && (
-        <p className="alert alert-error" role="alert">
+        <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
 
       {editing ? (
-        <div className="stack">
-          <label className="field">
-            <span className="field-label">名前</span>
+        <div className="flex flex-col gap-3">
+          <label className="flex min-w-0 flex-col gap-1.5">
+            <span className="text-sm font-semibold text-muted-foreground">名前</span>
             <input value={name} onChange={(e) => setName(e.target.value)} maxLength={100} />
           </label>
 
-          <fieldset className="field">
-            <legend className="field-label">権限</legend>
+          <fieldset className="flex min-w-0 flex-col gap-1.5">
+            <legend className="text-sm font-semibold text-muted-foreground">権限</legend>
             {isSelf ? (
-              <p className="hint">
+              <p className="mb-3 text-sm text-muted-foreground">
                 自分の権限は変えられません。変更が必要なときは他の経営者に頼んでください。
               </p>
             ) : (
-              <div className="choices">
+              <div className="flex flex-col gap-2">
                 {SELECTABLE.map((r) => (
-                  <label key={r} className="choice">
+                  <label key={r} className="flex cursor-pointer items-start gap-2 rounded-md border p-2 has-[:checked]:border-primary has-[:checked]:bg-accent">
                     <input
                       type="radio"
                       name={`role-${member.id}`}
@@ -89,7 +89,7 @@ export function MemberRow({ member, isSelf }: { member: MemberItem; isSelf: bool
                     />
                     <span>
                       <strong>{ROLE_LABELS[r]}</strong>
-                      <span className="choice-desc">{ROLE_DESCRIPTIONS[r]}</span>
+                      <span className="block text-sm font-normal text-muted-foreground">{ROLE_DESCRIPTIONS[r]}</span>
                     </span>
                   </label>
                 ))}
@@ -97,13 +97,13 @@ export function MemberRow({ member, isSelf }: { member: MemberItem; isSelf: bool
             )}
           </fieldset>
 
-          <div className="actions">
-            <button type="button" className="btn-primary" onClick={save} disabled={busy}>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" onClick={save} disabled={busy}>
               保存
             </button>
             <button
               type="button"
-              className="btn-quiet"
+              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-accent disabled:opacity-50"
               onClick={() => {
                 setEditing(false);
                 setName(member.name);
@@ -115,22 +115,22 @@ export function MemberRow({ member, isSelf }: { member: MemberItem; isSelf: bool
           </div>
         </div>
       ) : (
-        <div className="member-view">
-          <span className="member-name">{member.name}</span>
-          <Chip tone={member.isActive ? 'neutral' : 'muted'}>{ROLE_LABELS[member.role]}</Chip>
-          {!member.isActive && <Chip tone="muted">利用停止中</Chip>}
-          {member.hasTotp && <Chip tone="done">2要素認証あり</Chip>}
-          <span className="member-mail">{member.email}</span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-bold">{member.name}</span>
+          <Badge tone={member.isActive ? 'neutral' : 'muted'}>{ROLE_LABELS[member.role]}</Badge>
+          {!member.isActive && <Badge tone="muted">利用停止中</Badge>}
+          {member.hasTotp && <Badge tone="done">2要素認証あり</Badge>}
+          <span className="basis-full text-xs text-muted-foreground">{member.email}</span>
 
-          <span className="member-actions">
-            <button type="button" className="btn-quiet" onClick={() => setEditing(true)}>
+          <span className="ml-auto flex gap-1">
+            <button type="button" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-accent disabled:opacity-50" onClick={() => setEditing(true)}>
               変更
             </button>
             {!isSelf &&
               (member.isActive ? (
                 <button
                   type="button"
-                  className="btn-quiet btn-quiet-danger"
+                  className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-destructive hover:bg-danger-soft disabled:opacity-50"
                   onClick={() => setActive(false)}
                   disabled={busy}
                 >
@@ -139,7 +139,7 @@ export function MemberRow({ member, isSelf }: { member: MemberItem; isSelf: bool
               ) : (
                 <button
                   type="button"
-                  className="btn-quiet"
+                  className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-accent disabled:opacity-50"
                   onClick={() => setActive(true)}
                   disabled={busy}
                 >

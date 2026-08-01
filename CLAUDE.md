@@ -72,6 +72,9 @@ Docker で完全分離し、既存VPS上で稼働させる。
 | ORM | Drizzle ORM |
 | 認証 | 自前実装（Argon2id + セッションCookie） |
 | DnD | dnd-kit |
+| スタイル | Tailwind CSS v4（設定ファイルは持たず `globals.css` の `@theme`） |
+| UI部品 | shadcn/ui（Radix UI + cva）。`src/components/ui` に置いて自前で持つ |
+| アイコン | lucide-react |
 | Markdown | unified / remark |
 | コンテナ | Docker Compose |
 
@@ -80,6 +83,7 @@ Docker で完全分離し、既存VPS上で稼働させる。
 - Auth.js / NextAuth（SSO前提で今回の要件に合わない）
 - Redis / BullMQ（キューはDBベース。障害点を増やさない）
 - ガントチャートライブラリ（SVG自前描画）
+- UIフレームワーク一式（MUI / Chakra 等）。shadcn/ui は**コードをリポジトリに持つ**方式なので別扱い
 - リッチテキストエディタ（プレーンMarkdown）
 
 ---

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { Chip, PageHeader, requestStatusTone } from '@/components/ui';
+import { Badge, PageHeader, requestStatusTone } from '@/components/app-ui';
 import { db } from '@/db/client';
 import { actor as actorTable } from '@/db/schema';
 import { asc, eq } from 'drizzle-orm';
@@ -53,20 +53,20 @@ export default async function RequestDetailPage({ params }: Props) {
   const canTriage = can(actor, 'request.triage');
 
   return (
-    <div className="page">
-      <nav className="crumbs" aria-label="現在の場所">
+    <div className="flex flex-col gap-5">
+      <nav className="flex flex-wrap items-center gap-3 text-sm" aria-label="現在の場所">
         <Link href="/requests">要望</Link>
       </nav>
 
       <PageHeader title={req.title} />
 
-      <div className="meta">
+      <div className="grid overflow-hidden rounded-lg border bg-card sm:grid-cols-2">
         <div>
           <dt>状態</dt>
           <dd>
-            <Chip tone={requestStatusTone(req.status)}>
+            <Badge tone={requestStatusTone(req.status)}>
               {labels[`request.status.${req.status}`]}
-            </Chip>
+            </Badge>
           </dd>
         </div>
         <div>
@@ -94,25 +94,25 @@ export default async function RequestDetailPage({ params }: Props) {
       </div>
 
       {bodyHtml ? (
-        <section className="card">
-          <h2 className="card-title">補足</h2>
+        <section className="rounded-lg border bg-card p-4">
+          <h2 className="mb-3 text-base font-bold">補足</h2>
           {/* renderMarkdown が rehype-sanitize を通しているため、入るのは検査済みのHTMLのみ */}
           <div className="markdown" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
         </section>
       ) : null}
 
       {req.status === 'rejected' && req.rejectReason && (
-        <section className="card">
-          <h2 className="card-title">見送った理由</h2>
-          <p className="plain">{req.rejectReason}</p>
+        <section className="rounded-lg border bg-card p-4">
+          <h2 className="mb-3 text-base font-bold">見送った理由</h2>
+          <p className="whitespace-pre-wrap text-sm">{req.rejectReason}</p>
         </section>
       )}
 
       {req.convertedTaskKey ? (
-        <section className="card">
-          <h2 className="card-title">この要望はタスクになりました</h2>
+        <section className="rounded-lg border bg-card p-4">
+          <h2 className="mb-3 text-base font-bold">この要望はタスクになりました</h2>
           <p>
-            <Link href={`/tasks/${req.convertedTaskKey}`} className="btn-secondary">
+            <Link href={`/tasks/${req.convertedTaskKey}`} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none border border-input bg-card hover:bg-muted">
               {req.convertedTaskKey} を開く
             </Link>
           </p>
@@ -140,7 +140,7 @@ export default async function RequestDetailPage({ params }: Props) {
       )}
 
       {!canTriage && req.status === 'received' && (
-        <p className="hint">管理者が内容を見て、やるかどうかを判断します。しばらくお待ちください。</p>
+        <p className="mb-3 text-sm text-muted-foreground">管理者が内容を見て、やるかどうかを判断します。しばらくお待ちください。</p>
       )}
     </div>
   );

@@ -38,19 +38,19 @@ export function CommentForm({ taskId }: { taskId: string }) {
   }
 
   return (
-    <form className="stack" onSubmit={handleSubmit} noValidate>
+    <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
       {error && (
-        <p className="alert alert-error" role="alert">
+        <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
 
-      <label className="field">
-        <span className="field-label">コメントを追加（Markdown）</span>
+      <label className="flex min-w-0 flex-col gap-1.5">
+        <span className="text-sm font-semibold text-muted-foreground">コメントを追加（Markdown）</span>
         <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} />
       </label>
 
-      <button type="submit" className="btn-primary" disabled={submitting}>
+      <button type="submit" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" disabled={submitting}>
         {submitting ? '投稿中…' : '投稿'}
       </button>
     </form>

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { EmptyState, PageHeader } from '@/components/ui';
+import { EmptyState, PageHeader } from '@/components/app-ui';
 import { listProducts } from '@/domain/product/service';
 import { requireActor } from '@/lib/auth/cookies';
 import { can } from '@/lib/auth/rbac';
@@ -18,8 +18,8 @@ export default async function ProjectSettingsPage() {
   const projects = await listProducts();
 
   return (
-    <div className="page">
-      <nav className="crumbs" aria-label="現在の場所">
+    <div className="flex flex-col gap-5">
+      <nav className="flex flex-wrap items-center gap-3 text-sm" aria-label="現在の場所">
         <Link href="/settings">設定</Link>
       </nav>
 
@@ -33,7 +33,7 @@ export default async function ProjectSettingsPage() {
           actionHref="/projects"
         />
       ) : (
-        <ul className="rows">
+        <ul className="flex flex-col gap-2">
           {projects.map((p) => (
             <ProjectRow
               key={p.id}

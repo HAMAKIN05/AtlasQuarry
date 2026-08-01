@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
 
-import { Chip, EmptyState, Loading, PageHeader, requestStatusTone } from '@/components/ui';
+import { Badge, EmptyState, Loading, PageHeader, requestStatusTone } from '@/components/app-ui';
 import { REQUEST_STATUSES, type RequestStatus } from '@/db/schema/enums';
 import { listProducts } from '@/domain/product/service';
 import { countRequestsByStatus, listRequests } from '@/domain/request/service';
 import { loadLabels } from '@/domain/setting/labels';
 import { requireActor } from '@/lib/auth/cookies';
+import { cn } from '@/lib/cn';
 import { formatRelative } from '@/lib/format';
 import { REQUEST_TABS } from '@/lib/labels';
 
@@ -34,7 +35,7 @@ export default async function RequestsPage({ searchParams }: Props) {
   const projects = await listProducts();
 
   return (
-    <div className="page">
+    <div className="flex flex-col gap-5">
       <PageHeader
         title="要望"
         description="「こんなことができたら仕事が楽になる」を書く場所です。出された要望は管理者が見て、やるかどうかを判断します。"
@@ -56,22 +57,32 @@ async function RequestTabs({ active }: { active: RequestStatus | 'all' }) {
   const [counts, labels] = await Promise.all([countRequestsByStatus(), loadLabels()]);
   const total = Object.values(counts).reduce((sum, n) => sum + n, 0);
 
+  const item = (href: string, label: string, count: number, current: boolean) => (
+    <Link
+      key={href}
+      href={href}
+      aria-current={current ? 'page' : undefined}
+      className={cn(
+        'inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-md px-3 text-sm whitespace-nowrap',
+        current ? 'bg-card font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground',
+      )}
+    >
+      {label}
+      <span className="tabular rounded-full bg-muted px-1.5 text-xs">{count}</span>
+    </Link>
+  );
+
   return (
-    <nav className="tabs" aria-label="要望の絞り込み">
-      <Link href="/requests" className="tabs-item" aria-current={active === 'all' ? 'page' : undefined}>
-        すべて<span className="tabs-count">{total}</span>
-      </Link>
-      {REQUEST_TABS.map((status) => (
-        <Link
-          key={status}
-          href={`/requests?status=${status}`}
-          className="tabs-item"
-          aria-current={active === status ? 'page' : undefined}
-        >
-          {labels[`request.status.${status}`]}
-          <span className="tabs-count">{counts[status] ?? 0}</span>
-        </Link>
-      ))}
+    <nav aria-label="要望の絞り込み" className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-lg bg-muted p-1">
+      {item('/requests', 'すべて', total, active === 'all')}
+      {REQUEST_TABS.map((status) =>
+        item(
+          `/requests?status=${status}`,
+          labels[`request.status.${status}`],
+          counts[status] ?? 0,
+          active === status,
+        ),
+      )}
     </nav>
   );
 }
@@ -96,16 +107,23 @@ async function RequestList({ active }: { active: RequestStatus | 'all' }) {
   }
 
   return (
-    <ul className="rows">
+    <ul className="flex flex-col gap-2">
       {requests.map((r) => (
         <li key={r.id}>
-          <Link href={`/requests/${r.id}`} className="row">
-            <span className="row-main">{r.title}</span>
-            <Chip tone={requestStatusTone(r.status)}>{labels[`request.status.${r.status}`]}</Chip>
-            <span className="row-sub">
+          <Link
+            href={`/requests/${r.id}`}
+            className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md border bg-card p-3 hover:bg-muted"
+          >
+            <span className="min-w-0 flex-1 basis-48 font-semibold">{r.title}</span>
+            <Badge tone={requestStatusTone(r.status)}>{labels[`request.status.${r.status}`]}</Badge>
+            <span className="text-xs text-muted-foreground">
               {r.reporterName}さん・{formatRelative(r.createdAt)}
             </span>
-            {r.convertedTaskKey && <span className="row-key">{r.convertedTaskKey}</span>}
+            {r.convertedTaskKey && (
+              <span className="tabular font-mono text-xs text-muted-foreground">
+                {r.convertedTaskKey}
+              </span>
+            )}
           </Link>
         </li>
       ))}

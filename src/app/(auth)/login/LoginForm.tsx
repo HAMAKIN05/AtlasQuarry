@@ -3,6 +3,10 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
+import { Alert, Field } from '@/components/app-ui';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { ApiError, api } from '@/lib/api/client';
 
 type LoginResponse = { totpRequired: boolean };
@@ -50,74 +54,73 @@ export function LoginForm() {
   }
 
   return (
-    <form className="auth-form" onSubmit={handleSubmit} noValidate>
-      {error && (
-        <p className="alert alert-error" role="alert">
-          {error}
-        </p>
-      )}
+    <Card>
+      <CardContent>
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
+          {error && <Alert tone="error">{error}</Alert>}
 
-      <label className="field">
-        <span className="field-label">メールアドレス</span>
-        <input
-          type="email"
-          name="email"
-          autoComplete="username"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          disabled={needsTotp}
-        />
-      </label>
+          <Field label="メールアドレス" htmlFor="email">
+            <Input
+              id="email"
+              type="email"
+              name="email"
+              autoComplete="username"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={needsTotp}
+            />
+          </Field>
 
-      <label className="field">
-        <span className="field-label">パスワード</span>
-        <input
-          type="password"
-          name="password"
-          autoComplete="current-password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          disabled={needsTotp}
-        />
-      </label>
+          <Field label="パスワード" htmlFor="password">
+            <Input
+              id="password"
+              type="password"
+              name="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={needsTotp}
+            />
+          </Field>
 
-      {needsTotp && (
-        <label className="field">
-          <span className="field-label">認証コード（6桁）</span>
-          <input
-            type="text"
-            name="totpCode"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            pattern="\d{6}"
-            maxLength={6}
-            required
-            autoFocus
-            value={totpCode}
-            onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
-          />
-        </label>
-      )}
+          {needsTotp && (
+            <Field label="認証コード（6桁）" htmlFor="totp">
+              <Input
+                id="totp"
+                name="totpCode"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="\d{6}"
+                maxLength={6}
+                required
+                autoFocus
+                value={totpCode}
+                onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
+              />
+            </Field>
+          )}
 
-      <button type="submit" className="btn-primary" disabled={submitting}>
-        {submitting ? '確認中…' : 'ログイン'}
-      </button>
+          <Button type="submit" disabled={submitting}>
+            {submitting ? '確認中…' : 'ログイン'}
+          </Button>
 
-      {needsTotp && (
-        <button
-          type="button"
-          className="btn-quiet"
-          onClick={() => {
-            setNeedsTotp(false);
-            setTotpCode('');
-            setError(null);
-          }}
-        >
-          メールアドレスを入力し直す
-        </button>
-      )}
-    </form>
+          {needsTotp && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setNeedsTotp(false);
+                setTotpCode('');
+                setError(null);
+              }}
+            >
+              メールアドレスを入力し直す
+            </Button>
+          )}
+        </form>
+      </CardContent>
+    </Card>
   );
 }

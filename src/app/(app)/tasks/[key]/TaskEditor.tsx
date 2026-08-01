@@ -89,25 +89,25 @@ export function TaskEditor({
   }
 
   return (
-    <section className="card" aria-labelledby="edit-heading">
-      <h2 id="edit-heading" className="card-title">
+    <section className="rounded-lg border bg-card p-4" aria-labelledby="edit-heading">
+      <h2 id="edit-heading" className="mb-3 text-base font-bold">
         編集
       </h2>
 
-      <form className="stack" onSubmit={handleSubmit} noValidate>
+      <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
         {error && (
-          <p className="alert alert-error" role="alert">
+          <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
             {error}
           </p>
         )}
         {saved && (
-          <p className="alert" role="status">
+          <p className="rounded-md bg-warning-soft px-3 py-2 text-sm text-warning" role="status">
             保存しました
           </p>
         )}
 
-        <label className="field">
-          <span className="field-label">タイトル</span>
+        <label className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-sm font-semibold text-muted-foreground">タイトル</span>
           <input
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -116,8 +116,8 @@ export function TaskEditor({
           />
         </label>
 
-        <label className="field">
-          <span className="field-label">本文（Markdown）</span>
+        <label className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-sm font-semibold text-muted-foreground">本文（Markdown）</span>
           <textarea
             value={form.bodyMd ?? ''}
             onChange={(e) => setForm({ ...form, bodyMd: e.target.value })}
@@ -125,8 +125,8 @@ export function TaskEditor({
           />
         </label>
 
-        <label className="field">
-          <span className="field-label">ステータス</span>
+        <label className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-sm font-semibold text-muted-foreground">ステータス</span>
           <select
             value={form.status}
             onChange={(e) => setForm({ ...form, status: e.target.value as TaskStatus })}
@@ -139,8 +139,8 @@ export function TaskEditor({
           </select>
         </label>
 
-        <label className="field">
-          <span className="field-label">優先度</span>
+        <label className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-sm font-semibold text-muted-foreground">優先度</span>
           <select
             value={form.priority}
             onChange={(e) => setForm({ ...form, priority: e.target.value as TaskPriority })}
@@ -153,8 +153,8 @@ export function TaskEditor({
           </select>
         </label>
 
-        <label className="field">
-          <span className="field-label">担当者</span>
+        <label className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-sm font-semibold text-muted-foreground">担当者</span>
           <select
             value={form.assigneeId ?? ''}
             onChange={(e) => setForm({ ...form, assigneeId: e.target.value || null })}
@@ -168,8 +168,8 @@ export function TaskEditor({
           </select>
         </label>
 
-        <label className="field">
-          <span className="field-label">開発項目</span>
+        <label className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-sm font-semibold text-muted-foreground">開発項目</span>
           <select
             value={form.featureId ?? ''}
             onChange={(e) => setForm({ ...form, featureId: e.target.value || null })}
@@ -183,8 +183,8 @@ export function TaskEditor({
           </select>
         </label>
 
-        <label className="field">
-          <span className="field-label">開始日</span>
+        <label className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-sm font-semibold text-muted-foreground">開始日</span>
           <input
             type="date"
             value={form.startDate ?? ''}
@@ -192,8 +192,8 @@ export function TaskEditor({
           />
         </label>
 
-        <label className="field">
-          <span className="field-label">期限日</span>
+        <label className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-sm font-semibold text-muted-foreground">期限日</span>
           <input
             type="date"
             value={form.dueDate ?? ''}
@@ -201,12 +201,12 @@ export function TaskEditor({
           />
         </label>
 
-        <div className="actions">
-          <button type="submit" className="btn-primary" disabled={saving}>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="submit" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" disabled={saving}>
             {saving ? '保存中…' : '保存'}
           </button>
           {canDelete && (
-            <button type="button" className="btn-danger" onClick={handleDelete} disabled={saving}>
+            <button type="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none border border-destructive bg-card text-destructive hover:bg-danger-soft" onClick={handleDelete} disabled={saving}>
               削除
             </button>
           )}

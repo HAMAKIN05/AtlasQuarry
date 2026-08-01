@@ -13,7 +13,7 @@ export default function Error({ reset }: { error: Error & { digest?: string }; r
   }, []);
 
   return (
-    <div className="page">
+    <div className="flex flex-col gap-5">
       <h1 className="page-title">エラーが発生しました</h1>
       <p>操作を完了できませんでした。時間をおいて再度お試しください。</p>
       <button type="button" onClick={reset}>

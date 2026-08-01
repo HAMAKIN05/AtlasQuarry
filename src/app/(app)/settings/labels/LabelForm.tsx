@@ -58,29 +58,29 @@ export function LabelForm({
   }
 
   return (
-    <form className="stack" onSubmit={handleSubmit} noValidate>
+    <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
       {error && (
-        <p className="alert alert-error" role="alert">
+        <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
       {saved && (
-        <p className="alert" role="status">
+        <p className="rounded-md bg-warning-soft px-3 py-2 text-sm text-warning" role="status">
           保存しました。画面の表示が切り替わります。
         </p>
       )}
 
       {GROUPS.map((group) => (
-        <section key={group.prefix} className="card">
-          <h2 className="card-title">{group.title}</h2>
-          {group.hint && <p className="hint">{group.hint}</p>}
+        <section key={group.prefix} className="rounded-lg border bg-card p-4">
+          <h2 className="mb-3 text-base font-bold">{group.title}</h2>
+          {group.hint && <p className="mb-3 text-sm text-muted-foreground">{group.hint}</p>}
 
-          <div className="labelgrid">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {Object.keys(defaults)
               .filter((key) => key.startsWith(group.prefix))
               .map((key) => (
-                <label key={key} className="field">
-                  <span className="field-label">既定：{defaults[key as LabelKey]}</span>
+                <label key={key} className="flex min-w-0 flex-col gap-1.5">
+                  <span className="text-sm font-semibold text-muted-foreground">既定：{defaults[key as LabelKey]}</span>
                   <input
                     value={values[key] ?? ''}
                     onChange={(e) => setValues({ ...values, [key]: e.target.value })}
@@ -93,8 +93,8 @@ export function LabelForm({
         </section>
       ))}
 
-      <div className="actions">
-        <button type="submit" className="btn-primary" disabled={busy}>
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="submit" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" disabled={busy}>
           {busy ? '保存中…' : '保存'}
         </button>
       </div>

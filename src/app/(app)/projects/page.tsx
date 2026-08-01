@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
 
-import { Chip, EmptyState, Loading, PageHeader, Progress } from '@/components/ui';
+import { Badge, EmptyState, Loading, PageHeader, Progress } from '@/components/app-ui';
 import { listProducts } from '@/domain/product/service';
 import { requireActor } from '@/lib/auth/cookies';
 import { can } from '@/lib/auth/rbac';
@@ -17,7 +17,7 @@ export default async function ProjectsPage() {
   const actor = await requireActor();
 
   return (
-    <div className="page">
+    <div className="flex flex-col gap-5">
       <PageHeader
         title="プロジェクト"
         description="内製化する対象ごとのまとまりです。たとえば「日報自動化」「SNS分析」のような単位で作ります。"
@@ -48,19 +48,19 @@ async function ProjectList({ canCreate }: { canCreate: boolean }) {
   }
 
   return (
-    <ul className="cards">
+    <ul className="grid gap-3 sm:grid-cols-2">
       {projects.map((p) => (
         <li key={p.id}>
-          <Link href={`/projects/${p.id}`} className="pcard">
-            <span className="pcard-head">
-              <span className="pcard-name">{p.name}</span>
-              <Chip tone={p.status === 'active' ? 'progress' : 'neutral'}>
+          <Link href={`/projects/${p.id}`} className="flex flex-col gap-2 rounded-lg border bg-card p-4 hover:border-primary">
+            <span className="flex items-center gap-2">
+              <span className="flex-1 text-base font-bold">{p.name}</span>
+              <Badge tone={p.status === 'active' ? 'progress' : 'neutral'}>
                 {PROJECT_STATUS_LABELS[p.status]}
-              </Chip>
+              </Badge>
             </span>
-            {p.description && <span className="pcard-desc">{p.description}</span>}
+            {p.description && <span className="text-sm text-muted-foreground">{p.description}</span>}
             <Progress done={p.progress.doneTasks} total={p.progress.totalTasks} />
-            {p.nextDueDate && <span className="pcard-due">次の期限 {formatDate(p.nextDueDate)}</span>}
+            {p.nextDueDate && <span className="text-sm text-muted-foreground">次の期限 {formatDate(p.nextDueDate)}</span>}
           </Link>
         </li>
       ))}

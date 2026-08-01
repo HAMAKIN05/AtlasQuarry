@@ -46,30 +46,30 @@ export function ProfileForm({ initialName }: { initialName: string }) {
   }
 
   return (
-    <section className="card" aria-labelledby="profile-heading">
-      <h2 id="profile-heading" className="card-title">
+    <section className="rounded-lg border bg-card p-4" aria-labelledby="profile-heading">
+      <h2 id="profile-heading" className="mb-3 text-base font-bold">
         基本情報
       </h2>
 
-      <form className="stack" onSubmit={handleSubmit} noValidate>
+      <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
         {error && (
-          <p className="alert alert-error" role="alert">
+          <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
             {error}
           </p>
         )}
         {notice && (
-          <p className="alert" role="status">
+          <p className="rounded-md bg-warning-soft px-3 py-2 text-sm text-warning" role="status">
             {notice}
           </p>
         )}
 
-        <label className="field">
-          <span className="field-label">名前</span>
+        <label className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-sm font-semibold text-muted-foreground">名前</span>
           <input value={name} onChange={(e) => setName(e.target.value)} maxLength={100} required />
         </label>
 
-        <label className="field">
-          <span className="field-label">現在のパスワード</span>
+        <label className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-sm font-semibold text-muted-foreground">現在のパスワード</span>
           <input
             type="password"
             autoComplete="current-password"
@@ -78,8 +78,8 @@ export function ProfileForm({ initialName }: { initialName: string }) {
           />
         </label>
 
-        <label className="field">
-          <span className="field-label">新しいパスワード</span>
+        <label className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-sm font-semibold text-muted-foreground">新しいパスワード</span>
           <input
             type="password"
             autoComplete="new-password"
@@ -88,12 +88,12 @@ export function ProfileForm({ initialName }: { initialName: string }) {
             minLength={PASSWORD_MIN_LENGTH}
             aria-describedby="password-hint"
           />
-          <span id="password-hint" className="field-hint">
+          <span id="password-hint" className="text-xs leading-relaxed text-muted-foreground">
             変更する場合のみ入力してください（{PASSWORD_MIN_LENGTH}文字以上）
           </span>
         </label>
 
-        <button type="submit" className="btn-primary" disabled={saving}>
+        <button type="submit" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" disabled={saving}>
           {saving ? '保存中…' : '保存'}
         </button>
       </form>

@@ -1,6 +1,6 @@
 import { asc, eq } from 'drizzle-orm';
 
-import { EmptyState, PageHeader } from '@/components/ui';
+import { EmptyState, PageHeader } from '@/components/app-ui';
 import { db } from '@/db/client';
 import { actor as actorTable, product as productTable } from '@/db/schema';
 import { listFeatures } from '@/domain/product/service';
@@ -32,7 +32,7 @@ export default async function TasksPage({ searchParams }: Props) {
 
   if (projects.length === 0) {
     return (
-      <div className="page">
+      <div className="flex flex-col gap-5">
         <PageHeader title="タスク" />
         <EmptyState
           title="先にプロジェクトを作ってください"
@@ -56,7 +56,7 @@ export default async function TasksPage({ searchParams }: Props) {
   ]);
 
   return (
-    <div className="page">
+    <div className="flex flex-col gap-5">
       <TaskWorkspace
         projects={projects}
         projectId={projectId}

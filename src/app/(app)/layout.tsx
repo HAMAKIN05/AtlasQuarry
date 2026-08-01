@@ -27,12 +27,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <LabelsProvider value={labels}>
-      <div className="shell">
+      <div className="min-h-dvh lg:grid lg:grid-cols-[15rem_minmax(0,1fr)]">
         <AppNav
           actor={{ id: actor.id, name: actor.name, role: actor.role }}
           pendingRequests={pendingRequests}
         />
-        <main className="shell-main">{children}</main>
+        {/* スマホは下部タブのぶん余白を空ける。lg 以上ではタブが無い */}
+        <main className="px-4 pt-4 pb-24 lg:px-6 lg:py-8">
+          <div className="mx-auto w-full max-w-5xl">{children}</div>
+        </main>
       </div>
     </LabelsProvider>
   );

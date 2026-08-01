@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 
 import { asc, eq } from 'drizzle-orm';
 
-import { Chip, Loading, PageHeader, priorityTone, taskStatusTone } from '@/components/ui';
+import { Badge, Loading, PageHeader, priorityTone, taskStatusTone } from '@/components/app-ui';
 import { db } from '@/db/client';
 import { actor as actorTable } from '@/db/schema';
 import { listTaskTimeline } from '@/domain/activity/queries';
@@ -58,28 +58,28 @@ export default async function TaskDetailPage({ params }: Props) {
   const due = dueLabel(task.dueDate, task.status);
 
   return (
-    <div className="page">
-      <nav className="crumbs" aria-label="現在の場所">
+    <div className="flex flex-col gap-5">
+      <nav className="flex flex-wrap items-center gap-3 text-sm" aria-label="現在の場所">
         <Link href={`/projects/${task.productId}`}>{task.productKey}</Link>
         <Link href={`/tasks?projectId=${task.productId}`}>タスク</Link>
       </nav>
 
       <PageHeader title={task.title} />
-      <p className="key-line">{task.key}</p>
+      <p className="-mt-2 font-mono text-xs text-muted-foreground">{task.key}</p>
 
-      <div className="meta">
+      <div className="grid overflow-hidden rounded-lg border bg-card sm:grid-cols-2">
         <div>
           <dt>状態</dt>
           <dd>
-            <Chip tone={taskStatusTone(task.status)}>{labels[`task.status.${task.status}`]}</Chip>
+            <Badge tone={taskStatusTone(task.status)}>{labels[`task.status.${task.status}`]}</Badge>
           </dd>
         </div>
         <div>
           <dt>優先度</dt>
           <dd>
-            <Chip tone={priorityTone(task.priority)}>
+            <Badge tone={priorityTone(task.priority)}>
               {labels[`task.priority.${task.priority}`]}
-            </Chip>
+            </Badge>
           </dd>
         </div>
         <div>
@@ -96,26 +96,26 @@ export default async function TaskDetailPage({ params }: Props) {
         </div>
         <div>
           <dt>期限</dt>
-          <dd className={isOverdue(task.dueDate, task.status) ? 'is-late' : undefined}>
+          <dd className={isOverdue(task.dueDate, task.status) ? 'font-bold text-destructive' : undefined}>
             {due ? `${due}（${formatDateFull(task.dueDate)}）` : '—'}
           </dd>
         </div>
       </div>
 
       {fromRequest && (
-        <p className="hint">
+        <p className="mb-3 text-sm text-muted-foreground">
           この作業は要望から作られました。
           <Link href={`/requests/${fromRequest.id}`}>「{fromRequest.title}」を見る</Link>
         </p>
       )}
 
-      <section className="card">
-        <h2 className="card-title">内容</h2>
+      <section className="rounded-lg border bg-card p-4">
+        <h2 className="mb-3 text-base font-bold">内容</h2>
         {bodyHtml ? (
           // renderMarkdown が rehype-sanitize を通しているため、入るのは検査済みのHTMLのみ
           <div className="markdown" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
         ) : (
-          <p className="muted">まだ書かれていません。下の「編集」から追記できます。</p>
+          <p className="text-sm text-muted-foreground">まだ書かれていません。下の「編集」から追記できます。</p>
         )}
       </section>
 
@@ -179,17 +179,17 @@ async function CommentsPanel({ taskId, actor }: { taskId: string; actor: Session
   const commentHtml = await Promise.all(comments.map((c) => renderMarkdown(c.bodyMd)));
 
   return (
-    <section className="card">
-      <h2 className="card-title">コメント（{comments.length}）</h2>
+    <section className="rounded-lg border bg-card p-4">
+      <h2 className="mb-3 text-base font-bold">コメント（{comments.length}）</h2>
 
       {comments.length === 0 ? (
-        <p className="muted">まだコメントはありません。気づいたことを書いておくと後で役に立ちます。</p>
+        <p className="text-sm text-muted-foreground">まだコメントはありません。気づいたことを書いておくと後で役に立ちます。</p>
       ) : (
-        <ul className="comments">
+        <ul className="flex flex-col gap-2">
           {comments.map((comment, index) => (
-            <li key={comment.id} className="comment">
-              <p className="comment-head">
-                <span className="comment-who">{comment.authorName}さん</span>
+            <li key={comment.id} className="rounded-md border p-3">
+              <p className="mb-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <span className="font-bold text-foreground">{comment.authorName}さん</span>
                 <time dateTime={comment.createdAt.toISOString()}>
                   {formatDateTime(comment.createdAt)}
                 </time>
@@ -213,12 +213,12 @@ async function HistoryPanel({ taskId }: { taskId: string }) {
   const timeline = await listTaskTimeline(taskId);
 
   return (
-    <section className="card">
-      <h2 className="card-title">履歴</h2>
+    <section className="rounded-lg border bg-card p-4">
+      <h2 className="mb-3 text-base font-bold">履歴</h2>
       {timeline.length === 0 ? (
-        <p className="muted">まだ記録がありません。</p>
+        <p className="text-sm text-muted-foreground">まだ記録がありません。</p>
       ) : (
-        <ol className="timeline">
+        <ol className="flex flex-col">
           {timeline.map((item) => (
             <li key={item.id}>
               <time dateTime={item.createdAt.toISOString()}>{formatDateTime(item.createdAt)}</time>

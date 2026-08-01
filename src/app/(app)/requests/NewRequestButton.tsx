@@ -45,24 +45,24 @@ export function NewRequestButton({ projects }: { projects: Array<{ id: string; n
 
   if (!open) {
     return (
-      <button type="button" className="btn-primary" onClick={() => setOpen(true)}>
+      <button type="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setOpen(true)}>
         要望を出す
       </button>
     );
   }
 
   return (
-    <form className="panel" onSubmit={handleSubmit} noValidate>
-      <h2 className="panel-title">要望を出す</h2>
+    <form className="flex flex-col gap-4 rounded-lg border bg-card p-4" onSubmit={handleSubmit} noValidate>
+      <h2 className="text-base font-bold">要望を出す</h2>
 
       {error && (
-        <p className="alert alert-error" role="alert">
+        <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
 
-      <label className="field">
-        <span className="field-label">こんなことができたら</span>
+      <label className="flex min-w-0 flex-col gap-1.5">
+        <span className="text-sm font-semibold text-muted-foreground">こんなことができたら</span>
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -71,11 +71,11 @@ export function NewRequestButton({ projects }: { projects: Array<{ id: string; n
           autoFocus
           placeholder="例：受付の入力を減らしたい"
         />
-        <span className="field-hint">短くて構いません。細かい話は下の欄か、後のやり取りで。</span>
+        <span className="text-xs leading-relaxed text-muted-foreground">短くて構いません。細かい話は下の欄か、後のやり取りで。</span>
       </label>
 
-      <label className="field">
-        <span className="field-label">補足（任意）</span>
+      <label className="flex min-w-0 flex-col gap-1.5">
+        <span className="text-sm font-semibold text-muted-foreground">補足（任意）</span>
         <textarea
           value={bodyMd}
           onChange={(e) => setBodyMd(e.target.value)}
@@ -85,8 +85,8 @@ export function NewRequestButton({ projects }: { projects: Array<{ id: string; n
       </label>
 
       {projects.length > 0 && (
-        <label className="field">
-          <span className="field-label">関係するプロジェクト（任意）</span>
+        <label className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-sm font-semibold text-muted-foreground">関係するプロジェクト（任意）</span>
           <select value={productId} onChange={(e) => setProductId(e.target.value)}>
             <option value="">分からない・特にない</option>
             {projects.map((p) => (
@@ -98,11 +98,11 @@ export function NewRequestButton({ projects }: { projects: Array<{ id: string; n
         </label>
       )}
 
-      <div className="actions">
-        <button type="submit" className="btn-primary" disabled={submitting}>
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="submit" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" disabled={submitting}>
           {submitting ? '送信中…' : '出す'}
         </button>
-        <button type="button" className="btn-quiet" onClick={() => setOpen(false)}>
+        <button type="button" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-accent disabled:opacity-50" onClick={() => setOpen(false)}>
           やめる
         </button>
       </div>

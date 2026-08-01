@@ -1,0 +1,222 @@
+import Link from 'next/link';
+import type { ReactNode } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/cn';
+
+/**
+ * 画面をまたいで使うアプリ固有の部品。
+ *
+ * shadcn/ui の素の部品（Button / Card / Badge …）は components/ui に置き、
+ * 「AtlasQuarry としてどう見せるか」を決めたものだけをここに置く。
+ */
+
+/**
+ * 空状態。**「ありません」で終わらせない**（CLAUDE.md UI規約）。
+ *
+ * 何のための場所かを1行で説明し、次の操作へのボタンを置く。初めて開いた人が
+ * 説明書なしで最初の1件を作れることが目的。
+ */
+export function EmptyState({
+  title,
+  description,
+  actionLabel,
+  actionHref,
+  children,
+  className,
+}: {
+  title: string;
+  description: string;
+  actionLabel?: string;
+  actionHref?: string;
+  children?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        'flex flex-col items-start gap-2 rounded-lg border border-dashed bg-card px-4 py-6',
+        className,
+      )}
+    >
+      <p className="font-bold">{title}</p>
+      <p className="max-w-[52ch] text-sm text-muted-foreground">{description}</p>
+      {actionHref && actionLabel && (
+        <Button asChild className="mt-1">
+          <Link href={actionHref}>{actionLabel}</Link>
+        </Button>
+      )}
+      {children}
+    </div>
+  );
+}
+
+/** 進捗バー。数値も併記する（バーだけだと正確な割合が読めない）。 */
+export function Progress({
+  done,
+  total,
+  className,
+}: {
+  done: number;
+  total: number;
+  className?: string;
+}) {
+  const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+
+  return (
+    <div className={cn('flex items-center gap-2', className)}>
+      <div
+        className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"
+        role="progressbar"
+        aria-valuenow={percent}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="進捗"
+      >
+        <div className="h-full bg-primary transition-[width]" style={{ width: `${percent}%` }} />
+      </div>
+      <span className="tabular shrink-0 text-xs text-muted-foreground">
+        {total === 0 ? 'タスクなし' : `${percent}%（${done}/${total}）`}
+      </span>
+    </div>
+  );
+}
+
+/** 画面の見出し。説明文と主操作をまとめて置く。 */
+export function PageHeader({
+  title,
+  description,
+  action,
+}: {
+  title: string;
+  description?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{title}</h1>
+        {description && (
+          <p className="max-w-[62ch] text-sm text-muted-foreground">{description}</p>
+        )}
+      </div>
+      {action && <div className="[&>*]:w-full sm:[&>*]:w-auto">{action}</div>}
+    </header>
+  );
+}
+
+export function Crumbs({ children }: { children: ReactNode }) {
+  return (
+    <nav aria-label="現在の場所" className="flex flex-wrap items-center gap-3 text-sm">
+      {children}
+    </nav>
+  );
+}
+
+export function Loading({ label = '読み込んでいます' }: { label?: string }) {
+  return (
+    <p
+      role="status"
+      aria-live="polite"
+      className="rounded-lg border bg-card p-4 text-sm text-muted-foreground"
+    >
+      {label}
+    </p>
+  );
+}
+
+export function Alert({
+  children,
+  tone = 'warn',
+  className,
+}: {
+  children: ReactNode;
+  tone?: 'warn' | 'error';
+  className?: string;
+}) {
+  return (
+    <p
+      role={tone === 'error' ? 'alert' : 'status'}
+      className={cn(
+        'rounded-md px-3 py-2 text-sm',
+        tone === 'error' ? 'bg-danger-soft text-destructive' : 'bg-warning-soft text-warning',
+        className,
+      )}
+    >
+      {children}
+    </p>
+  );
+}
+
+/** フォームの1項目。ラベル・入力・補足の並びを揃える。 */
+export function Field({
+  label,
+  hint,
+  htmlFor,
+  children,
+  className,
+}: {
+  label: string;
+  hint?: ReactNode;
+  htmlFor?: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn('flex min-w-0 flex-col gap-1.5', className)}>
+      <label htmlFor={htmlFor} className="text-sm font-semibold text-muted-foreground">
+        {label}
+      </label>
+      {children}
+      {hint && <p className="text-xs leading-relaxed text-muted-foreground">{hint}</p>}
+    </div>
+  );
+}
+
+/* ---- 状態と色の対応。増やすときは意味との結び付きを崩さない ---- */
+
+export function taskStatusTone(status: string) {
+  switch (status) {
+    case 'in_progress':
+      return 'progress' as const;
+    case 'review':
+      return 'warn' as const;
+    case 'done':
+      return 'done' as const;
+    case 'cancelled':
+      return 'muted' as const;
+    default:
+      return 'neutral' as const;
+  }
+}
+
+export function requestStatusTone(status: string) {
+  switch (status) {
+    case 'received':
+      return 'warn' as const;
+    case 'reviewing':
+      return 'progress' as const;
+    case 'accepted':
+      return 'done' as const;
+    case 'rejected':
+      return 'muted' as const;
+    default:
+      return 'neutral' as const;
+  }
+}
+
+export function priorityTone(priority: string) {
+  switch (priority) {
+    case 'urgent':
+      return 'danger' as const;
+    case 'high':
+      return 'warn' as const;
+    case 'low':
+      return 'muted' as const;
+    default:
+      return 'neutral' as const;
+  }
+}
+
+export { Badge };

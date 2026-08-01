@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { PageHeader } from '@/components/ui';
+import { PageHeader } from '@/components/app-ui';
 import { requireActor } from '@/lib/auth/cookies';
 import { ROLE_DESCRIPTIONS, ROLE_LABELS } from '@/lib/labels';
 
@@ -14,14 +14,14 @@ export default async function ProfileSettingsPage() {
   const actor = await requireActor();
 
   return (
-    <div className="page">
-      <nav className="crumbs" aria-label="現在の場所">
+    <div className="flex flex-col gap-5">
+      <nav className="flex flex-wrap items-center gap-3 text-sm" aria-label="現在の場所">
         <Link href="/settings">設定</Link>
       </nav>
 
       <PageHeader title="自分の設定" />
 
-      <div className="meta">
+      <div className="grid overflow-hidden rounded-lg border bg-card sm:grid-cols-2">
         <div>
           <dt>ログインID</dt>
           <dd>{actor.email ?? '—'}</dd>
@@ -30,7 +30,7 @@ export default async function ProfileSettingsPage() {
           <dt>権限</dt>
           <dd>
             {ROLE_LABELS[actor.role]}
-            <span className="muted">（{ROLE_DESCRIPTIONS[actor.role]}）</span>
+            <span className="text-sm text-muted-foreground">（{ROLE_DESCRIPTIONS[actor.role]}）</span>
           </dd>
         </div>
       </div>

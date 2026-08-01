@@ -118,12 +118,12 @@ export function KanbanBoard({ tasks, allTasks, onTasksChange }: Props) {
   return (
     <>
       {error && (
-        <p className="alert alert-error" role="alert">
+        <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
 
-      <p className="hint hint-mobile">
+      <p className="mb-3 text-sm text-muted-foreground hint-mobile">
         カード左の持ち手を長押ししてから動かすと、状態を変えられます。
       </p>
 
@@ -134,7 +134,7 @@ export function KanbanBoard({ tasks, allTasks, onTasksChange }: Props) {
         onDragEnd={handleDragEnd}
         onDragCancel={() => setActiveId(null)}
       >
-        <div className="board">
+        <div className="flex gap-3 overflow-x-auto pb-2">
           {BOARD_COLUMNS.map((status) => {
             const items = columns.get(status) ?? [];
             return (
@@ -149,7 +149,7 @@ export function KanbanBoard({ tasks, allTasks, onTasksChange }: Props) {
                   strategy={verticalListSortingStrategy}
                 >
                   {items.length === 0 ? (
-                    <p className="board-empty">ここにドラッグ</p>
+                    <p className="grid min-h-20 place-items-center rounded-md border border-dashed text-xs text-muted-foreground">ここにドラッグ</p>
                   ) : (
                     items.map((task) => <TaskCard key={task.id} task={task} />)
                   )}

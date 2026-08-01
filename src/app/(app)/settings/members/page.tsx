@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { PageHeader } from '@/components/ui';
+import { PageHeader } from '@/components/app-ui';
 import { listMembers } from '@/domain/member/service';
 import { requireActor } from '@/lib/auth/cookies';
 import { can } from '@/lib/auth/rbac';
@@ -19,8 +19,8 @@ export default async function MembersPage() {
   const members = await listMembers();
 
   return (
-    <div className="page">
-      <nav className="crumbs" aria-label="現在の場所">
+    <div className="flex flex-col gap-5">
+      <nav className="flex flex-wrap items-center gap-3 text-sm" aria-label="現在の場所">
         <Link href="/settings">設定</Link>
       </nav>
 
@@ -29,7 +29,7 @@ export default async function MembersPage() {
         description="名前と権限を変えられます。新しい人の追加は、今のところ開発者に依頼してください。"
       />
 
-      <ul className="rows">
+      <ul className="flex flex-col gap-2">
         {members.map((member) => (
           <MemberRow key={member.id} member={member} isSelf={member.id === actor.id} />
         ))}

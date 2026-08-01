@@ -67,27 +67,27 @@ export function TotpSection({ enabled }: { enabled: boolean }) {
   }
 
   return (
-    <section className="card" aria-labelledby="totp-heading">
-      <h2 id="totp-heading" className="card-title">
+    <section className="rounded-lg border bg-card p-4" aria-labelledby="totp-heading">
+      <h2 id="totp-heading" className="mb-3 text-base font-bold">
         2要素認証
       </h2>
 
       {error && (
-        <p className="alert alert-error" role="alert">
+        <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
       {notice && (
-        <p className="alert" role="status">
+        <p className="rounded-md bg-warning-soft px-3 py-2 text-sm text-warning" role="status">
           {notice}
         </p>
       )}
 
       {enabled ? (
-        <div className="stack">
+        <div className="flex flex-col gap-3">
           <p>現在: 有効</p>
-          <label className="field">
-            <span className="field-label">解除するにはパスワードを入力してください</span>
+          <label className="flex min-w-0 flex-col gap-1.5">
+            <span className="text-sm font-semibold text-muted-foreground">解除するにはパスワードを入力してください</span>
             <input
               type="password"
               autoComplete="current-password"
@@ -95,22 +95,22 @@ export function TotpSection({ enabled }: { enabled: boolean }) {
               onChange={(e) => setPassword(e.target.value)}
             />
           </label>
-          <button type="button" className="btn-danger" onClick={disable} disabled={busy || !password}>
+          <button type="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none border border-destructive bg-card text-destructive hover:bg-danger-soft" onClick={disable} disabled={busy || !password}>
             解除する
           </button>
         </div>
       ) : setup ? (
-        <div className="stack">
+        <div className="flex flex-col gap-3">
           <p>認証アプリに次のシークレットを登録し、表示された6桁を入力してください。</p>
-          <p className="totp-secret">
+          <p className="text-sm">
             <code>{setup.secret}</code>
           </p>
-          <p className="field-hint">
+          <p className="text-xs leading-relaxed text-muted-foreground">
             <a href={setup.uri}>認証アプリで開く</a>
           </p>
 
-          <label className="field">
-            <span className="field-label">認証コード（6桁）</span>
+          <label className="flex min-w-0 flex-col gap-1.5">
+            <span className="text-sm font-semibold text-muted-foreground">認証コード（6桁）</span>
             <input
               inputMode="numeric"
               pattern="\d{6}"
@@ -120,13 +120,13 @@ export function TotpSection({ enabled }: { enabled: boolean }) {
             />
           </label>
 
-          <div className="actions">
-            <button type="button" className="btn-primary" onClick={confirm} disabled={busy || code.length !== 6}>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" onClick={confirm} disabled={busy || code.length !== 6}>
               有効にする
             </button>
             <button
               type="button"
-              className="btn-quiet"
+              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-accent disabled:opacity-50"
               onClick={() => {
                 setSetup(null);
                 setCode('');
@@ -137,9 +137,9 @@ export function TotpSection({ enabled }: { enabled: boolean }) {
           </div>
         </div>
       ) : (
-        <div className="stack">
+        <div className="flex flex-col gap-3">
           <p>現在: 無効</p>
-          <button type="button" className="btn-primary" onClick={begin} disabled={busy}>
+          <button type="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" onClick={begin} disabled={busy}>
             設定する
           </button>
         </div>

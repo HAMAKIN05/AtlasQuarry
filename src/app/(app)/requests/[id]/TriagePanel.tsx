@@ -48,19 +48,19 @@ export function TriagePanel({
   }
 
   return (
-    <section className="card">
-      <h2 className="card-title">この要望をどうしますか</h2>
+    <section className="rounded-lg border bg-card p-4">
+      <h2 className="mb-3 text-base font-bold">この要望をどうしますか</h2>
 
       {error && (
-        <p className="alert alert-error" role="alert">
+        <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
 
       {rejecting ? (
-        <div className="stack">
-          <label className="field">
-            <span className="field-label">見送る理由</span>
+        <div className="flex flex-col gap-3">
+          <label className="flex min-w-0 flex-col gap-1.5">
+            <span className="text-sm font-semibold text-muted-foreground">見送る理由</span>
             <textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
@@ -68,30 +68,30 @@ export function TriagePanel({
               autoFocus
               placeholder="例：来期の予算で検討するため、今は着手しない"
             />
-            <span className="field-hint">
+            <span className="text-xs leading-relaxed text-muted-foreground">
               出した人が納得できるよう、なぜ今やらないのかを書きます。記録として残ります。
             </span>
           </label>
-          <div className="actions">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              className="btn-danger"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none border border-destructive bg-card text-destructive hover:bg-danger-soft"
               disabled={busy || reason.trim().length === 0}
               onClick={() => decide('rejected', reason)}
             >
               見送りにする
             </button>
-            <button type="button" className="btn-quiet" onClick={() => setRejecting(false)}>
+            <button type="button" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-accent disabled:opacity-50" onClick={() => setRejecting(false)}>
               やめる
             </button>
           </div>
         </div>
       ) : (
-        <div className="actions">
+        <div className="flex flex-wrap items-center gap-2">
           {status !== 'reviewing' && (
             <button
               type="button"
-              className="btn-secondary"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none border border-input bg-card hover:bg-muted"
               disabled={busy}
               onClick={() => decide('reviewing')}
             >
@@ -101,20 +101,20 @@ export function TriagePanel({
           {status !== 'accepted' && (
             <button
               type="button"
-              className="btn-primary"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90"
               disabled={busy}
               onClick={() => decide('accepted')}
             >
               着手する
             </button>
           )}
-          <button type="button" className="btn-danger" disabled={busy} onClick={() => setRejecting(true)}>
+          <button type="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none border border-destructive bg-card text-destructive hover:bg-danger-soft" disabled={busy} onClick={() => setRejecting(true)}>
             見送る
           </button>
         </div>
       )}
 
-      <p className="hint">
+      <p className="mb-3 text-sm text-muted-foreground">
         「着手する」にすると、この下でタスクに変換できるようになります。
       </p>
     </section>

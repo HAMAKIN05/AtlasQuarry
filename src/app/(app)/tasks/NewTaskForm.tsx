@@ -79,24 +79,24 @@ export function NewTaskForm({
 
   if (!open) {
     return (
-      <button type="button" className="btn-primary" onClick={() => setOpen(true)}>
+      <button type="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setOpen(true)}>
         タスクを追加
       </button>
     );
   }
 
   return (
-    <form className="panel" onSubmit={handleSubmit} noValidate>
-      <h2 className="panel-title">タスクを追加</h2>
+    <form className="flex flex-col gap-4 rounded-lg border bg-card p-4" onSubmit={handleSubmit} noValidate>
+      <h2 className="text-base font-bold">タスクを追加</h2>
 
       {error && (
-        <p className="alert alert-error" role="alert">
+        <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
 
-      <label className="field">
-        <span className="field-label">やること</span>
+      <label className="flex min-w-0 flex-col gap-1.5">
+        <span className="text-sm font-semibold text-muted-foreground">やること</span>
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -108,8 +108,8 @@ export function NewTaskForm({
       </label>
 
       {features.length > 0 && (
-        <label className="field">
-          <span className="field-label">開発項目（任意）</span>
+        <label className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-sm font-semibold text-muted-foreground">開発項目（任意）</span>
           <select value={featureId} onChange={(e) => setFeatureId(e.target.value)}>
             <option value="">指定しない</option>
             {features.map((f) => (
@@ -121,8 +121,8 @@ export function NewTaskForm({
         </label>
       )}
 
-      <label className="field">
-        <span className="field-label">担当（任意）</span>
+      <label className="flex min-w-0 flex-col gap-1.5">
+        <span className="text-sm font-semibold text-muted-foreground">担当（任意）</span>
         <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}>
           <option value="">まだ決めない</option>
           {members.map((m) => (
@@ -133,16 +133,16 @@ export function NewTaskForm({
         </select>
       </label>
 
-      <label className="field">
-        <span className="field-label">期限（任意）</span>
+      <label className="flex min-w-0 flex-col gap-1.5">
+        <span className="text-sm font-semibold text-muted-foreground">期限（任意）</span>
         <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
       </label>
 
-      <div className="actions">
-        <button type="submit" className="btn-primary" disabled={submitting}>
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="submit" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" disabled={submitting}>
           {submitting ? '追加中…' : '追加'}
         </button>
-        <button type="button" className="btn-quiet" onClick={() => setOpen(false)}>
+        <button type="button" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-accent disabled:opacity-50" onClick={() => setOpen(false)}>
           やめる
         </button>
       </div>

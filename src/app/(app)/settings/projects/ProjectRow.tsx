@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import { Chip } from '@/components/ui';
+import { Badge } from '@/components/app-ui';
 import { PRODUCT_STATUSES, type ProductStatus } from '@/db/schema/enums';
 import { ApiError, api } from '@/lib/api/client';
 import { PROJECT_STATUS_LABELS } from '@/lib/labels';
@@ -60,22 +60,22 @@ export function ProjectRow({ project, canDelete }: { project: Project; canDelete
   }
 
   return (
-    <li className="member">
+    <li className="rounded-md border bg-card p-3">
       {error && (
-        <p className="alert alert-error" role="alert">
+        <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
 
       {editing ? (
-        <div className="stack">
-          <label className="field">
-            <span className="field-label">名前</span>
+        <div className="flex flex-col gap-3">
+          <label className="flex min-w-0 flex-col gap-1.5">
+            <span className="text-sm font-semibold text-muted-foreground">名前</span>
             <input value={name} onChange={(e) => setName(e.target.value)} maxLength={100} />
           </label>
 
-          <label className="field">
-            <span className="field-label">説明（任意）</span>
+          <label className="flex min-w-0 flex-col gap-1.5">
+            <span className="text-sm font-semibold text-muted-foreground">説明（任意）</span>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -83,8 +83,8 @@ export function ProjectRow({ project, canDelete }: { project: Project; canDelete
             />
           </label>
 
-          <label className="field">
-            <span className="field-label">状態</span>
+          <label className="flex min-w-0 flex-col gap-1.5">
+            <span className="text-sm font-semibold text-muted-foreground">状態</span>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as ProductStatus)}
@@ -97,33 +97,33 @@ export function ProjectRow({ project, canDelete }: { project: Project; canDelete
             </select>
           </label>
 
-          <div className="actions">
-            <button type="button" className="btn-primary" onClick={save} disabled={busy}>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" onClick={save} disabled={busy}>
               保存
             </button>
-            <button type="button" className="btn-quiet" onClick={() => setEditing(false)}>
+            <button type="button" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-accent disabled:opacity-50" onClick={() => setEditing(false)}>
               やめる
             </button>
           </div>
         </div>
       ) : (
-        <div className="member-view">
-          <span className="member-name">{project.name}</span>
-          <Chip tone={project.status === 'active' ? 'progress' : 'neutral'}>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-bold">{project.name}</span>
+          <Badge tone={project.status === 'active' ? 'progress' : 'neutral'}>
             {PROJECT_STATUS_LABELS[project.status]}
-          </Chip>
-          <span className="member-mail">
+          </Badge>
+          <span className="basis-full text-xs text-muted-foreground">
             {project.key}・タスク {project.taskCount} 件
           </span>
 
-          <span className="member-actions">
-            <button type="button" className="btn-quiet" onClick={() => setEditing(true)}>
+          <span className="ml-auto flex gap-1">
+            <button type="button" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-accent disabled:opacity-50" onClick={() => setEditing(true)}>
               変更
             </button>
             {canDelete && (
               <button
                 type="button"
-                className="btn-quiet btn-quiet-danger"
+                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-destructive hover:bg-danger-soft disabled:opacity-50"
                 onClick={remove}
                 disabled={busy}
               >
