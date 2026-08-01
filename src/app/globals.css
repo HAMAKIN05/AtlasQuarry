@@ -886,6 +886,180 @@ button:disabled {
   font-size: 0.76rem;
 }
 
+/* ---------- ガント（F-14） ---------- */
+
+/*
+ * ガントだけは横スクロールを許す（UI規約の例外）。ただし縦は画面幅に収め、
+ * 横スクロールは .gantt-scroll の内側に閉じる。
+ */
+.gantt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+.gantt-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s3);
+}
+.gantt-toolbar .viewswitch {
+  margin-inline-start: 0;
+}
+.gantt-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s1) var(--s2);
+  margin: 0;
+  color: var(--text-2);
+  font-size: 0.78rem;
+}
+.swatch {
+  inline-size: 14px;
+  block-size: 8px;
+  border-radius: 2px;
+}
+.swatch-feature {
+  background: #64748b;
+}
+.swatch-task {
+  background: var(--accent);
+}
+.swatch-late {
+  background: #d9534f;
+}
+.swatch-done {
+  background: var(--ok);
+}
+.btn-sm {
+  min-block-size: 36px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.85rem;
+}
+
+.gantt-scroll {
+  display: flex;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+}
+
+/* ラベル列は横スクロールしても残す */
+/*
+ * ラベル列。スマホでは 375px の画面のうち 11rem を占めると時間軸が 130px しか残らず
+ * 帯がほとんど見えなくなる（実測して気づいた）。狭い画面では詰める。
+ */
+.gantt-labels {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 2;
+  flex: none;
+  inline-size: 8.5rem;
+  border-inline-end: 1px solid var(--line);
+  background: var(--surface);
+}
+.gantt-label {
+  display: flex;
+  align-items: center;
+  padding-inline: var(--s2);
+  border-block-end: 1px solid var(--line);
+  font-size: 0.8rem;
+  overflow: hidden;
+}
+.gantt-label-feature {
+  background: var(--surface-2);
+  font-weight: 700;
+}
+.gantt-label-task {
+  padding-inline-start: var(--s4);
+}
+.gantt-label-link {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s1);
+  min-inline-size: 0;
+  color: inherit;
+  text-decoration: none;
+}
+.gantt-label-link:hover .gantt-label-text {
+  text-decoration: underline;
+}
+.gantt-label-key {
+  flex: none;
+  color: var(--text-3);
+  font-family: var(--mono);
+  font-size: 0.68rem;
+}
+.gantt-label-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gantt-label-count {
+  margin-inline-start: var(--s1);
+  color: var(--text-2);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+}
+
+.gantt-svg {
+  flex: none;
+  display: block;
+}
+.gantt-month {
+  fill: var(--text-2);
+  font-size: 11px;
+  font-weight: 700;
+}
+.gantt-tick {
+  fill: var(--text-3);
+  font-size: 10px;
+}
+.gantt-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.gantt-grid-strong {
+  stroke: var(--line-strong);
+}
+.gantt-grid-row {
+  stroke: var(--line);
+}
+.gantt-band {
+  fill: var(--surface-2);
+}
+.gantt-bar-feature {
+  fill: #64748b;
+}
+.gantt-bar-task {
+  fill: var(--accent);
+}
+.gantt-bar-late {
+  fill: #d9534f;
+}
+.gantt-bar-done {
+  fill: var(--ok);
+}
+.gantt-today {
+  stroke: #d9534f;
+  stroke-width: 2;
+  stroke-dasharray: 3 3;
+}
+.gantt-today-label {
+  fill: #d9534f;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+@media (min-width: 60rem) {
+  .gantt-labels {
+    inline-size: 16rem;
+  }
+}
+
 /* ---------- 詳細まわり ---------- */
 
 .meta {

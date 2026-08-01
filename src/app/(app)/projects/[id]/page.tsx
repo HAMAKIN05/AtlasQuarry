@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
 import { Chip, EmptyState, Loading, PageHeader, Progress, taskStatusTone } from '@/components/ui';
+import { getGanttData } from '@/domain/gantt/query';
 import { getProductById, listFeatures } from '@/domain/product/service';
 import { loadLabels } from '@/domain/setting/labels';
 import { listTasks } from '@/domain/task/service';
@@ -12,9 +13,13 @@ import { NotFoundError } from '@/lib/errors';
 import { dueLabel, formatDate, isOverdue } from '@/lib/format';
 import { FEATURE_STATUS_LABELS } from '@/lib/labels';
 
+import { GanttChart } from './GanttChart';
 import { NewFeatureForm } from './NewFeatureForm';
 
-type Props = { params: Promise<{ id: string }> };
+type Props = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ view?: string }>;
+};
 
 export const metadata = { title: 'プロジェクト | AtlasQuarry' };
 
@@ -28,9 +33,11 @@ async function loadProject(id: string) {
 }
 
 /** S-04 プロジェクト詳細。開発項目＝そのプロジェクトの中の作業のまとまり。 */
-export default async function ProjectDetailPage({ params }: Props) {
+export default async function ProjectDetailPage({ params, searchParams }: Props) {
   const actor = await requireActor();
   const { id } = await params;
+  const { view } = await searchParams;
+  const isGantt = view === 'gantt';
 
   const project = await loadProject(id);
   if (!project) notFound();
@@ -52,16 +59,67 @@ export default async function ProjectDetailPage({ params }: Props) {
       />
       <p className="key-line">タスク番号の記号：{project.key}</p>
 
-      {can(actor, 'feature.create') && <NewFeatureForm productId={project.id} />}
+      <nav className="tabs" aria-label="表示の切り替え">
+        <Link
+          href={`/projects/${project.id}`}
+          className="tabs-item"
+          aria-current={isGantt ? undefined : 'page'}
+        >
+          開発項目一覧
+        </Link>
+        <Link
+          href={`/projects/${project.id}?view=gantt`}
+          className="tabs-item"
+          aria-current={isGantt ? 'page' : undefined}
+        >
+          ガント
+        </Link>
+      </nav>
 
-      <Suspense fallback={<Loading />}>
-        <FeatureList projectId={project.id} />
-      </Suspense>
+      {isGantt ? (
+        <Suspense fallback={<Loading />}>
+          <GanttPanel projectId={project.id} />
+        </Suspense>
+      ) : (
+        <>
+          {can(actor, 'feature.create') && <NewFeatureForm productId={project.id} />}
 
-      <Suspense fallback={<Loading />}>
-        <LooseTasks projectId={project.id} />
-      </Suspense>
+          <Suspense fallback={<Loading />}>
+            <FeatureList projectId={project.id} />
+          </Suspense>
+
+          <Suspense fallback={<Loading />}>
+            <LooseTasks projectId={project.id} />
+          </Suspense>
+        </>
+      )}
     </div>
+  );
+}
+
+async function GanttPanel({ projectId }: { projectId: string }) {
+  const { rows, hasAnyPeriod } = await getGanttData(projectId);
+
+  if (rows.length === 0) {
+    return (
+      <EmptyState
+        title="まだ何もありません"
+        description="タスクを作って開始日と期限を入れると、ここに帯で並びます。"
+        actionLabel="タスクを見る"
+        actionHref={`/tasks?projectId=${projectId}`}
+      />
+    );
+  }
+
+  return (
+    <section className="card">
+      {!hasAnyPeriod && (
+        <p className="alert">
+          開始日と期限が入っているタスクがまだありません。タスクに日付を入れると帯が出ます。
+        </p>
+      )}
+      <GanttChart rows={rows} />
+    </section>
   );
 }
 
