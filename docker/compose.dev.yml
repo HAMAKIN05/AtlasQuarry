@@ -1,0 +1,33 @@
+# ローカル開発用。DB だけをコンテナで動かし、アプリは `npm run dev` でホスト側で動かす。
+#
+# 本番（compose.yml）では db をホストに publish しないが、開発ではマイグレーションと
+# シードをホストから流す必要があるため、**ループバックに限って** 5433 を開ける。
+# ポートを 5432 からずらしているのは、ホストや既存アプリの PostgreSQL と衝突させないため。
+#
+# 実行例:
+#   docker compose -f docker/compose.dev.yml up -d
+name: atlasquarry-dev
+
+services:
+  db:
+    build: ./postgres
+    image: atlasquarry-postgres:16
+    container_name: atlasquarry-dev-db
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5433:5432"
+    environment:
+      POSTGRES_USER: atlasquarry
+      POSTGRES_PASSWORD: atlasquarry_dev
+      POSTGRES_DB: atlasquarry
+    volumes:
+      - atlasquarry-dev-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U atlasquarry -d atlasquarry"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  atlasquarry-dev-db-data:
+    name: atlasquarry-dev-db-data

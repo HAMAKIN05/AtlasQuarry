@@ -1,0 +1,21 @@
+node_modules/
+.next/
+out/
+build/
+next-env.d.ts
+*.tsbuildinfo
+
+# 環境変数。.env.example のみコミットする
+.env
+.env.*
+!.env.example
+
+# バックアップ・ダンプ類はリポジトリに入れない
+*.pgc
+*.dump
+*.sql.gz
+*.tar.gz
+backups/
+
+.DS_Store
+Thumbs.db

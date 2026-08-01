@@ -1,0 +1,51 @@
+# 本番用（機能定義書 §12.2）。
+# 既存アプリとネットワーク・ボリュームを共有しないため、リソース名の接頭辞を省略しないこと。
+#
+# 実行例:
+#   docker compose -f docker/compose.yml --env-file .env up -d
+name: atlasquarry
+
+services:
+  app:
+    image: atlasquarry:latest
+    container_name: atlasquarry-app
+    restart: unless-stopped
+    # ホストのループバックのみ。TLS はホスト側 Caddy が終端する（機能定義書 §12.4）
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      NODE_ENV: production
+      APP_URL: ${APP_URL}
+      SESSION_SECRET: ${SESSION_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      STORAGE_LOCAL_PATH: /var/atlasquarry/attachments
+    volumes:
+      - atlasquarry-attachments:/var/atlasquarry/attachments
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    build: ./postgres
+    image: atlasquarry-postgres:16
+    container_name: atlasquarry-db
+    restart: unless-stopped
+    # ports は指定しない。Compose 内ネットワークからのみ到達できるようにする
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - atlasquarry-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  atlasquarry-db-data:
+    name: atlasquarry-db-data
+  atlasquarry-attachments:
+    name: atlasquarry-attachments

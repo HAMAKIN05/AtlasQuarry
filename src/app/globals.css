@@ -1,0 +1,593 @@
+/*
+ * 構造だけのスタイル。
+ *
+ * 配色・タイポグラフィなどの見た目は別途あてる前提で、ここには「無いと画面として成立しない」
+ * レイアウトと状態表現だけを置く。クラス名は意味で付けてあるので、後から丸ごと差し替えられる。
+ *
+ * モバイルファースト（CLAUDE.md UI規約）。既定を375px幅で成立させ、広い画面は media query で足す。
+ */
+
+:root {
+  --gap: 0.75rem;
+  --radius: 6px;
+  --line: #d4d4d8;
+  --muted: #52525b;
+  --danger: #b91c1c;
+  --accent: #1d4ed8;
+  --surface: #ffffff;
+  --surface-alt: #f4f4f5;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Hiragino Kaku Gothic ProN',
+    'Noto Sans JP',
+    sans-serif;
+  line-height: 1.6;
+  color: #18181b;
+  background: var(--surface-alt);
+  /* スマホ幅（375px）で横スクロールが出ないこと（受入基準 5.8） */
+  overflow-x: hidden;
+}
+
+img,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: var(--accent);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  max-inline-size: 100%;
+}
+
+input,
+select,
+textarea {
+  inline-size: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  /* タップ領域の下限。スマホからの操作が主用途のため */
+  min-block-size: 44px;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.link-button {
+  min-block-size: auto;
+  padding: 0.25rem;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.danger-button {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+/* ---- 外枠 ---- */
+
+.app-shell {
+  min-block-size: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap);
+  padding: var(--gap);
+  background: var(--surface);
+  border-block-end: 1px solid var(--line);
+}
+
+.app-brand {
+  font-weight: 700;
+  text-decoration: none;
+  color: inherit;
+}
+
+.app-nav {
+  display: flex;
+  gap: var(--gap);
+  flex: 1 1 100%;
+  order: 3;
+  overflow-x: auto;
+}
+
+.app-account {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  margin-inline-start: auto;
+}
+
+.app-role {
+  margin-inline-start: 0.25rem;
+  color: var(--muted);
+  font-size: 0.85em;
+}
+
+.app-main {
+  flex: 1;
+  padding: var(--gap);
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-inline-size: 60rem;
+  margin-inline: auto;
+}
+
+.page-title {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.page-lead,
+.page-actions {
+  margin: 0;
+}
+
+.breadcrumb {
+  display: flex;
+  gap: var(--gap);
+  font-size: 0.9em;
+}
+
+/* ---- パネル・リスト ---- */
+
+.panel {
+  padding: var(--gap);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.panel-title {
+  margin: 0 0 var(--gap);
+  font-size: 1rem;
+}
+
+.empty,
+.loading {
+  margin: 0;
+  color: var(--muted);
+}
+
+.card-list,
+.task-list,
+.activity-list,
+.comment-list,
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.task-list a,
+.card-list a {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: inherit;
+}
+
+.card {
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.card > a {
+  border: 0;
+  padding: 0;
+}
+
+.task-key,
+.product-key {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.task-title,
+.product-name {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.task-status,
+.task-priority,
+.task-assignee,
+.task-due,
+.product-status {
+  font-size: 0.85em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.is-overdue {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.progress {
+  display: block;
+  inline-size: 100%;
+  block-size: 0.5rem;
+  background: var(--surface-alt);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  display: block;
+  block-size: 100%;
+  background: var(--accent);
+}
+
+.progress-text,
+.feature-period,
+.feature-status {
+  margin: 0.25rem 0 0;
+  font-size: 0.85em;
+  color: var(--muted);
+}
+
+/* ---- フォーム ---- */
+
+.auth-shell {
+  min-block-size: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  max-inline-size: 24rem;
+  margin-inline: auto;
+}
+
+.auth-title {
+  margin: 0;
+  text-align: center;
+}
+
+.auth-form,
+.stacked-form,
+.inline-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.inline-form,
+.auth-form {
+  padding: var(--gap);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field-inline {
+  flex: 1 1 8rem;
+}
+
+.field-label {
+  font-size: 0.85em;
+  color: var(--muted);
+}
+
+.field-hint {
+  font-size: 0.8em;
+  color: var(--muted);
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  align-items: center;
+}
+
+.form-error {
+  margin: 0;
+  padding: 0.5rem;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+  color: var(--danger);
+}
+
+.form-notice {
+  margin: 0;
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.task-meta {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+  margin: 0;
+  padding: var(--gap);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.task-meta div {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.task-meta dt {
+  inline-size: 6rem;
+  flex: none;
+  color: var(--muted);
+  font-size: 0.9em;
+}
+
+.task-meta dd {
+  margin: 0;
+}
+
+/* ---- かんばん ---- */
+
+.board-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  padding: var(--gap);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+/*
+ * 列は横スクロール。スマホでは1列強が見える幅にして、隣の列があることが分かるようにする。
+ * body 側は overflow-x: hidden なので、横スクロールはこのコンテナ内に閉じる。
+ */
+.board {
+  display: flex;
+  gap: var(--gap);
+  overflow-x: auto;
+  padding-block-end: 0.5rem;
+  scroll-snap-type: x proximity;
+}
+
+.board-column {
+  flex: 0 0 15rem;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.board-column.is-over {
+  border-color: var(--accent);
+}
+
+.board-column-title {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  border-block-end: 1px solid var(--line);
+}
+
+.board-column-count {
+  color: var(--muted);
+}
+
+/* タスク0件でも列の形が保たれるよう最小高さを持たせる（受入基準 5.4） */
+.board-column-body {
+  flex: 1;
+  min-block-size: 6rem;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.empty-column {
+  font-size: 0.85em;
+}
+
+.task-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.5rem;
+  padding: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.task-card-handle {
+  min-block-size: 44px;
+  min-inline-size: 44px;
+  grid-row: 1 / span 3;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  cursor: grab;
+  /* ドラッグ中にブラウザのスクロールへ横取りされないようにする */
+  touch-action: none;
+}
+
+.task-card-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.task-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.task-card-feature {
+  margin: 0;
+  font-size: 0.8em;
+  color: var(--muted);
+}
+
+.board-hint {
+  margin: 0;
+}
+
+/* ---- コメント・タイムライン ---- */
+
+.comment {
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.comment-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.25rem;
+  font-size: 0.85em;
+  color: var(--muted);
+}
+
+.comment-author {
+  font-weight: 700;
+  color: inherit;
+}
+
+.timeline li,
+.activity-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.9em;
+}
+
+.timeline time,
+.activity-time {
+  color: var(--muted);
+}
+
+.timeline-actor,
+.activity-actor {
+  font-weight: 700;
+}
+
+/* ---- Markdown ---- */
+
+.markdown > :first-child {
+  margin-block-start: 0;
+}
+
+.markdown > :last-child {
+  margin-block-end: 0;
+}
+
+.markdown pre,
+.markdown table {
+  overflow-x: auto;
+  max-inline-size: 100%;
+}
+
+.markdown code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+}
+
+.totp-secret code {
+  display: inline-block;
+  padding: 0.5rem;
+  background: var(--surface-alt);
+  border-radius: var(--radius);
+  word-break: break-all;
+}
+
+/* ---- 広い画面 ---- */
+
+@media (min-width: 48rem) {
+  .app-nav {
+    flex: 0 1 auto;
+    order: 0;
+  }
+
+  .task-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .board-column {
+    flex: 1 1 0;
+    min-inline-size: 13rem;
+  }
+}
