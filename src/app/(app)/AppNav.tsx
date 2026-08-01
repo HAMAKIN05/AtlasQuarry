@@ -47,7 +47,7 @@ export function AppNav({ actor, pendingRequests }: Props) {
   return (
     <>
       {/* スマホ：上部のバー */}
-      <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b bg-card px-4 py-2 lg:hidden">
+      <header className="sticky top-0 z-30 flex items-center justify-between gap-3 bg-background/80 px-4 py-2 backdrop-blur-md lg:hidden">
         <Link href="/" className="flex min-h-11 items-center font-bold tracking-tight">
           AtlasQuarry
         </Link>
@@ -57,9 +57,9 @@ export function AppNav({ actor, pendingRequests }: Props) {
       {/* PC：左のサイドバー */}
       <nav
         aria-label="メインメニュー"
-        className="hidden lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:gap-5 lg:border-r lg:bg-card lg:p-4"
+        className="hidden lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:gap-6 lg:p-4 lg:shadow-[1px_0_0_var(--border)]"
       >
-        <Link href="/" className="text-lg font-bold tracking-tight">
+        <Link href="/" className="flex items-center gap-2 text-[1.05rem] font-bold tracking-tight">
           AtlasQuarry
         </Link>
 
@@ -74,8 +74,8 @@ export function AppNav({ actor, pendingRequests }: Props) {
                   className={cn(
                     'flex min-h-11 items-center gap-2 rounded-md px-3 text-sm',
                     current
-                      ? 'bg-accent font-bold text-accent-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                      ? 'bg-primary-soft font-bold text-primary'
+                      : 'text-muted-foreground hover:bg-hover hover:text-foreground',
                   )}
                 >
                   <Icon className="size-4 shrink-0" aria-hidden="true" />
@@ -91,7 +91,7 @@ export function AppNav({ actor, pendingRequests }: Props) {
           })}
         </ul>
 
-        <div className="mt-auto border-t pt-3">
+        <div className="mt-auto pt-3 shadow-[0_-1px_0_var(--border)]">
           <Account actor={actor} stacked />
         </div>
       </nav>
@@ -99,7 +99,7 @@ export function AppNav({ actor, pendingRequests }: Props) {
       {/* スマホ：下部のタブ。片手で持って親指が届く位置 */}
       <nav
         aria-label="メインメニュー"
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t bg-card pb-[env(safe-area-inset-bottom)] lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 bg-background/90 pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_0_var(--border)] backdrop-blur-md lg:hidden"
       >
         {ITEMS.map(({ href, label, Icon, exact }) => {
           const current = isCurrent(href, exact);

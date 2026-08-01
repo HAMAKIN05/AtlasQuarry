@@ -118,7 +118,7 @@ export function KanbanBoard({ tasks, allTasks, onTasksChange }: Props) {
   return (
     <>
       {error && (
-        <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
+        <p className="rounded-md bg-destructive-soft px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}

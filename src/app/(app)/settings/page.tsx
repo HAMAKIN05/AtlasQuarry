@@ -50,7 +50,7 @@ export default async function SettingsPage() {
       <ul className="grid gap-3 sm:grid-cols-2">
         {items.map((item) => (
           <li key={item.href}>
-            <Link href={item.href} className="flex flex-col gap-2 rounded-lg border bg-card p-4 hover:border-primary">
+            <Link href={item.href} className="flex flex-col gap-2 surface p-4 hover:border-primary">
               <span className="flex-1 text-base font-bold">{item.title}</span>
               <span className="text-sm text-muted-foreground">{item.desc}</span>
             </Link>

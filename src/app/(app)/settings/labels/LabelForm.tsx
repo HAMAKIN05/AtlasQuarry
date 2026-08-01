@@ -60,7 +60,7 @@ export function LabelForm({
   return (
     <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
       {error && (
-        <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
+        <p className="rounded-md bg-destructive-soft px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
@@ -71,7 +71,7 @@ export function LabelForm({
       )}
 
       {GROUPS.map((group) => (
-        <section key={group.prefix} className="rounded-lg border bg-card p-4">
+        <section key={group.prefix} className="surface p-4">
           <h2 className="mb-3 text-base font-bold">{group.title}</h2>
           {group.hint && <p className="mb-3 text-sm text-muted-foreground">{group.hint}</p>}
 

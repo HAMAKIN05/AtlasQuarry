@@ -38,7 +38,7 @@ export function TaskCard({ task, overlay = false }: { task: TaskListItem; overla
     <article
       ref={overlay ? undefined : setNodeRef}
       style={style}
-      className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-2 gap-y-1 rounded-md border bg-card p-2"
+      className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-2 gap-y-1 rounded-md border bg-surface p-2"
     >
       <button
         type="button"
@@ -46,7 +46,7 @@ export function TaskCard({ task, overlay = false }: { task: TaskListItem; overla
         {...attributes}
         {...listeners}
         // touch-none がないと、ドラッグ中にブラウザのスクロールへ横取りされる
-        className="row-span-2 grid min-h-11 w-7 cursor-grab touch-none place-items-center rounded text-muted-foreground hover:bg-muted active:cursor-grabbing"
+        className="row-span-2 grid min-h-11 w-7 cursor-grab touch-none place-items-center rounded text-muted-foreground hover:bg-hover active:cursor-grabbing"
       >
         <GripVerticalIcon className="size-4" aria-hidden="true" />
       </button>

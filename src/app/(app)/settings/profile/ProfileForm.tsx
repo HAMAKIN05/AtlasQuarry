@@ -46,14 +46,14 @@ export function ProfileForm({ initialName }: { initialName: string }) {
   }
 
   return (
-    <section className="rounded-lg border bg-card p-4" aria-labelledby="profile-heading">
+    <section className="surface p-4" aria-labelledby="profile-heading">
       <h2 id="profile-heading" className="mb-3 text-base font-bold">
         基本情報
       </h2>
 
       <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
         {error && (
-          <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
+          <p className="rounded-md bg-destructive-soft px-3 py-2 text-sm text-destructive" role="alert">
             {error}
           </p>
         )}

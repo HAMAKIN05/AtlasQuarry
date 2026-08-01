@@ -72,7 +72,7 @@ export function TaskWorkspace({
         }
       />
 
-      <div className="flex flex-wrap items-end gap-3 rounded-lg border bg-card p-3">
+      <div className="surface flex flex-wrap items-end gap-3 p-3">
         <label className="flex min-w-0 flex-col gap-1.5 flex min-w-0 flex-1 basis-40 flex-col gap-1.5">
           <span className="text-sm font-semibold text-muted-foreground">プロジェクト</span>
           <select
@@ -161,7 +161,7 @@ export function TaskWorkspace({
             const due = dueLabel(t.dueDate, t.status);
             return (
               <li key={t.id}>
-                <Link href={`/tasks/${t.key}`} className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md border bg-card p-3 hover:bg-muted">
+                <Link href={`/tasks/${t.key}`} className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md bg-raised p-3 hover:bg-hover">
                   <span className="tabular shrink-0 font-mono text-xs text-muted-foreground">{t.key}</span>
                   <span className="min-w-0 flex-1 basis-40 font-semibold">{t.title}</span>
                   <Badge tone={taskStatusTone(t.status)}>{labels[`task.status.${t.status}`]}</Badge>

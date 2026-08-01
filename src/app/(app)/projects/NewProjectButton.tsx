@@ -58,11 +58,11 @@ export function NewProjectButton() {
   }
 
   return (
-    <form className="flex flex-col gap-4 rounded-lg border bg-card p-4" onSubmit={handleSubmit} noValidate>
+    <form className="flex flex-col gap-4 surface p-4" onSubmit={handleSubmit} noValidate>
       <h2 className="text-base font-bold">プロジェクトを作る</h2>
 
       {error && (
-        <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
+        <p className="rounded-md bg-destructive-soft px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
@@ -103,7 +103,7 @@ export function NewProjectButton() {
         <button type="submit" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" disabled={submitting}>
           {submitting ? '作成中…' : '作る'}
         </button>
-        <button type="button" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-accent disabled:opacity-50" onClick={() => setOpen(false)}>
+        <button type="button" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-primary-soft disabled:opacity-50" onClick={() => setOpen(false)}>
           やめる
         </button>
       </div>

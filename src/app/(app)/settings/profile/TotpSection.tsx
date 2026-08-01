@@ -67,13 +67,13 @@ export function TotpSection({ enabled }: { enabled: boolean }) {
   }
 
   return (
-    <section className="rounded-lg border bg-card p-4" aria-labelledby="totp-heading">
+    <section className="surface p-4" aria-labelledby="totp-heading">
       <h2 id="totp-heading" className="mb-3 text-base font-bold">
         2要素認証
       </h2>
 
       {error && (
-        <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
+        <p className="rounded-md bg-destructive-soft px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
@@ -95,7 +95,7 @@ export function TotpSection({ enabled }: { enabled: boolean }) {
               onChange={(e) => setPassword(e.target.value)}
             />
           </label>
-          <button type="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none border border-destructive bg-card text-destructive hover:bg-danger-soft" onClick={disable} disabled={busy || !password}>
+          <button type="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none border border-destructive bg-surface text-destructive hover:bg-destructive-soft" onClick={disable} disabled={busy || !password}>
             解除する
           </button>
         </div>
@@ -126,7 +126,7 @@ export function TotpSection({ enabled }: { enabled: boolean }) {
             </button>
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-accent disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-primary-soft disabled:opacity-50"
               onClick={() => {
                 setSetup(null);
                 setCode('');

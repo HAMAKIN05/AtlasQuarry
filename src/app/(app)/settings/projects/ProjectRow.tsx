@@ -60,9 +60,9 @@ export function ProjectRow({ project, canDelete }: { project: Project; canDelete
   }
 
   return (
-    <li className="rounded-md border bg-card p-3">
+    <li className="rounded-md bg-raised p-3">
       {error && (
-        <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
+        <p className="rounded-md bg-destructive-soft px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
@@ -101,7 +101,7 @@ export function ProjectRow({ project, canDelete }: { project: Project; canDelete
             <button type="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" onClick={save} disabled={busy}>
               保存
             </button>
-            <button type="button" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-accent disabled:opacity-50" onClick={() => setEditing(false)}>
+            <button type="button" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-primary-soft disabled:opacity-50" onClick={() => setEditing(false)}>
               やめる
             </button>
           </div>
@@ -117,13 +117,13 @@ export function ProjectRow({ project, canDelete }: { project: Project; canDelete
           </span>
 
           <span className="ml-auto flex gap-1">
-            <button type="button" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-accent disabled:opacity-50" onClick={() => setEditing(true)}>
+            <button type="button" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-primary-soft disabled:opacity-50" onClick={() => setEditing(true)}>
               変更
             </button>
             {canDelete && (
               <button
                 type="button"
-                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-destructive hover:bg-danger-soft disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-destructive hover:bg-destructive-soft disabled:opacity-50"
                 onClick={remove}
                 disabled={busy}
               >

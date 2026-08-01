@@ -36,7 +36,7 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-start gap-2 rounded-lg border border-dashed bg-card px-4 py-6',
+        'flex flex-col items-start gap-2 rounded-lg bg-raised px-4 py-6 shadow-[inset_0_0_0_1px_var(--border)]',
         className,
       )}
     >
@@ -67,7 +67,7 @@ export function Progress({
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <div
-        className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"
+        className="h-1.5 flex-1 overflow-hidden rounded-full bg-raised"
         role="progressbar"
         aria-valuenow={percent}
         aria-valuemin={0}
@@ -119,7 +119,7 @@ export function Loading({ label = '読み込んでいます' }: { label?: string
     <p
       role="status"
       aria-live="polite"
-      className="rounded-lg border bg-card p-4 text-sm text-muted-foreground"
+      className="surface p-4 text-sm text-muted-foreground"
     >
       {label}
     </p>
@@ -140,7 +140,7 @@ export function Alert({
       role={tone === 'error' ? 'alert' : 'status'}
       className={cn(
         'rounded-md px-3 py-2 text-sm',
-        tone === 'error' ? 'bg-danger-soft text-destructive' : 'bg-warning-soft text-warning',
+        tone === 'error' ? 'bg-destructive-soft text-destructive' : 'bg-warning-soft text-warning',
         className,
       )}
     >

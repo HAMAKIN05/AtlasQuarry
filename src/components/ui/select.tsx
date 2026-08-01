@@ -23,7 +23,7 @@ function SelectTrigger({
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       className={cn(
-        'flex min-h-11 w-full items-center justify-between gap-2 rounded-md border border-input bg-card px-3 py-2 text-base',
+        'flex min-h-11 w-full items-center justify-between gap-2 rounded-md border border-border bg-surface px-3 py-2 text-base',
         'data-[placeholder]:text-muted-foreground focus-visible:border-ring focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-ring',
         'disabled:cursor-not-allowed disabled:opacity-50 [&>span]:truncate',
         className,
@@ -50,7 +50,7 @@ function SelectContent({
         data-slot="select-content"
         position={position}
         className={cn(
-          'relative z-50 max-h-[min(24rem,var(--radix-select-content-available-height))] min-w-[8rem] overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md',
+          'relative z-50 max-h-[min(24rem,var(--radix-select-content-available-height))] min-w-[8rem] overflow-y-auto rounded-md bg-raised text-foreground shadow-[0_0_0_1px_var(--border),0_8px_24px_-8px_oklch(0_0_0/0.6)]',
           'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0',
           position === 'popper' && 'w-full min-w-[var(--radix-select-trigger-width)]',
           className,
@@ -79,7 +79,7 @@ function SelectItem({
       data-slot="select-item"
       className={cn(
         'relative flex w-full cursor-default items-center gap-2 rounded-sm py-2.5 pr-8 pl-2 text-sm outline-none select-none',
-        'focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        'focus:bg-primary-soft focus:text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         className,
       )}
       {...props}

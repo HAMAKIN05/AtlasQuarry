@@ -40,7 +40,7 @@ export function CommentForm({ taskId }: { taskId: string }) {
   return (
     <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
       {error && (
-        <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
+        <p className="rounded-md bg-destructive-soft px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}

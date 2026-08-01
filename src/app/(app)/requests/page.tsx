@@ -64,16 +64,16 @@ async function RequestTabs({ active }: { active: RequestStatus | 'all' }) {
       aria-current={current ? 'page' : undefined}
       className={cn(
         'inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-md px-3 text-sm whitespace-nowrap',
-        current ? 'bg-card font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground',
+        current ? 'bg-surface font-bold ' : 'text-muted-foreground hover:text-foreground',
       )}
     >
       {label}
-      <span className="tabular rounded-full bg-muted px-1.5 text-xs">{count}</span>
+      <span className="tabular rounded-full bg-raised px-1.5 text-xs">{count}</span>
     </Link>
   );
 
   return (
-    <nav aria-label="要望の絞り込み" className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-lg bg-muted p-1">
+    <nav aria-label="要望の絞り込み" className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-lg bg-raised p-1">
       {item('/requests', 'すべて', total, active === 'all')}
       {REQUEST_TABS.map((status) =>
         item(
@@ -112,7 +112,7 @@ async function RequestList({ active }: { active: RequestStatus | 'all' }) {
         <li key={r.id}>
           <Link
             href={`/requests/${r.id}`}
-            className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md border bg-card p-3 hover:bg-muted"
+            className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md bg-raised p-3 hover:bg-hover"
           >
             <span className="min-w-0 flex-1 basis-48 font-semibold">{r.title}</span>
             <Badge tone={requestStatusTone(r.status)}>{labels[`request.status.${r.status}`]}</Badge>

@@ -60,7 +60,7 @@ export default async function RequestDetailPage({ params }: Props) {
 
       <PageHeader title={req.title} />
 
-      <div className="grid overflow-hidden rounded-lg border bg-card sm:grid-cols-2">
+      <div className="grid overflow-hidden rounded-lg border bg-surface sm:grid-cols-2">
         <div>
           <dt>状態</dt>
           <dd>
@@ -94,7 +94,7 @@ export default async function RequestDetailPage({ params }: Props) {
       </div>
 
       {bodyHtml ? (
-        <section className="rounded-lg border bg-card p-4">
+        <section className="surface p-4">
           <h2 className="mb-3 text-base font-bold">補足</h2>
           {/* renderMarkdown が rehype-sanitize を通しているため、入るのは検査済みのHTMLのみ */}
           <div className="markdown" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
@@ -102,17 +102,17 @@ export default async function RequestDetailPage({ params }: Props) {
       ) : null}
 
       {req.status === 'rejected' && req.rejectReason && (
-        <section className="rounded-lg border bg-card p-4">
+        <section className="surface p-4">
           <h2 className="mb-3 text-base font-bold">見送った理由</h2>
           <p className="whitespace-pre-wrap text-sm">{req.rejectReason}</p>
         </section>
       )}
 
       {req.convertedTaskKey ? (
-        <section className="rounded-lg border bg-card p-4">
+        <section className="surface p-4">
           <h2 className="mb-3 text-base font-bold">この要望はタスクになりました</h2>
           <p>
-            <Link href={`/tasks/${req.convertedTaskKey}`} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none border border-input bg-card hover:bg-muted">
+            <Link href={`/tasks/${req.convertedTaskKey}`} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none border border-border bg-surface hover:bg-hover">
               {req.convertedTaskKey} を開く
             </Link>
           </p>

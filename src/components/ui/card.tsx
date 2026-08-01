@@ -2,22 +2,21 @@ import * as React from 'react';
 
 import { cn } from '@/lib/cn';
 
-/** shadcn/ui の Card。面の基本単位。 */
+/**
+ * 面の基本単位。
+ *
+ * **枠線を引かない。** 背景の明度差と上端 1px のハイライト（.surface）で持ち上げる。
+ * 枠を全部に引くと平坦で安っぽくなる。
+ */
 function Card({ className, ...props }: React.ComponentProps<'div'>) {
-  return (
-    <div
-      data-slot="card"
-      className={cn('rounded-lg border bg-card text-card-foreground', className)}
-      {...props}
-    />
-  );
+  return <div data-slot="card" className={cn('surface', className)} {...props} />;
 }
 
 function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="card-header"
-      className={cn('flex flex-wrap items-center justify-between gap-2 px-4 pt-4', className)}
+      className={cn('flex flex-wrap items-center justify-between gap-2 px-4 pt-3.5 pb-1', className)}
       {...props}
     />
   );
@@ -27,7 +26,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<'h2'>) {
   return (
     <h2
       data-slot="card-title"
-      className={cn('text-base font-bold leading-snug', className)}
+      className={cn('text-[0.95rem] font-semibold tracking-tight', className)}
       {...props}
     />
   );
@@ -35,11 +34,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<'h2'>) {
 
 function CardDescription({ className, ...props }: React.ComponentProps<'p'>) {
   return (
-    <p
-      data-slot="card-description"
-      className={cn('text-sm text-muted-foreground', className)}
-      {...props}
-    />
+    <p data-slot="card-description" className={cn('text-sm text-muted-foreground', className)} {...props} />
   );
 }
 

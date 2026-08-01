@@ -67,7 +67,7 @@ export default async function TaskDetailPage({ params }: Props) {
       <PageHeader title={task.title} />
       <p className="-mt-2 font-mono text-xs text-muted-foreground">{task.key}</p>
 
-      <div className="grid overflow-hidden rounded-lg border bg-card sm:grid-cols-2">
+      <div className="grid overflow-hidden rounded-lg border bg-surface sm:grid-cols-2">
         <div>
           <dt>状態</dt>
           <dd>
@@ -109,7 +109,7 @@ export default async function TaskDetailPage({ params }: Props) {
         </p>
       )}
 
-      <section className="rounded-lg border bg-card p-4">
+      <section className="surface p-4">
         <h2 className="mb-3 text-base font-bold">内容</h2>
         {bodyHtml ? (
           // renderMarkdown が rehype-sanitize を通しているため、入るのは検査済みのHTMLのみ
@@ -179,7 +179,7 @@ async function CommentsPanel({ taskId, actor }: { taskId: string; actor: Session
   const commentHtml = await Promise.all(comments.map((c) => renderMarkdown(c.bodyMd)));
 
   return (
-    <section className="rounded-lg border bg-card p-4">
+    <section className="surface p-4">
       <h2 className="mb-3 text-base font-bold">コメント（{comments.length}）</h2>
 
       {comments.length === 0 ? (
@@ -187,7 +187,7 @@ async function CommentsPanel({ taskId, actor }: { taskId: string; actor: Session
       ) : (
         <ul className="flex flex-col gap-2">
           {comments.map((comment, index) => (
-            <li key={comment.id} className="rounded-md border p-3">
+            <li key={comment.id} className="rounded-md bg-raised p-3">
               <p className="mb-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                 <span className="font-bold text-foreground">{comment.authorName}さん</span>
                 <time dateTime={comment.createdAt.toISOString()}>
@@ -213,7 +213,7 @@ async function HistoryPanel({ taskId }: { taskId: string }) {
   const timeline = await listTaskTimeline(taskId);
 
   return (
-    <section className="rounded-lg border bg-card p-4">
+    <section className="surface p-4">
       <h2 className="mb-3 text-base font-bold">履歴</h2>
       {timeline.length === 0 ? (
         <p className="text-sm text-muted-foreground">まだ記録がありません。</p>

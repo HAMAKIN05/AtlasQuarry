@@ -52,24 +52,24 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
         title={project.name}
         description={project.description ?? undefined}
         action={
-          <Link href={`/tasks?projectId=${project.id}`} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none border border-input bg-card hover:bg-muted">
+          <Link href={`/tasks?projectId=${project.id}`} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none border border-border bg-surface hover:bg-hover">
             タスクを見る
           </Link>
         }
       />
       <p className="-mt-2 font-mono text-xs text-muted-foreground">タスク番号の記号：{project.key}</p>
 
-      <nav className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-lg bg-muted p-1" aria-label="表示の切り替え">
+      <nav className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-lg bg-raised p-1" aria-label="表示の切り替え">
         <Link
           href={`/projects/${project.id}`}
-          className="inline-flex min-h-9 shrink-0 items-center rounded-md px-3 text-sm whitespace-nowrap text-muted-foreground aria-[current=page]:bg-card aria-[current=page]:font-bold aria-[current=page]:text-foreground aria-[current=page]:shadow-sm"
+          className="inline-flex min-h-9 shrink-0 items-center rounded-md px-3 text-sm whitespace-nowrap text-muted-foreground aria-[current=page]:bg-surface aria-[current=page]:font-bold aria-[current=page]:text-foreground aria-[current=page]:"
           aria-current={isGantt ? undefined : 'page'}
         >
           開発項目一覧
         </Link>
         <Link
           href={`/projects/${project.id}?view=gantt`}
-          className="inline-flex min-h-9 shrink-0 items-center rounded-md px-3 text-sm whitespace-nowrap text-muted-foreground aria-[current=page]:bg-card aria-[current=page]:font-bold aria-[current=page]:text-foreground aria-[current=page]:shadow-sm"
+          className="inline-flex min-h-9 shrink-0 items-center rounded-md px-3 text-sm whitespace-nowrap text-muted-foreground aria-[current=page]:bg-surface aria-[current=page]:font-bold aria-[current=page]:text-foreground aria-[current=page]:"
           aria-current={isGantt ? 'page' : undefined}
         >
           ガント
@@ -112,7 +112,7 @@ async function GanttPanel({ projectId }: { projectId: string }) {
   }
 
   return (
-    <section className="rounded-lg border bg-card p-4">
+    <section className="surface p-4">
       {!hasAnyPeriod && (
         <p className="rounded-md bg-warning-soft px-3 py-2 text-sm text-warning">
           開始日と期限が入っているタスクがまだありません。タスクに日付を入れると帯が出ます。
@@ -127,7 +127,7 @@ async function FeatureList({ projectId }: { projectId: string }) {
   const features = await listFeatures(projectId);
 
   return (
-    <section className="rounded-lg border bg-card p-4">
+    <section className="surface p-4">
       <h2 className="mb-3 text-base font-bold">開発項目（{features.length}）</h2>
       <p className="mb-3 text-sm text-muted-foreground">タスクをまとめる単位です。「認証まわり」「帳票の出力」のように分けます。</p>
 
@@ -140,7 +140,7 @@ async function FeatureList({ projectId }: { projectId: string }) {
         <ul className="flex flex-col gap-2">
           {features.map((f) => (
             <li key={f.id}>
-              <Link href={`/tasks?projectId=${projectId}&featureId=${f.id}`} className="flex flex-col items-stretch gap-2 rounded-md border bg-card p-3 hover:bg-muted">
+              <Link href={`/tasks?projectId=${projectId}&featureId=${f.id}`} className="flex flex-col items-stretch gap-2 rounded-md bg-raised p-3 hover:bg-hover">
                 <span className="flex items-center gap-2">
                   <span className="min-w-0 flex-1 basis-40 font-semibold">{f.name}</span>
                   <Badge tone={f.status === 'active' ? 'progress' : 'neutral'}>
@@ -171,14 +171,14 @@ async function LooseTasks({ projectId }: { projectId: string }) {
   if (tasks.length === 0) return null;
 
   return (
-    <section className="rounded-lg border bg-card p-4">
+    <section className="surface p-4">
       <h2 className="mb-3 text-base font-bold">開発項目に入っていないタスク（{tasks.length}）</h2>
       <ul className="flex flex-col gap-2">
         {tasks.map((t) => {
           const due = dueLabel(t.dueDate, t.status);
           return (
             <li key={t.id}>
-              <Link href={`/tasks/${t.key}`} className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md border bg-card p-3 hover:bg-muted">
+              <Link href={`/tasks/${t.key}`} className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md bg-raised p-3 hover:bg-hover">
                 <span className="tabular shrink-0 font-mono text-xs text-muted-foreground">{t.key}</span>
                 <span className="min-w-0 flex-1 basis-40 font-semibold">{t.title}</span>
                 <Badge tone={taskStatusTone(t.status)}>{labels[`task.status.${t.status}`]}</Badge>

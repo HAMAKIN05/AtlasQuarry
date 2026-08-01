@@ -165,7 +165,7 @@ export function GanttChart({
                 'min-h-11 px-3 text-sm',
                 scale === s
                   ? 'bg-primary font-bold text-primary-foreground'
-                  : 'bg-card text-muted-foreground',
+                  : 'bg-surface text-muted-foreground',
               )}
             >
               {s === 'day' ? '日' : '週'}
@@ -182,7 +182,7 @@ export function GanttChart({
         </Button>
 
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-          <Swatch className="bg-slate-500" />
+          <Swatch className="bg-subtle" />
           開発項目
           <Swatch className="bg-primary" />
           タスク
@@ -193,18 +193,18 @@ export function GanttChart({
         </p>
       </div>
 
-      <div ref={scrollRef} className="flex overflow-x-auto rounded-md border bg-card">
+      <div ref={scrollRef} className="surface flex overflow-x-auto">
         <div
           data-gantt-labels
-          className="sticky left-0 z-10 w-32 shrink-0 border-r bg-card sm:w-56"
+          className="sticky left-0 z-10 w-32 shrink-0 bg-surface shadow-[1px_0_0_var(--border)] sm:w-56"
           style={{ paddingTop: HEADER_H }}
         >
           {rows.map((row) => (
             <div
               key={`${row.kind}-${row.id}`}
               className={cn(
-                'flex items-center overflow-hidden border-b px-2 text-xs',
-                row.kind === 'feature' ? 'bg-muted font-bold' : 'pl-4',
+                'flex items-center overflow-hidden border-b border-border/50 px-2 text-xs',
+                row.kind === 'feature' ? 'bg-raised font-semibold' : 'pl-4 text-muted-foreground',
               )}
               style={{ height: ROW_H }}
             >
@@ -237,7 +237,7 @@ export function GanttChart({
           aria-label="開発項目とタスクの期間"
         >
           {months.map((m) => (
-            <text key={m.label} x={m.x + 4} y={14} className="fill-muted-foreground text-[11px] font-bold">
+            <text key={m.label} x={m.x + 4} y={14} fill="var(--subtle-foreground)" className="text-[11px] font-semibold">
               {m.label}
             </text>
           ))}
@@ -249,10 +249,10 @@ export function GanttChart({
                 y1={HEADER_H - 12}
                 x2={t.x}
                 y2={chartH + HEADER_H}
-                className={t.strong ? 'stroke-input' : 'stroke-border'}
+                className={t.strong ? 'stroke-[var(--border-strong)]' : 'stroke-[var(--border)]'}
               />
               {scale === 'day' && !compact && (
-                <text x={t.x + 3} y={HEADER_H - 16} className="fill-muted-foreground text-[10px]">
+                <text x={t.x + 3} y={HEADER_H - 16} fill="var(--subtle-foreground)" className="text-[10px]">
                   {t.label}
                 </text>
               )}
@@ -266,9 +266,9 @@ export function GanttChart({
             return (
               <g key={`${row.kind}-${row.id}`}>
                 {row.kind === 'feature' && (
-                  <rect x={0} y={y} width={chartW} height={ROW_H} className="fill-muted" />
+                  <rect x={0} y={y} width={chartW} height={ROW_H} fill="var(--surface-raised)" />
                 )}
-                <line x1={0} y1={y + ROW_H} x2={chartW} y2={y + ROW_H} className="stroke-border" />
+                <line x1={0} y1={y + ROW_H} x2={chartW} y2={y + ROW_H} className="stroke-[var(--border)]" opacity={0.5} />
                 {bar && (
                   <rect
                     x={bar.x}
@@ -293,11 +293,11 @@ export function GanttChart({
             y1={HEADER_H - 12}
             x2={todayX}
             y2={chartH + HEADER_H}
-            className="stroke-destructive"
+            stroke="var(--destructive)"
             strokeWidth={2}
             strokeDasharray="3 3"
           />
-          <text x={todayX + 3} y={HEADER_H - 2} className="fill-destructive text-[10px] font-bold">
+          <text x={todayX + 3} y={HEADER_H - 2} fill="var(--destructive)" className="text-[10px] font-bold">
             今日
           </text>
         </svg>
@@ -335,12 +335,12 @@ function barFor(
 
   const className =
     row.kind === 'feature'
-      ? 'fill-slate-500'
+      ? 'fill-[var(--subtle-foreground)]'
       : closed
-        ? 'fill-success'
+        ? 'fill-[var(--success)]'
         : late
-          ? 'fill-destructive'
-          : 'fill-primary';
+          ? 'fill-[var(--destructive)]'
+          : 'fill-[var(--primary)]';
 
   return { x, width, className };
 }

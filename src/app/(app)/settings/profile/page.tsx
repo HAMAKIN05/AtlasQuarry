@@ -21,7 +21,7 @@ export default async function ProfileSettingsPage() {
 
       <PageHeader title="自分の設定" />
 
-      <div className="grid overflow-hidden rounded-lg border bg-card sm:grid-cols-2">
+      <div className="grid overflow-hidden rounded-lg border bg-surface sm:grid-cols-2">
         <div>
           <dt>ログインID</dt>
           <dd>{actor.email ?? '—'}</dd>

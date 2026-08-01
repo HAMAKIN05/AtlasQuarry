@@ -55,7 +55,7 @@ export function ConvertForm({
 
   if (projects.length === 0) {
     return (
-      <section className="rounded-lg border bg-card p-4">
+      <section className="surface p-4">
         <h2 className="mb-3 text-base font-bold">タスクにする</h2>
         <p className="mb-3 text-sm text-muted-foreground">
           先にプロジェクトを作ってください。タスクはどれかのプロジェクトに属します。
@@ -65,13 +65,13 @@ export function ConvertForm({
   }
 
   return (
-    <section className="rounded-lg border bg-card p-4">
+    <section className="surface p-4">
       <h2 className="mb-3 text-base font-bold">タスクにする</h2>
       <p className="mb-3 text-sm text-muted-foreground">要望の内容がそのままタスクになります。担当と期限はあとから変えられます。</p>
 
       <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
         {error && (
-          <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
+          <p className="rounded-md bg-destructive-soft px-3 py-2 text-sm text-destructive" role="alert">
             {error}
           </p>
         )}

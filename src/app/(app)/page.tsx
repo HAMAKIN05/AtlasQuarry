@@ -162,7 +162,7 @@ async function PendingRequests() {
               <li key={r.id}>
                 <Link
                   href={`/requests/${r.id}`}
-                  className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md border p-3 hover:bg-muted"
+                  className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md bg-raised p-3 hover:bg-hover"
                 >
                   <span className="min-w-0 flex-1 basis-48 font-semibold">{r.title}</span>
                   <Badge tone={r.status === 'received' ? 'warn' : 'progress'}>
@@ -198,7 +198,7 @@ async function AcceptedRequests() {
             <li key={r.id}>
               <Link
                 href={`/requests/${r.id}`}
-                className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md border p-3 hover:bg-muted"
+                className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md bg-raised p-3 hover:bg-hover"
               >
                 <span className="min-w-0 flex-1 basis-48 font-semibold">{r.title}</span>
                 <span className="text-xs text-muted-foreground">{r.reporterName}さんから</span>
@@ -269,7 +269,7 @@ function TaskRow({ task, labels }: { task: TaskListItem; labels: Labels }) {
     <li>
       <Link
         href={`/tasks/${task.key}`}
-        className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md border p-3 hover:bg-muted"
+        className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md bg-raised p-3 hover:bg-hover"
       >
         <span className="tabular shrink-0 font-mono text-xs text-muted-foreground">{task.key}</span>
         <span className="min-w-0 flex-1 basis-40 font-semibold">{task.title}</span>
@@ -323,7 +323,7 @@ async function ProjectOverview() {
               <li key={p.id}>
                 <Link
                   href={`/projects/${p.id}`}
-                  className="flex flex-col gap-2 rounded-md border p-3 hover:bg-muted"
+                  className="flex flex-col gap-2 rounded-md bg-raised p-3 hover:bg-hover"
                 >
                   <span className="font-semibold">{p.name}</span>
                   <Progress done={p.progress.doneTasks} total={p.progress.totalTasks} />

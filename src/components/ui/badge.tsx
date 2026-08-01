@@ -7,20 +7,23 @@ import { cn } from '@/lib/cn';
 /**
  * 状態を表す小さな札。
  *
+ * ダークでは**塗りではなく「淡い地＋その色の文字」**にする。塗ると彩度が勝ちすぎて
+ * 画面がうるさくなり、どれが主操作か分からなくなる。
+ *
  * 色は意味と結び付ける。進行中＝アクセント、完了＝緑、要注意＝黄、超過＝赤、
- * 止まっているもの＝枠だけ。増やすときはこの対応を崩さないこと。
+ * 止まっているもの＝地なし。増やすときはこの対応を崩さないこと。
  */
 const badgeVariants = cva(
-  'inline-flex items-center shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap',
+  'inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[0.72rem] font-semibold whitespace-nowrap',
   {
     variants: {
       tone: {
-        neutral: 'bg-muted text-muted-foreground',
-        progress: 'bg-accent text-accent-foreground',
+        neutral: 'bg-raised text-muted-foreground',
+        progress: 'bg-primary-soft text-primary',
         done: 'bg-success-soft text-success',
         warn: 'bg-warning-soft text-warning',
-        danger: 'bg-danger-soft text-destructive',
-        muted: 'border text-muted-foreground',
+        danger: 'bg-destructive-soft text-destructive',
+        muted: 'text-subtle shadow-[inset_0_0_0_1px_var(--border)]',
       },
     },
     defaultVariants: { tone: 'neutral' },

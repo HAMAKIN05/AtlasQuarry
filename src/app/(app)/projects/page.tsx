@@ -51,7 +51,7 @@ async function ProjectList({ canCreate }: { canCreate: boolean }) {
     <ul className="grid gap-3 sm:grid-cols-2">
       {projects.map((p) => (
         <li key={p.id}>
-          <Link href={`/projects/${p.id}`} className="flex flex-col gap-2 rounded-lg border bg-card p-4 hover:border-primary">
+          <Link href={`/projects/${p.id}`} className="flex flex-col gap-2 surface p-4 hover:border-primary">
             <span className="flex items-center gap-2">
               <span className="flex-1 text-base font-bold">{p.name}</span>
               <Badge tone={p.status === 'active' ? 'progress' : 'neutral'}>

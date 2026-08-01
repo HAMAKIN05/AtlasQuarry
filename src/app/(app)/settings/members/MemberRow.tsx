@@ -58,7 +58,7 @@ export function MemberRow({ member, isSelf }: { member: MemberItem; isSelf: bool
   return (
     <li className={`member${member.isActive ? '' : ' is-off'}`}>
       {error && (
-        <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-destructive" role="alert">
+        <p className="rounded-md bg-destructive-soft px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
@@ -79,7 +79,7 @@ export function MemberRow({ member, isSelf }: { member: MemberItem; isSelf: bool
             ) : (
               <div className="flex flex-col gap-2">
                 {SELECTABLE.map((r) => (
-                  <label key={r} className="flex cursor-pointer items-start gap-2 rounded-md border p-2 has-[:checked]:border-primary has-[:checked]:bg-accent">
+                  <label key={r} className="flex cursor-pointer items-start gap-2 rounded-md border p-2 has-[:checked]:border-primary has-[:checked]:bg-primary-soft">
                     <input
                       type="radio"
                       name={`role-${member.id}`}
@@ -103,7 +103,7 @@ export function MemberRow({ member, isSelf }: { member: MemberItem; isSelf: bool
             </button>
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-accent disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-primary-soft disabled:opacity-50"
               onClick={() => {
                 setEditing(false);
                 setName(member.name);
@@ -123,14 +123,14 @@ export function MemberRow({ member, isSelf }: { member: MemberItem; isSelf: bool
           <span className="basis-full text-xs text-muted-foreground">{member.email}</span>
 
           <span className="ml-auto flex gap-1">
-            <button type="button" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-accent disabled:opacity-50" onClick={() => setEditing(true)}>
+            <button type="button" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-primary-soft disabled:opacity-50" onClick={() => setEditing(true)}>
               変更
             </button>
             {!isSelf &&
               (member.isActive ? (
                 <button
                   type="button"
-                  className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-destructive hover:bg-danger-soft disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-destructive hover:bg-destructive-soft disabled:opacity-50"
                   onClick={() => setActive(false)}
                   disabled={busy}
                 >
@@ -139,7 +139,7 @@ export function MemberRow({ member, isSelf }: { member: MemberItem; isSelf: bool
               ) : (
                 <button
                   type="button"
-                  className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-accent disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-primary-soft disabled:opacity-50"
                   onClick={() => setActive(true)}
                   disabled={busy}
                 >

@@ -35,14 +35,14 @@ export function BoardColumn({
     <section
       aria-label={`${label}（${count}件）`}
       className={cn(
-        'flex w-[78vw] max-w-68 shrink-0 flex-col rounded-lg border bg-muted lg:w-auto lg:flex-1 lg:basis-0 lg:min-w-52',
-        isOver && 'border-primary bg-accent',
+        'flex w-[78vw] max-w-68 shrink-0 flex-col rounded-lg border bg-raised lg:w-auto lg:flex-1 lg:basis-0 lg:min-w-52',
+        isOver && 'border-primary bg-primary-soft',
       )}
     >
       <h2 className="flex items-center gap-2 p-3 text-sm font-semibold">
         <span
           aria-hidden="true"
-          className={cn('size-2 rounded-full', DOT[status] ?? 'bg-muted-foreground')}
+          className={cn('size-2 rounded-full', DOT[status] ?? 'bg-subtle')}
         />
         {label}
         <span className="tabular ml-auto text-muted-foreground">{count}</span>
