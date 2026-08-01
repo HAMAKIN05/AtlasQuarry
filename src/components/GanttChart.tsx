@@ -208,7 +208,7 @@ export function GanttChart({
             >
               {row.href ? (
                 <Link href={row.href} className="flex min-w-0 items-baseline gap-1 hover:underline">
-                  <span className="tabular shrink-0 font-mono text-[0.65rem] text-muted-foreground">
+                  <span className="tabular shrink-0 text-[0.65rem] text-muted-foreground">
                     {row.key}
                   </span>
                   <span className="truncate">{row.label}</span>

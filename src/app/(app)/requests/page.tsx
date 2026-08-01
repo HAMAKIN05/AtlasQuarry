@@ -109,7 +109,7 @@ async function RequestList({ active }: { active: RequestStatus | 'all' }) {
   return (
     <section className="content-section" aria-label="要望一覧">
       <div className="section-heading">
-        <div><h2>要望 <span className="tabular font-mono text-primary">{requests.length}</span></h2></div>
+        <div><h2>要望 <span className="tabular text-primary">{requests.length}</span></h2></div>
       </div>
     <ul>
       {requests.map((r) => (
@@ -124,7 +124,7 @@ async function RequestList({ active }: { active: RequestStatus | 'all' }) {
               {r.reporterName}さん・{formatRelative(r.createdAt)}
             </span>
             {r.convertedTaskKey && (
-              <span className="tabular font-mono text-xs text-muted-foreground">
+              <span className="tabular text-xs text-muted-foreground">
                 {r.convertedTaskKey}
               </span>
             )}

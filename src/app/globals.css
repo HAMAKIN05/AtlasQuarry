@@ -237,7 +237,7 @@
   .summary-number {
     /* .tabular は同じレイヤーの自前クラスなので @apply できない。素の宣言で書く */
     font-variant-numeric: tabular-nums;
-    @apply font-mono text-3xl leading-none font-bold tracking-[-0.06em] sm:text-4xl;
+    @apply text-3xl leading-none font-bold tracking-[-0.06em] sm:text-4xl;
   }
 
   /* 空状態も面を増やさず、コンテキストの末尾として短く置く。 */
@@ -289,7 +289,12 @@
     @apply my-2 border-l-2 border-border pl-3 text-muted-foreground;
   }
 
-  /* 日付・件数・タスク番号は桁が揃っている方が読み取りやすい */
+  /*
+   * 日付・件数・タスク番号は桁が揃っている方が読み取りやすい。
+   * **等幅フォントには替えない。** Inter の tabular-nums で桁は揃うし、
+   * OS の等幅（Consolas 等）はゼロにスラッシュが入って業務の数字には強すぎる。
+   * Notion も数字や識別子に等幅を使っていない（等幅はコードだけ）。
+   */
   .tabular {
     font-variant-numeric: tabular-nums;
   }

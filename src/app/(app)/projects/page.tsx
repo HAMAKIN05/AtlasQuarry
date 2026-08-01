@@ -50,7 +50,7 @@ async function ProjectList({ canCreate }: { canCreate: boolean }) {
   return (
     <section className="content-section" aria-label="プロジェクト一覧">
       <div className="section-heading">
-        <div><h2>プロジェクト <span className="tabular font-mono text-primary">{projects.length}</span></h2></div>
+        <div><h2>プロジェクト <span className="tabular text-primary">{projects.length}</span></h2></div>
       </div>
     <ul>
       {projects.map((p) => (
@@ -64,7 +64,7 @@ async function ProjectList({ canCreate }: { canCreate: boolean }) {
             </span>
             {p.description && <span className="text-sm text-muted-foreground sm:col-start-1">{p.description}</span>}
             <Progress done={p.progress.doneTasks} total={p.progress.totalTasks} />
-            {p.nextDueDate && <span className="tabular font-mono text-xs text-muted-foreground">次の期限 {formatDate(p.nextDueDate)}</span>}
+            {p.nextDueDate && <span className="tabular text-xs text-muted-foreground">次の期限 {formatDate(p.nextDueDate)}</span>}
           </Link>
         </li>
       ))}

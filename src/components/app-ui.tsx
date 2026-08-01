@@ -77,7 +77,7 @@ export function Progress({
       >
         <div className="h-full bg-primary transition-[width]" style={{ width: `${percent}%` }} />
       </div>
-      <span className="tabular shrink-0 font-mono text-xs font-semibold text-muted-foreground">
+      <span className="tabular shrink-0 text-xs font-semibold text-muted-foreground">
         {total === 0 ? 'タスクなし' : `${percent}%（${done}/${total}）`}
       </span>
     </div>

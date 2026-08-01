@@ -168,7 +168,7 @@ async function PendingRequests() {
   return (
     <section className="content-section">
       <div className="section-heading">
-        <div><h2>判断を待つ要望 <span className="tabular font-mono text-primary">{requests.length}</span></h2></div>
+        <div><h2>判断を待つ要望 <span className="tabular text-primary">{requests.length}</span></h2></div>
         {requests.length > 0 && (
           <Button asChild variant="ghost" size="sm">
             <Link href="/requests">
@@ -216,7 +216,7 @@ async function AcceptedRequests() {
 
   return (
     <section className="content-section">
-      <div className="section-heading"><div><h2>着手が決まった要望 <span className="tabular font-mono text-primary">{notYetTask.length}</span></h2></div></div>
+      <div className="section-heading"><div><h2>着手が決まった要望 <span className="tabular text-primary">{notYetTask.length}</span></h2></div></div>
       <div className="flex flex-col gap-2">
         <p className="text-sm text-muted-foreground">
           やると決まったものです。タスクにすると担当と期限を決められます。
@@ -251,7 +251,7 @@ async function MyTasks({ actorId }: { actorId: string }) {
   return (
     <section className="content-section">
       <div className="section-heading">
-        <div><h2>自分のタスク <span className="tabular font-mono text-primary">{tasks.length}</span></h2></div>
+        <div><h2>自分のタスク <span className="tabular text-primary">{tasks.length}</span></h2></div>
         {tasks.length > 0 && (
           <Button asChild variant="ghost" size="sm">
             <Link href="/tasks">
@@ -297,7 +297,7 @@ function TaskRow({ task, labels }: { task: TaskListItem; labels: Labels }) {
     <li>
       <Link href={`/tasks/${task.key}`} className="row-link">
         <TaskCheck taskId={task.id} status={task.status} title={task.title} />
-        <span className="tabular shrink-0 font-mono text-xs text-muted-foreground">{task.key}</span>
+        <span className="tabular shrink-0 text-xs text-muted-foreground">{task.key}</span>
         <span className="min-w-0 flex-1 basis-40 font-semibold">{task.title}</span>
         <Badge tone={taskStatusTone(task.status)}>{labels[`task.status.${task.status}`]}</Badge>
         {task.priority !== 'normal' && (

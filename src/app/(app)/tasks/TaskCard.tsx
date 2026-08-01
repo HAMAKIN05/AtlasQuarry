@@ -52,7 +52,7 @@ export function TaskCard({ task, overlay = false }: { task: TaskListItem; overla
       </button>
 
       <Link href={`/tasks/${task.key}`} className="flex flex-col gap-px">
-        <span className="tabular font-mono text-[0.7rem] text-muted-foreground">{task.key}</span>
+        <span className="tabular text-[0.7rem] text-muted-foreground">{task.key}</span>
         <span className="text-sm leading-snug font-semibold">{task.title}</span>
       </Link>
 

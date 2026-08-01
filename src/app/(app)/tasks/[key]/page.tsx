@@ -65,7 +65,7 @@ export default async function TaskDetailPage({ params }: Props) {
       </nav>
 
       <PageHeader title={task.title} />
-      <p className="-mt-2 font-mono text-xs text-muted-foreground">{task.key}</p>
+      <p className="-mt-2 tabular text-xs text-muted-foreground">{task.key}</p>
 
       <div className="grid overflow-hidden rounded-lg border bg-surface sm:grid-cols-2">
         <div>

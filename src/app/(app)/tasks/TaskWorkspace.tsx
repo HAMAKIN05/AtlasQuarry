@@ -177,7 +177,7 @@ export function TaskWorkspace({
       ) : (
         <section className="content-section" aria-label="タスク一覧">
           <div className="section-heading">
-            <div><h2>表示中 <span className="tabular font-mono text-primary">{visible.length}</span></h2></div>
+            <div><h2>表示中 <span className="tabular text-primary">{visible.length}</span></h2></div>
           </div>
         <ul>
           {visible.map((t) => {
@@ -195,7 +195,7 @@ export function TaskWorkspace({
                       )
                     }
                   />
-                  <span className="tabular shrink-0 font-mono text-xs text-muted-foreground">{t.key}</span>
+                  <span className="tabular shrink-0 text-xs text-muted-foreground">{t.key}</span>
                   <span className="min-w-0 flex-1 basis-40 font-semibold">{t.title}</span>
                   <Badge tone={taskStatusTone(t.status)}>{labels[`task.status.${t.status}`]}</Badge>
                   {t.priority !== 'normal' && (

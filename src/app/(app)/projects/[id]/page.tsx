@@ -55,7 +55,7 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
           </Link>
         }
       />
-      <p className="-mt-2 font-mono text-xs text-muted-foreground">タスク番号の記号：{project.key}</p>
+      <p className="-mt-2 tabular text-xs text-muted-foreground">タスク番号の記号：{project.key}</p>
 
       <nav className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-lg bg-raised p-1" aria-label="表示の切り替え">
         <Link
@@ -177,7 +177,7 @@ async function LooseTasks({ projectId }: { projectId: string }) {
           return (
             <li key={t.id}>
               <Link href={`/tasks/${t.key}`} className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md bg-raised p-3 hover:bg-hover">
-                <span className="tabular shrink-0 font-mono text-xs text-muted-foreground">{t.key}</span>
+                <span className="tabular shrink-0 text-xs text-muted-foreground">{t.key}</span>
                 <span className="min-w-0 flex-1 basis-40 font-semibold">{t.title}</span>
                 <Badge tone={taskStatusTone(t.status)}>{labels[`task.status.${t.status}`]}</Badge>
                 {due && (
