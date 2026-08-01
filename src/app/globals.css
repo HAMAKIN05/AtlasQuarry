@@ -2,15 +2,6 @@
 @import 'tw-animate-css';
 
 /*
- * 本文の書体。Fontsource が unicode-range で分割した woff2 を配るので、
- * ブラウザは実際に使う範囲だけを取りに行く（日本語全部を先読みしない）。
- * next/font/google は日本語サブセットを扱えないためこちらで入れている。
- */
-@import '@fontsource/zen-kaku-gothic-new/400.css';
-@import '@fontsource/zen-kaku-gothic-new/500.css';
-@import '@fontsource/zen-kaku-gothic-new/700.css';
-
-/*
  * AtlasQuarry のテーマ。
  *
  * 方向は Linear / Raycast 系のダーク。**黒ではなく、青みを残した濃いグラファイト**を土台にし、
@@ -94,10 +85,14 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* 本文は Fontsource で自己ホスト。等幅は next/font。読めない環境だけ端末のフォントに落ちる */
+  /*
+   * Notion と同じ並び。ラテンだけ Inter を当て、**日本語は指定せず OS に任せる**
+   * （Notion の NotionInter も日本語グリフを持たず、同じ挙動になっている）。
+   */
   --font-sans:
-    'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', system-ui, sans-serif;
-  --font-mono: var(--font-mono-loaded), ui-monospace, SFMono-Regular, Menlo, monospace;
+    var(--font-sans-loaded), Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica,
+    Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, Courier, monospace;
 }
 
 @layer base {

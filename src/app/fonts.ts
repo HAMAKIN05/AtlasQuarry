@@ -1,20 +1,27 @@
-import { JetBrains_Mono } from 'next/font/google';
+import { Inter } from 'next/font/google';
 
 /**
- * 書体。
+ * 書体。**Notion と同じ構成に揃えている。**
  *
- * 本文の **Zen Kaku Gothic New は Fontsource（npm）で自己ホスト**している。
- * `next/font/google` は日本語サブセットを扱えず（`subsets` に 'japanese' が無い）、
- * latin だけ取ると**日本語が端末のフォントに落ちて設計が効かない**。実際にそうなっていた。
- * Fontsource は unicode-range で 10 分割された woff2 を配るので、
- * ブラウザは実際に使う範囲だけを取りに行く。読み込みは globals.css の @import。
+ * Notion の実際の指定を読んで確認したところ、こうなっている。
  *
- * タスク番号・日付・件数は **JetBrains Mono**。ここは latin だけで足りるので next/font でよい。
- * 桁が揃うことに意味がある値なので、本文と役割を分ける。
+ *   --font-family-primary-sans : NotionInter
+ *   --font-family-fallback-sans: Inter, -apple-system, BlinkMacSystemFont,
+ *                                "Segoe UI", Helvetica, Arial, sans-serif
+ *
+ * 重要なのは **NotionInter の @font-face が8面すべてラテンで、日本語グリフを持たない**こと。
+ * つまり Notion は**日本語に何も指定しておらず、OS のフォントに任せている**
+ * （Windows なら游ゴシック、Mac なら Hiragino）。ラテンだけ Inter で揃えている。
+ *
+ * 以前は日本語に Zen Kaku Gothic New を被せていたが、丸みのある独特な書体なので
+ * 画面全体が癖のある見た目になっていた（「キモい」と言われた）。日本語への上書きをやめ、
+ * ラテンを Inter にする。NotionInter は Inter のカスタム版なので、これで実質同じになる。
+ *
+ * 等幅は Notion が iA Writer Mono（商用フォント）なので同じにはできない。
+ * Notion のフォールバック（Menlo, Courier, monospace）に合わせて OS の等幅に任せる。
  */
-export const mono = JetBrains_Mono({
-  weight: ['400', '600'],
+export const sans = Inter({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-mono-loaded',
+  variable: '--font-sans-loaded',
 });
