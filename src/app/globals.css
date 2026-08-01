@@ -2,6 +2,15 @@
 @import 'tw-animate-css';
 
 /*
+ * 本文の書体。Fontsource が unicode-range で分割した woff2 を配るので、
+ * ブラウザは実際に使う範囲だけを取りに行く（日本語全部を先読みしない）。
+ * next/font/google は日本語サブセットを扱えないためこちらで入れている。
+ */
+@import '@fontsource/zen-kaku-gothic-new/400.css';
+@import '@fontsource/zen-kaku-gothic-new/500.css';
+@import '@fontsource/zen-kaku-gothic-new/700.css';
+
+/*
  * AtlasQuarry のテーマ。
  *
  * 方向は Linear / Raycast 系のダーク。**黒ではなく、青みを残した濃いグラファイト**を土台にし、
@@ -85,9 +94,9 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* next/font がビルド時に取得したものを使い、読めない環境だけ端末のフォントに落ちる */
+  /* 本文は Fontsource で自己ホスト。等幅は next/font。読めない環境だけ端末のフォントに落ちる */
   --font-sans:
-    var(--font-sans-loaded), 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', system-ui, sans-serif;
+    'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', system-ui, sans-serif;
   --font-mono: var(--font-mono-loaded), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
