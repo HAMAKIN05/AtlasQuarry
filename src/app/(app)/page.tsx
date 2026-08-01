@@ -2,7 +2,7 @@ import { AlertTriangleIcon, ArrowRightIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
-import { GanttChart } from '@/components/GanttChart';
+import { GanttChart, GanttLegend } from '@/components/GanttChart';
 import { TaskCheck } from '@/components/TaskCheck';
 import {
   Alert,
@@ -135,7 +135,10 @@ async function ScheduleSection() {
 
   return (
     <section className="content-section">
-      <div className="section-heading"><div><h2>予定</h2></div></div>
+      <div className="section-heading">
+        <div><h2>予定</h2></div>
+        <GanttLegend />
+      </div>
       {charts.map((chart) => (
         <div key={chart.productId} className="border-b border-border pb-5 last:border-b-0">
           <div className="mb-2 flex min-h-11 items-center justify-between gap-3">
@@ -176,12 +179,14 @@ async function PendingRequests() {
         )}
       </div>
         {requests.length === 0 ? (
-          <EmptyState
-            title="判断待ちはありません"
-            description="新しい要望が出されると、ここに並びます。"
-            actionLabel="要望を見る"
-            actionHref="/requests"
-          />
+          /*
+           * **ここは0件が正常な状態**なので、空状態に見出し・説明・ボタンの塊を置くと
+           * ホームの一番上を「何も無いこと」が占める。要望画面への導線は上の要約帯と
+           * ナビにあるので、ここは1行で足りる。
+           */
+          <p className="empty-inline">
+            いまは判断待ちの要望はありません。新しく出されると、ここに並びます。
+          </p>
         ) : (
           <ul>
             {requests.slice(0, 5).map((r) => (

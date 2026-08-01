@@ -63,9 +63,10 @@ export function TaskWorkspace({
 
   return (
     <>
+      {/* 既定は一覧表示。「ドラッグして」とだけ書くと、開いた画面と説明が食い違う */}
       <PageHeader
         title="タスク"
-        description="やること一覧です。カードをドラッグして状態を変えられます。"
+        description="やること一覧です。かんばんに切り替えると、ドラッグで状態を変えられます。"
         action={
           <NewTaskForm
             productId={projectId}

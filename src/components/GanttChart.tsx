@@ -153,25 +153,32 @@ export function GanttChart({
 
   return (
     <div className="flex flex-col gap-3">
+      {/*
+       * ホーム（compact）ではプロジェクトごとにガントが並ぶので、表示単位と凡例を
+       * **各図に付けると同じ操作列が何度も出て画面が濁る。** 図ごとに要るのは
+       * 「今日へ」だけ。単位の切替と凡例はプロジェクト詳細と、ホームでは章に1つ置く。
+       */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="inline-flex overflow-hidden rounded-md border" role="group" aria-label="表示単位">
-          {(['day', 'week'] as const).map((s) => (
-            <button
-              key={s}
-              type="button"
-              aria-pressed={scale === s}
-              onClick={() => setScale(s)}
-              className={cn(
-                'min-h-11 px-3 text-sm',
-                scale === s
-                  ? 'bg-primary font-bold text-primary-foreground'
-                  : 'bg-surface text-muted-foreground',
-              )}
-            >
-              {s === 'day' ? '日' : '週'}
-            </button>
-          ))}
-        </div>
+        {!compact && (
+          <div className="inline-flex overflow-hidden rounded-md border" role="group" aria-label="表示単位">
+            {(['day', 'week'] as const).map((s) => (
+              <button
+                key={s}
+                type="button"
+                aria-pressed={scale === s}
+                onClick={() => setScale(s)}
+                className={cn(
+                  'min-h-11 px-3 text-sm',
+                  scale === s
+                    ? 'bg-primary font-bold text-primary-foreground'
+                    : 'bg-surface text-muted-foreground',
+                )}
+              >
+                {s === 'day' ? '日' : '週'}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/*
           自動で今日の位置へ寄せてはいるが、環境によっては効かないことがある。
@@ -181,16 +188,7 @@ export function GanttChart({
           今日へ
         </Button>
 
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-          <Swatch className="bg-subtle" />
-          開発項目
-          <Swatch className="bg-primary" />
-          タスク
-          <Swatch className="bg-destructive" />
-          期限超過
-          <Swatch className="bg-success" />
-          完了
-        </p>
+        {!compact && <GanttLegend />}
       </div>
 
       <div ref={scrollRef} className="surface flex overflow-x-auto">
@@ -308,6 +306,25 @@ export function GanttChart({
 
 function Swatch({ className }: { className: string }) {
   return <span aria-hidden="true" className={cn('inline-block h-2 w-3.5 rounded-[2px]', className)} />;
+}
+
+/**
+ * 帯の色の意味。図が複数並ぶ画面では**章に1つだけ**置く。
+ * 図ごとに繰り返すと、同じ説明が何度も目に入って情報が薄まる。
+ */
+export function GanttLegend({ className }: { className?: string } = {}) {
+  return (
+    <p className={cn('flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground', className)}>
+      <Swatch className="bg-subtle" />
+      開発項目
+      <Swatch className="bg-primary" />
+      タスク
+      <Swatch className="bg-destructive" />
+      期限超過
+      <Swatch className="bg-success" />
+      完了
+    </p>
+  );
 }
 
 /**
