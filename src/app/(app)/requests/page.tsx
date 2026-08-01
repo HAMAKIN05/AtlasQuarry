@@ -35,7 +35,7 @@ export default async function RequestsPage({ searchParams }: Props) {
   const projects = await listProducts();
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-8">
       <PageHeader
         title="要望"
         description="「こんなことができたら仕事が楽になる」を書く場所です。出された要望は管理者が見て、やるかどうかを判断します。"
@@ -107,12 +107,16 @@ async function RequestList({ active }: { active: RequestStatus | 'all' }) {
   }
 
   return (
-    <ul className="flex flex-col gap-2">
+    <section className="content-section" aria-label="要望一覧">
+      <div className="section-heading">
+        <div><h2>要望 <span className="tabular font-mono text-primary">{requests.length}</span></h2></div>
+      </div>
+    <ul>
       {requests.map((r) => (
         <li key={r.id}>
           <Link
             href={`/requests/${r.id}`}
-            className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md bg-raised p-3 hover:bg-hover"
+            className="row-link"
           >
             <span className="min-w-0 flex-1 basis-48 font-semibold">{r.title}</span>
             <Badge tone={requestStatusTone(r.status)}>{labels[`request.status.${r.status}`]}</Badge>
@@ -128,5 +132,6 @@ async function RequestList({ active }: { active: RequestStatus | 'all' }) {
         </li>
       ))}
     </ul>
+    </section>
   );
 }

@@ -76,8 +76,8 @@ export function TaskWorkspace({
         }
       />
 
-      <div className="surface flex flex-wrap items-end gap-3 p-3">
-        <label className="flex min-w-0 flex-col gap-1.5 flex min-w-0 flex-1 basis-40 flex-col gap-1.5">
+      <div className="flex flex-wrap items-end gap-x-4 gap-y-3 border-y border-border py-3">
+        <label className="flex min-w-0 flex-1 basis-40 flex-col gap-1.5">
           <span className="text-sm font-semibold text-muted-foreground">プロジェクト</span>
           <select
             value={projectId}
@@ -91,7 +91,7 @@ export function TaskWorkspace({
           </select>
         </label>
 
-        <label className="flex min-w-0 flex-col gap-1.5 flex min-w-0 flex-1 basis-40 flex-col gap-1.5">
+        <label className="flex min-w-0 flex-1 basis-40 flex-col gap-1.5">
           <span className="text-sm font-semibold text-muted-foreground">担当</span>
           <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}>
             <option value="">全員</option>
@@ -104,7 +104,7 @@ export function TaskWorkspace({
         </label>
 
         {features.length > 0 && (
-          <label className="flex min-w-0 flex-col gap-1.5 flex min-w-0 flex-1 basis-40 flex-col gap-1.5">
+          <label className="flex min-w-0 flex-1 basis-40 flex-col gap-1.5">
             <span className="text-sm font-semibold text-muted-foreground">開発項目</span>
             <select value={featureId} onChange={(e) => setFeatureId(e.target.value)}>
               <option value="">すべて</option>
@@ -131,7 +131,7 @@ export function TaskWorkspace({
           選択中を塗りで示し、アイコンを添えて何の切替かを一目で分かるようにする。
         */}
         <div
-          className="ml-auto inline-flex rounded-lg bg-raised p-0.5 shadow-[inset_0_0_0_1px_var(--border)]"
+          className="ml-auto inline-flex border border-border bg-raised p-0.5"
           role="group"
           aria-label="表示の切り替え"
         >
@@ -174,7 +174,11 @@ export function TaskWorkspace({
       ) : view === 'board' ? (
         <KanbanBoard tasks={visible} allTasks={tasks} onTasksChange={setTasks} />
       ) : (
-        <ul className="flex flex-col gap-2">
+        <section className="content-section" aria-label="タスク一覧">
+          <div className="section-heading">
+            <div><h2>表示中 <span className="tabular font-mono text-primary">{visible.length}</span></h2></div>
+          </div>
+        <ul>
           {visible.map((t) => {
             const due = dueLabel(t.dueDate, t.status);
             return (
@@ -209,6 +213,7 @@ export function TaskWorkspace({
             );
           })}
         </ul>
+        </section>
       )}
     </>
   );

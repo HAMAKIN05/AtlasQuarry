@@ -17,7 +17,7 @@ export default async function ProjectsPage() {
   const actor = await requireActor();
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-8">
       <PageHeader
         title="プロジェクト"
         description="内製化する対象ごとのまとまりです。たとえば「日報自動化」「SNS分析」のような単位で作ります。"
@@ -48,22 +48,27 @@ async function ProjectList({ canCreate }: { canCreate: boolean }) {
   }
 
   return (
-    <ul className="grid gap-3 sm:grid-cols-2">
+    <section className="content-section" aria-label="プロジェクト一覧">
+      <div className="section-heading">
+        <div><h2>プロジェクト <span className="tabular font-mono text-primary">{projects.length}</span></h2></div>
+      </div>
+    <ul>
       {projects.map((p) => (
         <li key={p.id}>
-          <Link href={`/projects/${p.id}`} className="flex flex-col gap-2 surface p-4 hover:border-primary">
+          <Link href={`/projects/${p.id}`} className="flex min-h-14 flex-col gap-2 border-b border-border px-1 py-3 hover:bg-raised sm:grid sm:grid-cols-[minmax(12rem,0.9fr)_minmax(12rem,1fr)_auto] sm:items-center sm:gap-5">
             <span className="flex items-center gap-2">
               <span className="flex-1 text-base font-bold">{p.name}</span>
               <Badge tone={p.status === 'active' ? 'progress' : 'neutral'}>
                 {PROJECT_STATUS_LABELS[p.status]}
               </Badge>
             </span>
-            {p.description && <span className="text-sm text-muted-foreground">{p.description}</span>}
+            {p.description && <span className="text-sm text-muted-foreground sm:col-start-1">{p.description}</span>}
             <Progress done={p.progress.doneTasks} total={p.progress.totalTasks} />
-            {p.nextDueDate && <span className="text-sm text-muted-foreground">次の期限 {formatDate(p.nextDueDate)}</span>}
+            {p.nextDueDate && <span className="tabular font-mono text-xs text-muted-foreground">次の期限 {formatDate(p.nextDueDate)}</span>}
           </Link>
         </li>
       ))}
     </ul>
+    </section>
   );
 }

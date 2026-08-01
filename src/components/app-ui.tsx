@@ -37,7 +37,7 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-start gap-2 rounded-lg bg-raised px-4 py-6 shadow-[inset_0_0_0_1px_var(--border)]',
+        'empty-inline flex flex-col items-start gap-2',
         className,
       )}
     >
@@ -77,7 +77,7 @@ export function Progress({
       >
         <div className="h-full bg-primary transition-[width]" style={{ width: `${percent}%` }} />
       </div>
-      <span className="tabular shrink-0 text-xs text-muted-foreground">
+      <span className="tabular shrink-0 font-mono text-xs font-semibold text-muted-foreground">
         {total === 0 ? 'タスクなし' : `${percent}%（${done}/${total}）`}
       </span>
     </div>

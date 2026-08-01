@@ -15,7 +15,6 @@ import {
   taskStatusTone,
 } from '@/components/app-ui';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getHomeGantt } from '@/domain/gantt/query';
 import { listProducts } from '@/domain/product/service';
 import { listRequests } from '@/domain/request/service';
@@ -41,11 +40,14 @@ export default async function HomePage() {
   const developerFirst = actor.role === 'developer' || actor.role === 'agent';
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-9">
       <PageHeader
         title={`こんにちは、${actor.name}さん`}
         description={`${ROLE_LABELS[actor.role]}として使っています。やることと、判断が必要なものをまとめています。`}
       />
+      <Suspense fallback={<Loading label="状況をまとめています" />}>
+        <HomeSummary actorId={actor.id} canTriage={canTriage} />
+      </Suspense>
 
       {developerFirst ? (
         <>
@@ -81,6 +83,38 @@ export default async function HomePage() {
   );
 }
 
+/** 数値を最初に置き、読む順番を「状況 → 個別の仕事」に固定する。 */
+async function HomeSummary({ actorId, canTriage }: { actorId: string; canTriage: boolean }) {
+  const [myTasks, projects, pendingRequests] = await Promise.all([
+    listTasks({ assigneeId: actorId, status: ['backlog', 'todo', 'in_progress', 'review'] }),
+    listProducts(),
+    canTriage ? listRequests(['received', 'reviewing']) : Promise.resolve([]),
+  ]);
+  const overdue = myTasks.filter((task) => isOverdue(task.dueDate, task.status)).length;
+  const done = projects.reduce((sum, project) => sum + project.progress.doneTasks, 0);
+  const total = projects.reduce((sum, project) => sum + project.progress.totalTasks, 0);
+
+  return (
+    <section aria-label="現在の状況" className="summary-strip">
+      <Link href="/tasks" className="summary-metric hover:bg-raised" data-tone={overdue > 0 ? 'danger' : undefined}>
+        <span className="summary-label">自分のタスク</span>
+        <span className="summary-number">{myTasks.length}</span>
+        <span className="text-sm text-muted-foreground">{overdue > 0 ? `うち期限超過 ${overdue}` : '期限超過なし'}</span>
+      </Link>
+      <Link href="/projects" className="summary-metric hover:bg-raised">
+        <span className="summary-label">全体の進み</span>
+        <span className="summary-number">{total === 0 ? '—' : `${Math.round((done / total) * 100)}%`}</span>
+        <span className="text-sm text-muted-foreground">{total === 0 ? 'タスクなし' : `${done}/${total} 件が完了`}</span>
+      </Link>
+      <Link href="/requests" className="summary-metric hover:bg-raised" data-tone={pendingRequests.length > 0 ? 'accent' : undefined}>
+        <span className="summary-label">判断待ち</span>
+        <span className="summary-number">{canTriage ? pendingRequests.length : '—'}</span>
+        <span className="text-sm text-muted-foreground">{canTriage ? '要望の判断が必要' : '要望画面で確認'}</span>
+      </Link>
+    </section>
+  );
+}
+
 /**
  * 動いているプロジェクトの予定。
  *
@@ -92,41 +126,33 @@ async function ScheduleSection() {
 
   if (charts.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>予定</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <EmptyState
-            title="帯で見せられる予定がまだありません"
-            description="タスクに開始日と期限を入れると、ここに進行中プロジェクトの予定が並びます。"
-            actionLabel="タスクを見る"
-            actionHref="/tasks"
-          />
-        </CardContent>
-      </Card>
+      <section className="content-section">
+        <div className="section-heading"><div><h2>予定</h2></div></div>
+        <EmptyState title="予定はまだありません" description="タスクに開始日と期限を入れると、ここに時間軸が出ます。" actionLabel="タスクを見る" actionHref="/tasks" />
+      </section>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <section className="content-section">
+      <div className="section-heading"><div><h2>予定</h2></div></div>
       {charts.map((chart) => (
-        <Card key={chart.productId}>
-          <CardHeader>
-            <CardTitle>{chart.productName}の予定</CardTitle>
+        <div key={chart.productId} className="border-b border-border pb-5 last:border-b-0">
+          <div className="mb-2 flex min-h-11 items-center justify-between gap-3">
+            <h3 className="font-semibold">{chart.productName}</h3>
             <Button asChild variant="ghost" size="sm">
               <Link href={`/projects/${chart.productId}?view=gantt`}>
                 詳しく見る
                 <ArrowRightIcon />
               </Link>
             </Button>
-          </CardHeader>
-          <CardContent className="pt-3">
+          </div>
+          <div className="overflow-hidden">
             <GanttChart rows={chart.rows} compact />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ))}
-    </div>
+    </section>
   );
 }
 
@@ -137,9 +163,9 @@ async function PendingRequests() {
   ]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>判断を待っている要望（{requests.length}）</CardTitle>
+    <section className="content-section">
+      <div className="section-heading">
+        <div><h2>判断を待つ要望 <span className="tabular font-mono text-primary">{requests.length}</span></h2></div>
         {requests.length > 0 && (
           <Button asChild variant="ghost" size="sm">
             <Link href="/requests">
@@ -148,8 +174,7 @@ async function PendingRequests() {
             </Link>
           </Button>
         )}
-      </CardHeader>
-      <CardContent className="pt-3">
+      </div>
         {requests.length === 0 ? (
           <EmptyState
             title="判断待ちはありません"
@@ -158,12 +183,12 @@ async function PendingRequests() {
             actionHref="/requests"
           />
         ) : (
-          <ul className="flex flex-col gap-2">
+          <ul>
             {requests.slice(0, 5).map((r) => (
               <li key={r.id}>
                 <Link
                   href={`/requests/${r.id}`}
-                  className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md bg-raised p-3 hover:bg-hover"
+                  className="row-link"
                 >
                   <span className="min-w-0 flex-1 basis-48 font-semibold">{r.title}</span>
                   <Badge tone={r.status === 'received' ? 'warn' : 'progress'}>
@@ -175,8 +200,7 @@ async function PendingRequests() {
             ))}
           </ul>
         )}
-      </CardContent>
-    </Card>
+    </section>
   );
 }
 
@@ -186,20 +210,18 @@ async function AcceptedRequests() {
   if (notYetTask.length === 0) return null;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>着手が決まった要望（{notYetTask.length}）</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-2 pt-3">
+    <section className="content-section">
+      <div className="section-heading"><div><h2>着手が決まった要望 <span className="tabular font-mono text-primary">{notYetTask.length}</span></h2></div></div>
+      <div className="flex flex-col gap-2">
         <p className="text-sm text-muted-foreground">
           やると決まったものです。タスクにすると担当と期限を決められます。
         </p>
-        <ul className="flex flex-col gap-2">
+        <ul>
           {notYetTask.slice(0, 5).map((r) => (
             <li key={r.id}>
               <Link
                 href={`/requests/${r.id}`}
-                className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md bg-raised p-3 hover:bg-hover"
+                className="row-link"
               >
                 <span className="min-w-0 flex-1 basis-48 font-semibold">{r.title}</span>
                 <span className="text-xs text-muted-foreground">{r.reporterName}さんから</span>
@@ -207,8 +229,8 @@ async function AcceptedRequests() {
             </li>
           ))}
         </ul>
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }
 
@@ -222,9 +244,9 @@ async function MyTasks({ actorId }: { actorId: string }) {
   const rest = tasks.filter((t) => !isOverdue(t.dueDate, t.status));
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>自分のタスク（{tasks.length}）</CardTitle>
+    <section className="content-section">
+      <div className="section-heading">
+        <div><h2>自分のタスク <span className="tabular font-mono text-primary">{tasks.length}</span></h2></div>
         {tasks.length > 0 && (
           <Button asChild variant="ghost" size="sm">
             <Link href="/tasks">
@@ -233,8 +255,8 @@ async function MyTasks({ actorId }: { actorId: string }) {
             </Link>
           </Button>
         )}
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3 pt-3">
+      </div>
+      <div className="flex flex-col gap-3">
         {tasks.length === 0 ? (
           <EmptyState
             title="担当しているタスクはありません"
@@ -250,15 +272,15 @@ async function MyTasks({ actorId }: { actorId: string }) {
                 期限を過ぎたタスクが {overdue.length} 件あります。
               </Alert>
             )}
-            <ul className="flex flex-col gap-2">
+            <ul>
               {[...overdue, ...rest].slice(0, 8).map((t) => (
                 <TaskRow key={t.id} task={t} labels={labels} />
               ))}
             </ul>
           </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }
 
@@ -296,9 +318,9 @@ async function ProjectOverview() {
   const projects = await listProducts();
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>プロジェクトの進み具合</CardTitle>
+    <section className="content-section">
+      <div className="section-heading">
+        <div><h2>プロジェクトの進み具合</h2></div>
         {projects.length > 0 && (
           <Button asChild variant="ghost" size="sm">
             <Link href="/projects">
@@ -307,8 +329,7 @@ async function ProjectOverview() {
             </Link>
           </Button>
         )}
-      </CardHeader>
-      <CardContent className="pt-3">
+      </div>
         {projects.length === 0 ? (
           <EmptyState
             title="プロジェクトがまだありません"
@@ -317,21 +338,20 @@ async function ProjectOverview() {
             actionHref="/projects"
           />
         ) : (
-          <ul className="flex flex-col gap-2">
+          <ul>
             {projects.map((p) => (
               <li key={p.id}>
                 <Link
                   href={`/projects/${p.id}`}
-                  className="flex flex-col gap-2 rounded-md bg-raised p-3 hover:bg-hover"
+                  className="flex min-h-14 flex-col gap-1 border-b border-border px-1 py-3 last:border-b-0 hover:bg-raised sm:flex-row sm:items-center sm:gap-5"
                 >
-                  <span className="font-semibold">{p.name}</span>
-                  <Progress done={p.progress.doneTasks} total={p.progress.totalTasks} />
+                  <span className="font-semibold sm:w-1/3">{p.name}</span>
+                  <Progress className="w-full sm:flex-1" done={p.progress.doneTasks} total={p.progress.totalTasks} />
                 </Link>
               </li>
             ))}
           </ul>
         )}
-      </CardContent>
-    </Card>
+    </section>
   );
 }

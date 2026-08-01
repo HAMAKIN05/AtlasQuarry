@@ -194,9 +194,51 @@
 
   /* 一覧の1行。枠を引かず、hover で面を持ち上げる */
   .row-link {
-    @apply flex min-h-12 flex-wrap items-center gap-x-2.5 gap-y-1 rounded-md bg-raised px-3 py-2.5;
-    @apply transition-colors hover:bg-hover;
-    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.035);
+    @apply flex min-h-12 flex-wrap items-center gap-x-2.5 gap-y-1 border-b border-border/70 px-1 py-2.5 last:border-b-0;
+    @apply transition-colors hover:bg-raised;
+  }
+
+  /* 画面内の情報群。箱で囲わず、見出しと罫線でまとまりを作る。 */
+  .content-section {
+    @apply flex flex-col gap-2;
+  }
+  .section-heading {
+    @apply flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border pb-2;
+  }
+  .section-heading h2 {
+    @apply text-lg font-bold tracking-tight;
+  }
+  /*
+   * 要約帯のラベル。**英語の飾りは置かない。**
+   * 日本語しか使わないツールに意味のない英語のキャッチを載せると、
+   * 情報が増えないまま「それっぽさ」だけが出る（指摘された「AI感」の正体のひとつ）。
+   */
+  .summary-label {
+    @apply text-xs font-semibold text-subtle;
+  }
+
+  /* ホームの数値帯。カードの集合ではなく、現在地を一息で読むための一枚の帯。 */
+  .summary-strip {
+    @apply grid overflow-hidden border-y border-border sm:grid-cols-3;
+  }
+  .summary-metric {
+    @apply flex min-h-26 flex-col justify-between border-b border-border px-4 py-3.5 last:border-b-0 sm:border-r sm:border-b-0 sm:last:border-r-0;
+  }
+  .summary-metric[data-tone='danger'] {
+    @apply bg-destructive-soft;
+  }
+  .summary-metric[data-tone='accent'] {
+    @apply bg-primary-soft;
+  }
+  .summary-number {
+    /* .tabular は同じレイヤーの自前クラスなので @apply できない。素の宣言で書く */
+    font-variant-numeric: tabular-nums;
+    @apply font-mono text-3xl leading-none font-bold tracking-[-0.06em] sm:text-4xl;
+  }
+
+  /* 空状態も面を増やさず、コンテキストの末尾として短く置く。 */
+  .empty-inline {
+    @apply border-l-2 border-border px-4 py-3 text-sm text-muted-foreground;
   }
 
   .markdown {
