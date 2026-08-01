@@ -1,42 +1,39 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
+import { LabelsProvider } from '@/components/LabelsProvider';
+import { countRequestsByStatus } from '@/domain/request/service';
+import { loadLabels } from '@/domain/setting/labels';
 import { currentActor } from '@/lib/auth/cookies';
-import { ROLE_LABELS } from '@/lib/format';
+import { can } from '@/lib/auth/rbac';
 
-import { LogoutButton } from './LogoutButton';
+import { AppNav } from './AppNav';
 
 /**
  * 認証必須の画面すべての外枠。
  *
- * 未認証なら /login へリダイレクトする（受入基準 5.1）。
- * ここで一括して弾くことで、各ページが認証チェックを書き忘れる余地をなくす。
+ * 未認証なら /login へリダイレクトする。ここで一括して弾くことで、各ページが
+ * 認証チェックを書き忘れる余地をなくす（ページ側でも requireActor で二重に弾く）。
  */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const actor = await currentActor();
   if (!actor) redirect('/login');
 
-  return (
-    <div className="app-shell">
-      <header className="app-header">
-        <Link href="/" className="app-brand">
-          AtlasQuarry
-        </Link>
-        <nav className="app-nav" aria-label="メインナビゲーション">
-          <Link href="/">ダッシュボード</Link>
-          <Link href="/products">プロダクト</Link>
-          <Link href="/board">かんばん</Link>
-        </nav>
-        <div className="app-account">
-          <Link href="/settings/profile">
-            {actor.name}
-            <span className="app-role">{ROLE_LABELS[actor.role] ?? actor.role}</span>
-          </Link>
-          <LogoutButton />
-        </div>
-      </header>
+  const [labels, counts] = await Promise.all([loadLabels(), countRequestsByStatus()]);
 
-      <main className="app-main">{children}</main>
-    </div>
+  // 判断待ちの要望はナビに数字で出す。放置されていることが一目で分かるように
+  const pendingRequests = can(actor, 'request.triage')
+    ? (counts.received ?? 0) + (counts.reviewing ?? 0)
+    : 0;
+
+  return (
+    <LabelsProvider value={labels}>
+      <div className="shell">
+        <AppNav
+          actor={{ id: actor.id, name: actor.name, role: actor.role }}
+          pendingRequests={pendingRequests}
+        />
+        <main className="shell-main">{children}</main>
+      </div>
+    </LabelsProvider>
   );
 }

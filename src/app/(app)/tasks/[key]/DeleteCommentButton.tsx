@@ -14,7 +14,7 @@ export function DeleteCommentButton({ commentId }: { commentId: string }) {
     <>
       <button
         type="button"
-        className="link-button"
+        className="btn-quiet"
         disabled={busy}
         onClick={async () => {
           if (!window.confirm('このコメントを削除します。よろしいですか？')) return;
@@ -32,7 +32,7 @@ export function DeleteCommentButton({ commentId }: { commentId: string }) {
         削除
       </button>
       {error && (
-        <span className="form-error" role="alert">
+        <span className="alert alert-error" role="alert">
           {error}
         </span>
       )}

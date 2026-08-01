@@ -67,24 +67,24 @@ export function TotpSection({ enabled }: { enabled: boolean }) {
   }
 
   return (
-    <section className="panel" aria-labelledby="totp-heading">
-      <h2 id="totp-heading" className="panel-title">
+    <section className="card" aria-labelledby="totp-heading">
+      <h2 id="totp-heading" className="card-title">
         2要素認証
       </h2>
 
       {error && (
-        <p className="form-error" role="alert">
+        <p className="alert alert-error" role="alert">
           {error}
         </p>
       )}
       {notice && (
-        <p className="form-notice" role="status">
+        <p className="alert" role="status">
           {notice}
         </p>
       )}
 
       {enabled ? (
-        <div className="stacked-form">
+        <div className="stack">
           <p>現在: 有効</p>
           <label className="field">
             <span className="field-label">解除するにはパスワードを入力してください</span>
@@ -95,12 +95,12 @@ export function TotpSection({ enabled }: { enabled: boolean }) {
               onChange={(e) => setPassword(e.target.value)}
             />
           </label>
-          <button type="button" className="danger-button" onClick={disable} disabled={busy || !password}>
+          <button type="button" className="btn-danger" onClick={disable} disabled={busy || !password}>
             解除する
           </button>
         </div>
       ) : setup ? (
-        <div className="stacked-form">
+        <div className="stack">
           <p>認証アプリに次のシークレットを登録し、表示された6桁を入力してください。</p>
           <p className="totp-secret">
             <code>{setup.secret}</code>
@@ -120,13 +120,13 @@ export function TotpSection({ enabled }: { enabled: boolean }) {
             />
           </label>
 
-          <div className="form-actions">
-            <button type="button" onClick={confirm} disabled={busy || code.length !== 6}>
+          <div className="actions">
+            <button type="button" className="btn-primary" onClick={confirm} disabled={busy || code.length !== 6}>
               有効にする
             </button>
             <button
               type="button"
-              className="link-button"
+              className="btn-quiet"
               onClick={() => {
                 setSetup(null);
                 setCode('');
@@ -137,9 +137,9 @@ export function TotpSection({ enabled }: { enabled: boolean }) {
           </div>
         </div>
       ) : (
-        <div className="stacked-form">
+        <div className="stack">
           <p>現在: 無効</p>
-          <button type="button" onClick={begin} disabled={busy}>
+          <button type="button" className="btn-primary" onClick={begin} disabled={busy}>
             設定する
           </button>
         </div>

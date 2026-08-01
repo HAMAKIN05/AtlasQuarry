@@ -38,9 +38,9 @@ export function CommentForm({ taskId }: { taskId: string }) {
   }
 
   return (
-    <form className="stacked-form" onSubmit={handleSubmit} noValidate>
+    <form className="stack" onSubmit={handleSubmit} noValidate>
       {error && (
-        <p className="form-error" role="alert">
+        <p className="alert alert-error" role="alert">
           {error}
         </p>
       )}
@@ -50,7 +50,7 @@ export function CommentForm({ taskId }: { taskId: string }) {
         <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} />
       </label>
 
-      <button type="submit" disabled={submitting}>
+      <button type="submit" className="btn-primary" disabled={submitting}>
         {submitting ? '投稿中…' : '投稿'}
       </button>
     </form>

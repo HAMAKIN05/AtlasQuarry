@@ -46,19 +46,19 @@ export function ProfileForm({ initialName }: { initialName: string }) {
   }
 
   return (
-    <section className="panel" aria-labelledby="profile-heading">
-      <h2 id="profile-heading" className="panel-title">
+    <section className="card" aria-labelledby="profile-heading">
+      <h2 id="profile-heading" className="card-title">
         基本情報
       </h2>
 
-      <form className="stacked-form" onSubmit={handleSubmit} noValidate>
+      <form className="stack" onSubmit={handleSubmit} noValidate>
         {error && (
-          <p className="form-error" role="alert">
+          <p className="alert alert-error" role="alert">
             {error}
           </p>
         )}
         {notice && (
-          <p className="form-notice" role="status">
+          <p className="alert" role="status">
             {notice}
           </p>
         )}
@@ -93,7 +93,7 @@ export function ProfileForm({ initialName }: { initialName: string }) {
           </span>
         </label>
 
-        <button type="submit" disabled={saving}>
+        <button type="submit" className="btn-primary" disabled={saving}>
           {saving ? '保存中…' : '保存'}
         </button>
       </form>

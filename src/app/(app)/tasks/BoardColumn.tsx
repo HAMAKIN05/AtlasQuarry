@@ -24,15 +24,13 @@ export function BoardColumn({
   const { setNodeRef, isOver } = useDroppable({ id: status });
 
   return (
-    <section
-      className={`board-column${isOver ? ' is-over' : ''}`}
-      aria-label={`${label}（${count}件）`}
-    >
-      <h2 className="board-column-title">
+    <section className={`bcol${isOver ? ' is-over' : ''}`} aria-label={`${label}（${count}件）`}>
+      <h2 className="bcol-head">
+        <span className={`bcol-dot bcol-dot-${status}`} aria-hidden="true" />
         {label}
-        <span className="board-column-count">{count}</span>
+        <span className="bcol-count">{count}</span>
       </h2>
-      <div className="board-column-body" ref={setNodeRef}>
+      <div className="bcol-body" ref={setNodeRef}>
         {children}
       </div>
     </section>

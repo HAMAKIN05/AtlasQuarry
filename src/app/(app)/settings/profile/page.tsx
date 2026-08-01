@@ -1,29 +1,39 @@
+import Link from 'next/link';
+
+import { PageHeader } from '@/components/ui';
 import { requireActor } from '@/lib/auth/cookies';
-import { ROLE_LABELS } from '@/lib/format';
+import { ROLE_DESCRIPTIONS, ROLE_LABELS } from '@/lib/labels';
 
 import { ProfileForm } from './ProfileForm';
 import { TotpSection } from './TotpSection';
 
-export const metadata = { title: 'プロフィール設定 | AtlasQuarry' };
+export const metadata = { title: '自分の設定 | AtlasQuarry' };
 
-/** 設定 / プロフィール。名前変更、パスワード変更、TOTP 設定。 */
+/** 設定 → 自分の設定。名前・パスワード・2要素認証。 */
 export default async function ProfileSettingsPage() {
   const actor = await requireActor();
 
   return (
     <div className="page">
-      <h1 className="page-title">プロフィール設定</h1>
+      <nav className="crumbs" aria-label="現在の場所">
+        <Link href="/settings">設定</Link>
+      </nav>
 
-      <dl className="task-meta">
+      <PageHeader title="自分の設定" />
+
+      <div className="meta">
         <div>
-          <dt>メールアドレス</dt>
+          <dt>ログインID</dt>
           <dd>{actor.email ?? '—'}</dd>
         </div>
         <div>
           <dt>権限</dt>
-          <dd>{ROLE_LABELS[actor.role] ?? actor.role}</dd>
+          <dd>
+            {ROLE_LABELS[actor.role]}
+            <span className="muted">（{ROLE_DESCRIPTIONS[actor.role]}）</span>
+          </dd>
         </div>
-      </dl>
+      </div>
 
       <ProfileForm initialName={actor.name} />
       <TotpSection enabled={actor.hasTotp} />

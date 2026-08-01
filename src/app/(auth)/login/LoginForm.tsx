@@ -52,7 +52,7 @@ export function LoginForm() {
   return (
     <form className="auth-form" onSubmit={handleSubmit} noValidate>
       {error && (
-        <p className="form-error" role="alert">
+        <p className="alert alert-error" role="alert">
           {error}
         </p>
       )}
@@ -101,14 +101,14 @@ export function LoginForm() {
         </label>
       )}
 
-      <button type="submit" disabled={submitting}>
+      <button type="submit" className="btn-primary" disabled={submitting}>
         {submitting ? '確認中…' : 'ログイン'}
       </button>
 
       {needsTotp && (
         <button
           type="button"
-          className="link-button"
+          className="btn-quiet"
           onClick={() => {
             setNeedsTotp(false);
             setTotpCode('');

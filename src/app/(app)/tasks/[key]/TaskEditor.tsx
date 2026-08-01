@@ -5,7 +5,8 @@ import { useState, type FormEvent } from 'react';
 
 import type { TaskPriority, TaskStatus } from '@/db/schema/enums';
 import { ApiError, api } from '@/lib/api/client';
-import { BOARD_COLUMNS, TASK_PRIORITY_LABELS, TASK_STATUS_LABELS } from '@/lib/format';
+import { useLabels } from '@/components/LabelsProvider';
+import { BOARD_COLUMNS } from '@/lib/labels';
 
 type Option = { id: string; name: string };
 
@@ -30,15 +31,16 @@ export function TaskEditor({
   features,
   members,
   canDelete,
-  productId,
+  projectId,
 }: {
   task: EditableTask;
   features: Option[];
   members: Option[];
   canDelete: boolean;
-  productId: string;
+  projectId: string;
 }) {
   const router = useRouter();
+  const labels = useLabels();
   const [form, setForm] = useState(task);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -78,7 +80,7 @@ export function TaskEditor({
     setSaving(true);
     try {
       await api.delete(`/tasks/${task.id}`);
-      router.replace(`/board?productId=${productId}`);
+      router.replace(`/tasks?projectId=${projectId}`);
       router.refresh();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '削除に失敗しました');
@@ -87,19 +89,19 @@ export function TaskEditor({
   }
 
   return (
-    <section className="panel" aria-labelledby="edit-heading">
-      <h2 id="edit-heading" className="panel-title">
+    <section className="card" aria-labelledby="edit-heading">
+      <h2 id="edit-heading" className="card-title">
         編集
       </h2>
 
-      <form className="stacked-form" onSubmit={handleSubmit} noValidate>
+      <form className="stack" onSubmit={handleSubmit} noValidate>
         {error && (
-          <p className="form-error" role="alert">
+          <p className="alert alert-error" role="alert">
             {error}
           </p>
         )}
         {saved && (
-          <p className="form-notice" role="status">
+          <p className="alert" role="status">
             保存しました
           </p>
         )}
@@ -131,7 +133,7 @@ export function TaskEditor({
           >
             {ALL_STATUSES.map((status) => (
               <option key={status} value={status}>
-                {TASK_STATUS_LABELS[status]}
+                {labels[`task.status.${status}`]}
               </option>
             ))}
           </select>
@@ -145,7 +147,7 @@ export function TaskEditor({
           >
             {PRIORITIES.map((priority) => (
               <option key={priority} value={priority}>
-                {TASK_PRIORITY_LABELS[priority]}
+                {labels[`task.priority.${priority}`]}
               </option>
             ))}
           </select>
@@ -199,12 +201,12 @@ export function TaskEditor({
           />
         </label>
 
-        <div className="form-actions">
-          <button type="submit" disabled={saving}>
+        <div className="actions">
+          <button type="submit" className="btn-primary" disabled={saving}>
             {saving ? '保存中…' : '保存'}
           </button>
           {canDelete && (
-            <button type="button" className="danger-button" onClick={handleDelete} disabled={saving}>
+            <button type="button" className="btn-danger" onClick={handleDelete} disabled={saving}>
               削除
             </button>
           )}

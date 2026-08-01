@@ -4,8 +4,10 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import Link from 'next/link';
 
+import { Chip, priorityTone } from '@/components/ui';
+import { useLabels } from '@/components/LabelsProvider';
 import type { TaskListItem } from '@/domain/task/service';
-import { TASK_PRIORITY_LABELS, formatDate, isOverdue } from '@/lib/format';
+import { dueLabel, isOverdue } from '@/lib/format';
 
 /**
  * かんばんのカード。
@@ -14,6 +16,7 @@ import { TASK_PRIORITY_LABELS, formatDate, isOverdue } from '@/lib/format';
  * カード内のリンク（タスク詳細への遷移）をタップで開けるようにするため。
  */
 export function TaskCard({ task, overlay = false }: { task: TaskListItem; overlay?: boolean }) {
+  const labels = useLabels();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
   });
@@ -26,33 +29,36 @@ export function TaskCard({ task, overlay = false }: { task: TaskListItem; overla
         opacity: isDragging ? 0.4 : 1,
       };
 
+  const due = dueLabel(task.dueDate, task.status);
+
   return (
-    <article className="task-card" ref={overlay ? undefined : setNodeRef} style={style}>
+    <article className="tcard" ref={overlay ? undefined : setNodeRef} style={style}>
       <button
         type="button"
-        className="task-card-handle"
+        className="tcard-grip"
         aria-label={`${task.key} を移動`}
         {...attributes}
         {...listeners}
       >
-        ⠿
+        <span aria-hidden="true">⠿</span>
       </button>
 
-      <Link href={`/tasks/${task.key}`} className="task-card-link">
-        <span className="task-key">{task.key}</span>
-        <span className="task-title">{task.title}</span>
+      <Link href={`/tasks/${task.key}`} className="tcard-body">
+        <span className="tcard-key">{task.key}</span>
+        <span className="tcard-title">{task.title}</span>
       </Link>
 
-      <p className="task-card-meta">
-        <span className="task-priority">{TASK_PRIORITY_LABELS[task.priority]}</span>
-        {task.assigneeName && <span className="task-assignee">{task.assigneeName}</span>}
-        {task.dueDate && (
-          <span className={`task-due${isOverdue(task.dueDate, task.status) ? ' is-overdue' : ''}`}>
-            {formatDate(task.dueDate)}
+      <div className="tcard-meta">
+        {task.priority !== 'normal' && (
+          <Chip tone={priorityTone(task.priority)}>{labels[`task.priority.${task.priority}`]}</Chip>
+        )}
+        {task.assigneeName && <span className="tcard-who">{task.assigneeName}</span>}
+        {due && (
+          <span className={`tcard-due${isOverdue(task.dueDate, task.status) ? ' is-late' : ''}`}>
+            {due}
           </span>
         )}
-      </p>
-      {task.featureName && <p className="task-card-feature">{task.featureName}</p>}
+      </div>
     </article>
   );
 }

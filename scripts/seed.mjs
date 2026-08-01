@@ -23,10 +23,11 @@ const ARGON2_OPTIONS = {
 const PASSWORD_MIN_LENGTH = 12;
 
 /** 利用者は3名（経営者・上司・開発者）。CLAUDE.md 冒頭の前提に対応する。 */
+// 名前は SEED_*_NAME で必ず実名を渡すこと。既定値のままだと画面に役割名が人名として出る
 const SEED_ACTORS = [
-  { role: 'owner', envPrefix: 'SEED_OWNER', defaultName: '経営者' },
-  { role: 'manager', envPrefix: 'SEED_MANAGER', defaultName: '上司' },
-  { role: 'developer', envPrefix: 'SEED_DEVELOPER', defaultName: '開発者' },
+  { role: 'owner', envPrefix: 'SEED_OWNER', defaultName: 'オーナー' },
+  { role: 'manager', envPrefix: 'SEED_MANAGER', defaultName: 'マネージャー' },
+  { role: 'developer', envPrefix: 'SEED_DEVELOPER', defaultName: 'デベロッパー' },
 ];
 
 function readActorConfig({ role, envPrefix, defaultName }) {

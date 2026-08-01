@@ -1,64 +1,14 @@
 import { format, formatDistanceToNowStrict, isValid, parseISO } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
-import type { TaskPriority, TaskStatus } from '@/db/schema/enums';
+import type { TaskStatus } from '@/db/schema/enums';
 
 /**
- * 表示用の整形。
+ * 日付・数値の整形だけを持つ。
  *
- * **DB上の英語名を画面に出さない**（CLAUDE.md UI規約）。ステータスやロールの日本語名はここに集約する。
+ * 呼び名（ステータス名など）は `lib/labels.ts` にある。設定で変更できるものと
+ * できないものが混ざると、どこを直せばよいか分からなくなるため分けている。
  */
-
-export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
-  backlog: '未着手',
-  todo: '予定',
-  in_progress: '進行中',
-  review: 'レビュー',
-  done: '完了',
-  cancelled: '中止',
-};
-
-/** かんばんの列の並び。中止は列に出さず、フィルタから辿る。 */
-export const BOARD_COLUMNS: TaskStatus[] = ['backlog', 'todo', 'in_progress', 'review', 'done'];
-
-export const TASK_PRIORITY_LABELS: Record<TaskPriority, string> = {
-  urgent: '至急',
-  high: '高',
-  normal: '中',
-  low: '低',
-};
-
-export const ROLE_LABELS: Record<string, string> = {
-  owner: '経営者',
-  manager: '管理者',
-  developer: '開発者',
-  requester: '起票者',
-  agent: 'AIエージェント',
-};
-
-export const PRODUCT_STATUS_LABELS: Record<string, string> = {
-  planning: '計画中',
-  active: '進行中',
-  paused: '停止中',
-  archived: '完了',
-};
-
-export const FEATURE_STATUS_LABELS: Record<string, string> = {
-  planning: '計画中',
-  active: '進行中',
-  done: '完了',
-  cancelled: '中止',
-};
-
-export const ACTIVITY_ACTION_LABELS: Record<string, string> = {
-  create: '作成しました',
-  update: '更新しました',
-  delete: '削除しました',
-  status_change: 'ステータスを変更しました',
-  comment: 'コメントしました',
-  complete: '完了しました',
-  triage: 'トリアージしました',
-};
 
 function toDate(value: Date | string): Date | null {
   const date = typeof value === 'string' ? parseISO(value) : value;
@@ -67,6 +17,13 @@ function toDate(value: Date | string): Date | null {
 
 /** `date` カラム（YYYY-MM-DD）の表示。 */
 export function formatDate(value: string | null): string {
+  if (!value) return '—';
+  const date = toDate(value);
+  return date ? format(date, 'M月d日', { locale: ja }) : '—';
+}
+
+/** 年をまたぐ可能性がある場所ではこちらを使う。 */
+export function formatDateFull(value: string | null): string {
   if (!value) return '—';
   const date = toDate(value);
   return date ? format(date, 'yyyy/MM/dd', { locale: ja }) : '—';
@@ -89,9 +46,34 @@ export function formatPercent(ratio: number): string {
   return `${Math.round(ratio * 100)}%`;
 }
 
-/** 期限超過の判定。完了・中止のタスクは対象外。 */
+/** 期限までの残り日数。マイナスは超過。 */
+export function daysUntil(dueDate: string | null): number | null {
+  if (!dueDate) return null;
+  const due = toDate(dueDate);
+  if (!due) return null;
+  const today = new Date();
+  const a = Date.UTC(due.getFullYear(), due.getMonth(), due.getDate());
+  const b = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  return Math.round((a - b) / 86_400_000);
+}
+
+/** 期限超過の判定。完了・取りやめのタスクは対象外。 */
 export function isOverdue(dueDate: string | null, status: TaskStatus): boolean {
   if (!dueDate || status === 'done' || status === 'cancelled') return false;
-  const today = format(new Date(), 'yyyy-MM-dd');
-  return dueDate < today;
+  const remaining = daysUntil(dueDate);
+  return remaining !== null && remaining < 0;
+}
+
+/**
+ * 期限の言い回し。数字だけより「あと3日」「2日超過」の方が判断が速い。
+ */
+export function dueLabel(dueDate: string | null, status: TaskStatus): string | null {
+  const remaining = daysUntil(dueDate);
+  if (remaining === null) return null;
+  if (status === 'done' || status === 'cancelled') return formatDate(dueDate);
+  if (remaining < 0) return `${Math.abs(remaining)}日超過`;
+  if (remaining === 0) return '今日まで';
+  if (remaining === 1) return '明日まで';
+  if (remaining <= 7) return `あと${remaining}日`;
+  return formatDate(dueDate);
 }

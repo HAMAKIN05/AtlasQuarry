@@ -8,9 +8,9 @@ import { ApiError, api } from '@/lib/api/client';
 type Option = { id: string; name: string };
 
 /**
- * かんばんからのタスク追加。
+ * タスクの追加。
  *
- * 作成したタスクは親の state に足して即座に列へ出す。router.refresh() だけに任せると、
+ * 作成したタスクは親の state に足して即座に出す。router.refresh() だけに任せると、
  * 追加したのに一拍おいてから現れることになる。
  */
 export function NewTaskForm({
@@ -71,7 +71,7 @@ export function NewTaskForm({
       setDueDate('');
       setOpen(false);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : '通信に失敗しました');
+      setError(err instanceof ApiError ? err.message : '追加できませんでした');
     } finally {
       setSubmitting(false);
     }
@@ -79,41 +79,52 @@ export function NewTaskForm({
 
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)}>
+      <button type="button" className="btn-primary" onClick={() => setOpen(true)}>
         タスクを追加
       </button>
     );
   }
 
   return (
-    <form className="inline-form" onSubmit={handleSubmit} noValidate>
+    <form className="panel" onSubmit={handleSubmit} noValidate>
+      <h2 className="panel-title">タスクを追加</h2>
+
       {error && (
-        <p className="form-error" role="alert">
+        <p className="alert alert-error" role="alert">
           {error}
         </p>
       )}
 
       <label className="field">
-        <span className="field-label">タイトル</span>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={200} required autoFocus />
+        <span className="field-label">やること</span>
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          maxLength={200}
+          required
+          autoFocus
+          placeholder="例：ログイン画面を作る"
+        />
       </label>
 
-      <label className="field">
-        <span className="field-label">開発項目（任意）</span>
-        <select value={featureId} onChange={(e) => setFeatureId(e.target.value)}>
-          <option value="">指定しない</option>
-          {features.map((f) => (
-            <option key={f.id} value={f.id}>
-              {f.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      {features.length > 0 && (
+        <label className="field">
+          <span className="field-label">開発項目（任意）</span>
+          <select value={featureId} onChange={(e) => setFeatureId(e.target.value)}>
+            <option value="">指定しない</option>
+            {features.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
 
       <label className="field">
-        <span className="field-label">担当者（任意）</span>
+        <span className="field-label">担当（任意）</span>
         <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}>
-          <option value="">未割当</option>
+          <option value="">まだ決めない</option>
           {members.map((m) => (
             <option key={m.id} value={m.id}>
               {m.name}
@@ -127,12 +138,12 @@ export function NewTaskForm({
         <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
       </label>
 
-      <div className="form-actions">
-        <button type="submit" disabled={submitting}>
-          {submitting ? '作成中…' : '作成'}
+      <div className="actions">
+        <button type="submit" className="btn-primary" disabled={submitting}>
+          {submitting ? '追加中…' : '追加'}
         </button>
-        <button type="button" className="link-button" onClick={() => setOpen(false)}>
-          キャンセル
+        <button type="button" className="btn-quiet" onClick={() => setOpen(false)}>
+          やめる
         </button>
       </div>
     </form>

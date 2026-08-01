@@ -2,28 +2,23 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
-import { PanelFallback } from '@/components/Fallbacks';
-
 import { asc, eq } from 'drizzle-orm';
 
+import { Chip, Loading, PageHeader, priorityTone, taskStatusTone } from '@/components/ui';
 import { db } from '@/db/client';
 import { actor as actorTable } from '@/db/schema';
 import { listTaskTimeline } from '@/domain/activity/queries';
 import { listTaskComments } from '@/domain/comment/service';
 import { listFeatures } from '@/domain/product/service';
+import { findRequestByTaskId } from '@/domain/request/service';
+import { loadLabels } from '@/domain/setting/labels';
 import { getTaskByKey } from '@/domain/task/service';
 import { requireActor } from '@/lib/auth/cookies';
 import type { SessionActor } from '@/lib/auth/session';
 import { can } from '@/lib/auth/rbac';
 import { NotFoundError } from '@/lib/errors';
-import {
-  ACTIVITY_ACTION_LABELS,
-  TASK_PRIORITY_LABELS,
-  TASK_STATUS_LABELS,
-  formatDate,
-  formatDateTime,
-  isOverdue,
-} from '@/lib/format';
+import { dueLabel, formatDateFull, formatDateTime, isOverdue } from '@/lib/format';
+import { ACTIVITY_ACTION_LABELS } from '@/lib/labels';
 import { renderMarkdown } from '@/lib/markdown';
 
 import { CommentForm } from './CommentForm';
@@ -31,6 +26,8 @@ import { DeleteCommentButton } from './DeleteCommentButton';
 import { TaskEditor } from './TaskEditor';
 
 type Props = { params: Promise<{ key: string }> };
+
+export const metadata = { title: 'タスク | AtlasQuarry' };
 
 async function loadTask(key: string) {
   try {
@@ -41,91 +38,99 @@ async function loadTask(key: string) {
   }
 }
 
-export const metadata = { title: 'タスク | AtlasQuarry' };
-
-/** S-06 タスク詳細。本文・コメント・タイムライン。 */
+/** S-06 タスク詳細。本文・コメント・履歴。 */
 export default async function TaskDetailPage({ params }: Props) {
-  const { key } = await params;
-
-  // 認証を先に済ませる。存在判定を先にすると、未認証でもキーの有無を 404 の差で探れてしまう
   const actor = await requireActor();
+  const { key } = await params;
 
   // notFound() は Promise のコールバックからではなく本流で呼ぶ。
   // .catch() の中から投げると Next が 404 ステータスに結び付けられず 200 で返ってしまう。
   const task = await loadTask(decodeURIComponent(key));
   if (!task) notFound();
 
-  const bodyHtml = task.bodyMd ? await renderMarkdown(task.bodyMd) : '';
+  const [labels, bodyHtml, fromRequest] = await Promise.all([
+    loadLabels(),
+    task.bodyMd ? renderMarkdown(task.bodyMd) : Promise.resolve(''),
+    findRequestByTaskId(task.id),
+  ]);
+
   const editable = can(actor, 'task.update', { assigneeId: task.assigneeId });
+  const due = dueLabel(task.dueDate, task.status);
 
   return (
     <div className="page">
-      <nav aria-label="パンくず" className="breadcrumb">
-        <Link href={`/products/${task.productId}`}>{task.productKey}</Link>
-        <Link href={`/board?productId=${task.productId}`}>かんばん</Link>
+      <nav className="crumbs" aria-label="現在の場所">
+        <Link href={`/projects/${task.productId}`}>{task.productKey}</Link>
+        <Link href={`/tasks?projectId=${task.productId}`}>タスク</Link>
       </nav>
 
-      <h1 className="page-title">
-        <span className="task-key">{task.key}</span> {task.title}
-      </h1>
+      <PageHeader title={task.title} />
+      <p className="key-line">{task.key}</p>
 
-      <dl className="task-meta">
+      <div className="meta">
         <div>
-          <dt>ステータス</dt>
-          <dd>{TASK_STATUS_LABELS[task.status]}</dd>
+          <dt>状態</dt>
+          <dd>
+            <Chip tone={taskStatusTone(task.status)}>{labels[`task.status.${task.status}`]}</Chip>
+          </dd>
         </div>
         <div>
           <dt>優先度</dt>
-          <dd>{TASK_PRIORITY_LABELS[task.priority]}</dd>
+          <dd>
+            <Chip tone={priorityTone(task.priority)}>
+              {labels[`task.priority.${task.priority}`]}
+            </Chip>
+          </dd>
         </div>
         <div>
-          <dt>担当者</dt>
-          <dd>{task.assigneeName ?? '未割当'}</dd>
+          <dt>担当</dt>
+          <dd>{task.assigneeName ? `${task.assigneeName}さん` : 'まだ決まっていません'}</dd>
         </div>
         <div>
-          <dt>起票者</dt>
-          <dd>{task.reporterName}</dd>
+          <dt>作った人</dt>
+          <dd>{task.reporterName}さん</dd>
         </div>
         <div>
           <dt>開発項目</dt>
           <dd>{task.featureName ?? '—'}</dd>
         </div>
         <div>
-          <dt>期間</dt>
-          <dd className={isOverdue(task.dueDate, task.status) ? 'is-overdue' : undefined}>
-            {formatDate(task.startDate)} 〜 {formatDate(task.dueDate)}
+          <dt>期限</dt>
+          <dd className={isOverdue(task.dueDate, task.status) ? 'is-late' : undefined}>
+            {due ? `${due}（${formatDateFull(task.dueDate)}）` : '—'}
           </dd>
         </div>
-        <div>
-          <dt>完了日時</dt>
-          <dd>{formatDateTime(task.completedAt)}</dd>
-        </div>
-      </dl>
+      </div>
 
-      <section className="panel" aria-labelledby="body-heading">
-        <h2 id="body-heading" className="panel-title">
-          本文
-        </h2>
+      {fromRequest && (
+        <p className="hint">
+          この作業は要望から作られました。
+          <Link href={`/requests/${fromRequest.id}`}>「{fromRequest.title}」を見る</Link>
+        </p>
+      )}
+
+      <section className="card">
+        <h2 className="card-title">内容</h2>
         {bodyHtml ? (
-          // renderMarkdown が rehype-sanitize を通しているため、ここで入るのは検査済みのHTMLのみ
+          // renderMarkdown が rehype-sanitize を通しているため、入るのは検査済みのHTMLのみ
           <div className="markdown" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
         ) : (
-          <p className="empty">本文はまだありません。</p>
+          <p className="muted">まだ書かれていません。下の「編集」から追記できます。</p>
         )}
       </section>
 
       {editable && (
-        <Suspense fallback={<PanelFallback label="編集" />}>
+        <Suspense fallback={<Loading />}>
           <EditorPanel task={task} canDelete={can(actor, 'task.delete')} />
         </Suspense>
       )}
 
-      <Suspense fallback={<PanelFallback label="コメント" />}>
+      <Suspense fallback={<Loading />}>
         <CommentsPanel taskId={task.id} actor={actor} />
       </Suspense>
 
-      <Suspense fallback={<PanelFallback label="タイムライン" />}>
-        <TimelinePanel taskId={task.id} />
+      <Suspense fallback={<Loading />}>
+        <HistoryPanel taskId={task.id} />
       </Suspense>
     </div>
   );
@@ -163,36 +168,28 @@ async function EditorPanel({
       features={features.map((f) => ({ id: f.id, name: f.name }))}
       members={members}
       canDelete={canDelete}
-      productId={task.productId}
+      projectId={task.productId}
     />
   );
 }
 
-async function CommentsPanel({
-  taskId,
-  actor,
-}: {
-  taskId: string;
-  actor: SessionActor;
-}) {
+async function CommentsPanel({ taskId, actor }: { taskId: string; actor: SessionActor }) {
   const comments = await listTaskComments(taskId);
   // コメント本文も本文と同じ経路でサニタイズする。クライアント側で Markdown を描画しない
   const commentHtml = await Promise.all(comments.map((c) => renderMarkdown(c.bodyMd)));
 
   return (
-    <section className="panel" aria-labelledby="comments-heading">
-      <h2 id="comments-heading" className="panel-title">
-        コメント（{comments.length}）
-      </h2>
+    <section className="card">
+      <h2 className="card-title">コメント（{comments.length}）</h2>
 
       {comments.length === 0 ? (
-        <p className="empty">まだコメントはありません。</p>
+        <p className="muted">まだコメントはありません。気づいたことを書いておくと後で役に立ちます。</p>
       ) : (
-        <ul className="comment-list">
+        <ul className="comments">
           {comments.map((comment, index) => (
             <li key={comment.id} className="comment">
               <p className="comment-head">
-                <span className="comment-author">{comment.authorName}</span>
+                <span className="comment-who">{comment.authorName}さん</span>
                 <time dateTime={comment.createdAt.toISOString()}>
                   {formatDateTime(comment.createdAt)}
                 </time>
@@ -201,10 +198,7 @@ async function CommentsPanel({
                 )}
               </p>
               {/* renderMarkdown が rehype-sanitize を通しているため、入るのは検査済みのHTMLのみ */}
-              <div
-                className="markdown comment-body"
-                dangerouslySetInnerHTML={{ __html: commentHtml[index]! }}
-              />
+              <div className="markdown" dangerouslySetInnerHTML={{ __html: commentHtml[index]! }} />
             </li>
           ))}
         </ul>
@@ -215,23 +209,21 @@ async function CommentsPanel({
   );
 }
 
-async function TimelinePanel({ taskId }: { taskId: string }) {
+async function HistoryPanel({ taskId }: { taskId: string }) {
   const timeline = await listTaskTimeline(taskId);
 
   return (
-    <section className="panel" aria-labelledby="timeline-heading">
-      <h2 id="timeline-heading" className="panel-title">
-        タイムライン
-      </h2>
+    <section className="card">
+      <h2 className="card-title">履歴</h2>
       {timeline.length === 0 ? (
-        <p className="empty">まだ記録がありません。</p>
+        <p className="muted">まだ記録がありません。</p>
       ) : (
         <ol className="timeline">
           {timeline.map((item) => (
             <li key={item.id}>
               <time dateTime={item.createdAt.toISOString()}>{formatDateTime(item.createdAt)}</time>
-              <span className="timeline-actor">{item.actorName}</span>
-              <span className="timeline-action">
+              <span>
+                <strong>{item.actorName}さん</strong>が
                 {ACTIVITY_ACTION_LABELS[item.action] ?? item.action}
               </span>
             </li>
