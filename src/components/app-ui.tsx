@@ -1,3 +1,4 @@
+import { ChevronLeftIcon } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
@@ -106,10 +107,23 @@ export function PageHeader({
   );
 }
 
-export function Crumbs({ children }: { children: ReactNode }) {
+/**
+ * 戻る導線。
+ *
+ * **矢印つきの1本のリンクにする。** パンくずを並べると、どれが「戻る」なのか
+ * 初見で分からない（実際に「上のボタンを押さないと戻れないが気づけない」と言われた）。
+ * 戻り先を言葉で書いて、押す前に行き先が分かるようにする。
+ */
+export function BackLink({ href, label }: { href: string; label: string }) {
   return (
-    <nav aria-label="現在の場所" className="flex flex-wrap items-center gap-3 text-sm">
-      {children}
+    <nav aria-label="現在の場所">
+      <Link
+        href={href}
+        className="-ml-2 inline-flex min-h-11 items-center gap-1.5 rounded-md px-2 text-sm text-muted-foreground transition-colors hover:bg-raised hover:text-foreground"
+      >
+        <ChevronLeftIcon className="size-4" aria-hidden="true" />
+        {label}
+      </Link>
     </nav>
   );
 }

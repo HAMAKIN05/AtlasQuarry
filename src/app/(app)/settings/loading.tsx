@@ -2,7 +2,7 @@
 export default function Loading() {
   return (
     <div className="flex flex-col gap-5">
-      <p className="loading" role="status" aria-live="polite">
+      <p className="surface p-4 text-sm text-muted-foreground" role="status" aria-live="polite">
         読み込み中…
       </p>
     </div>

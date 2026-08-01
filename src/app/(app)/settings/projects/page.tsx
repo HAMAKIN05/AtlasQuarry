@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { EmptyState, PageHeader } from '@/components/app-ui';
+import { BackLink, EmptyState, PageHeader } from '@/components/app-ui';
 import { listProducts } from '@/domain/product/service';
 import { requireActor } from '@/lib/auth/cookies';
 import { can } from '@/lib/auth/rbac';
@@ -19,9 +19,7 @@ export default async function ProjectSettingsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <nav className="flex flex-wrap items-center gap-3 text-sm" aria-label="現在の場所">
-        <Link href="/settings">設定</Link>
-      </nav>
+      <BackLink href="/settings" label="設定" />
 
       <PageHeader title="プロジェクト" description="名前や状態を変えられます。" />
 

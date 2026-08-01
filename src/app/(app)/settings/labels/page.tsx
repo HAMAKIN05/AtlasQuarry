@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { PageHeader } from '@/components/app-ui';
+import { BackLink, PageHeader } from '@/components/app-ui';
 import { loadLabelOverrides } from '@/domain/setting/labels';
 import { requireActor } from '@/lib/auth/cookies';
 import { can } from '@/lib/auth/rbac';
@@ -20,9 +20,7 @@ export default async function LabelsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <nav className="flex flex-wrap items-center gap-3 text-sm" aria-label="現在の場所">
-        <Link href="/settings">設定</Link>
-      </nav>
+      <BackLink href="/settings" label="設定" />
 
       <PageHeader
         title="呼び名"

@@ -52,9 +52,9 @@ export function NewFeatureForm({ productId }: { productId: string }) {
   }
 
   return (
-    <form className="inline-form" onSubmit={handleSubmit} noValidate>
+    <form className="surface flex flex-col gap-4 p-4" onSubmit={handleSubmit} noValidate>
       {error && (
-        <p className="form-error" role="alert">
+        <p className="rounded-md bg-destructive-soft px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
@@ -74,11 +74,11 @@ export function NewFeatureForm({ productId }: { productId: string }) {
         <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
       </label>
 
-      <div className="form-actions">
+      <div className="flex flex-wrap items-center gap-2">
         <button type="submit" disabled={submitting}>
           {submitting ? '作成中…' : '作成'}
         </button>
-        <button type="button" className="link-button" onClick={() => setOpen(false)}>
+        <button type="button" className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-2 text-sm font-semibold text-muted-foreground hover:bg-raised hover:text-foreground" onClick={() => setOpen(false)}>
           キャンセル
         </button>
       </div>

@@ -85,10 +85,10 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
+  /* next/font がビルド時に取得したものを使い、読めない環境だけ端末のフォントに落ちる */
   --font-sans:
-    'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Noto Sans JP', system-ui, -apple-system,
-    sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, 'Cascadia Code', Menlo, monospace;
+    var(--font-sans-loaded), 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', system-ui, sans-serif;
+  --font-mono: var(--font-mono-loaded), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 @layer base {

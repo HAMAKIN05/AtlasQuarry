@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 
 import { GanttChart } from '@/components/GanttChart';
+import { TaskCheck } from '@/components/TaskCheck';
 import {
   Alert,
   Badge,
@@ -267,10 +268,8 @@ function TaskRow({ task, labels }: { task: TaskListItem; labels: Labels }) {
 
   return (
     <li>
-      <Link
-        href={`/tasks/${task.key}`}
-        className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md bg-raised p-3 hover:bg-hover"
-      >
+      <Link href={`/tasks/${task.key}`} className="row-link">
+        <TaskCheck taskId={task.id} status={task.status} title={task.title} />
         <span className="tabular shrink-0 font-mono text-xs text-muted-foreground">{task.key}</span>
         <span className="min-w-0 flex-1 basis-40 font-semibold">{task.title}</span>
         <Badge tone={taskStatusTone(task.status)}>{labels[`task.status.${task.status}`]}</Badge>

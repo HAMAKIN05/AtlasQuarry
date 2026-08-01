@@ -1,5 +1,6 @@
 'use client';
 
+import { ColumnsIcon, ListIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
@@ -7,7 +8,10 @@ import { useMemo, useState } from 'react';
 import { Badge, EmptyState, PageHeader, priorityTone, taskStatusTone } from '@/components/app-ui';
 import { useLabels } from '@/components/LabelsProvider';
 import type { TaskListItem } from '@/domain/task/service';
+import { cn } from '@/lib/cn';
 import { dueLabel, isOverdue } from '@/lib/format';
+
+import { TaskCheck } from '@/components/TaskCheck';
 
 import { KanbanBoard } from './KanbanBoard';
 import { NewTaskForm } from './NewTaskForm';
@@ -122,23 +126,37 @@ export function TaskWorkspace({
           終わったものも表示
         </label>
 
-        <div className="ml-auto inline-flex overflow-hidden rounded-md border" role="group" aria-label="表示の切り替え">
-          <button
-            type="button"
-            className="viewswitch-btn"
-            aria-pressed={view === 'list'}
-            onClick={() => setView('list')}
-          >
-            一覧
-          </button>
-          <button
-            type="button"
-            className="viewswitch-btn"
-            aria-pressed={view === 'board'}
-            onClick={() => setView('board')}
-          >
-            ボード
-          </button>
+        {/*
+          切替が見えないと、かんばんの存在に気づけない（実際に「かんばんが無い」と言われた）。
+          選択中を塗りで示し、アイコンを添えて何の切替かを一目で分かるようにする。
+        */}
+        <div
+          className="ml-auto inline-flex rounded-lg bg-raised p-0.5 shadow-[inset_0_0_0_1px_var(--border)]"
+          role="group"
+          aria-label="表示の切り替え"
+        >
+          {(
+            [
+              { key: 'list', label: '一覧', Icon: ListIcon },
+              { key: 'board', label: 'かんばん', Icon: ColumnsIcon },
+            ] as const
+          ).map(({ key, label, Icon }) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={view === key}
+              onClick={() => setView(key)}
+              className={cn(
+                'inline-flex min-h-10 items-center gap-1.5 rounded-md px-3 text-sm transition-colors',
+                view === key
+                  ? 'bg-primary font-semibold text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              <Icon className="size-4" aria-hidden="true" />
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -161,7 +179,17 @@ export function TaskWorkspace({
             const due = dueLabel(t.dueDate, t.status);
             return (
               <li key={t.id}>
-                <Link href={`/tasks/${t.key}`} className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md bg-raised p-3 hover:bg-hover">
+                <Link href={`/tasks/${t.key}`} className="row-link">
+                  <TaskCheck
+                    taskId={t.id}
+                    status={t.status}
+                    title={t.title}
+                    onDone={(next) =>
+                      setTasks((prev) =>
+                        prev.map((x) => (x.id === t.id ? { ...x, status: next } : x)),
+                      )
+                    }
+                  />
                   <span className="tabular shrink-0 font-mono text-xs text-muted-foreground">{t.key}</span>
                   <span className="min-w-0 flex-1 basis-40 font-semibold">{t.title}</span>
                   <Badge tone={taskStatusTone(t.status)}>{labels[`task.status.${t.status}`]}</Badge>

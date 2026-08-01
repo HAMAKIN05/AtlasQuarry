@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
-import { Badge, EmptyState, Loading, PageHeader, Progress, taskStatusTone } from '@/components/app-ui';
+import { Badge, EmptyState, Loading, PageHeader, Progress, taskStatusTone, BackLink } from '@/components/app-ui';
 import { getGanttData } from '@/domain/gantt/query';
 import { getProductById, listFeatures } from '@/domain/product/service';
 import { loadLabels } from '@/domain/setting/labels';
@@ -44,9 +44,7 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
 
   return (
     <div className="flex flex-col gap-5">
-      <nav className="flex flex-wrap items-center gap-3 text-sm" aria-label="現在の場所">
-        <Link href="/projects">プロジェクト</Link>
-      </nav>
+      <BackLink href="/projects" label="プロジェクト一覧" />
 
       <PageHeader
         title={project.name}

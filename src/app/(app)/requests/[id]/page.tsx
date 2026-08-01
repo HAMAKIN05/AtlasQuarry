@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { Badge, PageHeader, requestStatusTone } from '@/components/app-ui';
+import { Badge, PageHeader, requestStatusTone, BackLink } from '@/components/app-ui';
 import { db } from '@/db/client';
 import { actor as actorTable } from '@/db/schema';
 import { asc, eq } from 'drizzle-orm';
@@ -54,9 +54,7 @@ export default async function RequestDetailPage({ params }: Props) {
 
   return (
     <div className="flex flex-col gap-5">
-      <nav className="flex flex-wrap items-center gap-3 text-sm" aria-label="現在の場所">
-        <Link href="/requests">要望</Link>
-      </nav>
+      <BackLink href="/requests" label="要望一覧" />
 
       <PageHeader title={req.title} />
 
