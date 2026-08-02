@@ -57,26 +57,22 @@ async function ProjectList({ canCreate }: { canCreate: boolean }) {
      * 動いていないプロジェクト（active 以外）にだけ出す。全部が active のとき
      * 全行に同じバッジが並ぶのは、情報が無いのに場所だけ取る。
      */
-    <ul aria-label="プロジェクト一覧">
+    /* **1件ずつ独立したカードにする。** 名前・進捗・次の期限を1枚にまとめる */
+    <div className="card-list" aria-label="プロジェクト一覧">
       {projects.map((p) => (
-        <li key={p.id}>
-          <Link
-            href={`/projects/${p.id}`}
-            className="flex min-h-14 flex-col gap-1.5 border-b border-border px-1 py-3 last:border-b-0 hover:bg-raised sm:grid sm:grid-cols-[minmax(12rem,1fr)_minmax(10rem,1fr)_auto] sm:items-center sm:gap-5"
-          >
-            <span className="flex items-center gap-2">
-              <span className="min-w-0 flex-1 text-base font-bold">{p.name}</span>
-              {p.status !== 'active' && (
-                <Badge tone="neutral">{PROJECT_STATUS_LABELS[p.status]}</Badge>
-              )}
-            </span>
-            <Progress done={p.progress.doneTasks} total={p.progress.totalTasks} />
-            <span className="tabular text-xs text-muted-foreground">
-              {p.nextDueDate ? `次の期限 ${formatDate(p.nextDueDate)}` : '期限なし'}
-            </span>
-          </Link>
-        </li>
+        <Link key={p.id} href={`/projects/${p.id}`} className="card">
+          <span className="flex items-start gap-2">
+            <span className="card-title min-w-0 flex-1">{p.name}</span>
+            {p.status !== 'active' && (
+              <Badge tone="neutral">{PROJECT_STATUS_LABELS[p.status]}</Badge>
+            )}
+          </span>
+          <Progress className="mt-3" done={p.progress.doneTasks} total={p.progress.totalTasks} />
+          <span className="stack-meta mt-2">
+            {p.nextDueDate ? `次の期限 ${formatDate(p.nextDueDate)}` : '期限なし'}
+          </span>
+        </Link>
       ))}
-    </ul>
+    </div>
   );
 }

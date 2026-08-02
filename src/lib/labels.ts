@@ -36,7 +36,12 @@ export const DEFAULT_LABELS: Record<LabelKey, string> = {
 
   'request.status.received': '受付中',
   'request.status.reviewing': '検討中',
-  'request.status.accepted': '着手する',
+  /*
+   * **命令形をやめる。** 状態の名前なのに「着手する」だとボタンに見える。
+   * 実際、一覧の札として出したときにボタンと区別が付かなかった。
+   * この状態になるのは、対応するタスクが決まったときだけ。
+   */
+  'request.status.accepted': 'タスク化済み',
   'request.status.rejected': '見送り',
   'request.status.done': '対応済み',
 };

@@ -7,14 +7,16 @@ import { cn } from '@/lib/cn';
 /**
  * 状態を表す小さな札。
  *
- * ダークでは**塗りではなく「淡い地＋その色の文字」**にする。塗ると彩度が勝ちすぎて
+ * **塗りではなく「淡い地＋その色の文字」**にする。塗ると彩度が勝ちすぎて
  * 画面がうるさくなり、どれが主操作か分からなくなる。
  *
  * 色は意味と結び付ける。進行中＝アクセント、完了＝緑、要注意＝黄、超過＝赤、
  * 止まっているもの＝地なし。増やすときはこの対応を崩さないこと。
+ *
+ * 小さすぎると「付いているだけ」に見えるので、詰めすぎない。
  */
 const badgeVariants = cva(
-  'inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[0.72rem] font-semibold whitespace-nowrap',
+  'inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[0.75rem] font-bold whitespace-nowrap',
   {
     variants: {
       tone: {

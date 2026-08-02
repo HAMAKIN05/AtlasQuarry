@@ -49,11 +49,11 @@ export default async function SettingsPage() {
     <div className="flex flex-col gap-5">
       <PageHeader title="設定" />
 
-      <ul className="grid gap-3 sm:grid-cols-2">
+      <ul className="card-list sm:grid sm:grid-cols-2 sm:gap-2.5">
         {items.map((item) => (
           <li key={item.href}>
-            <Link href={item.href} className="flex flex-col gap-2 surface p-4 hover:border-primary">
-              <span className="flex-1 text-base font-bold">{item.title}</span>
+            <Link href={item.href} className="card flex h-full flex-col gap-1.5">
+              <span className="card-title">{item.title}</span>
               <span className="text-sm text-muted-foreground">{item.desc}</span>
             </Link>
           </li>

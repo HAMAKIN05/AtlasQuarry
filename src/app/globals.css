@@ -206,7 +206,7 @@
     @apply grid grid-cols-[6rem_minmax(0,1fr)] items-center gap-3 border-b border-border px-4 py-3 last:border-b-0;
   }
   dt {
-    @apply text-[0.8rem] text-subtle;
+    @apply text-[0.8rem] font-semibold text-muted-foreground;
   }
   dd {
     @apply m-0 min-w-0 [overflow-wrap:anywhere];
@@ -246,7 +246,7 @@
     @apply flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1;
   }
   .section-heading h2 {
-    @apply text-lg font-bold tracking-tight;
+    @apply text-[1.15rem] font-bold tracking-tight;
   }
   /*
    * ホーム最上部「いま動かすこと」。

@@ -33,11 +33,11 @@ export default async function RequestsPage({ searchParams }: Props) {
 
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader
-        title="要望"
-        description="「こんなことができたら仕事が楽になる」を書く場所です。出された要望は管理者が見て、やるかどうかを判断します。"
-        action={<NewRequestButton />}
-      />
+      {/*
+        **毎日開く画面に初見向けの説明を常設しない。**
+        何のための場所かは「要望を出す」ボタンと、1件も無いときの空状態で足りる。
+      */}
+      <PageHeader title="要望" action={<NewRequestButton />} />
 
       <Suspense fallback={<Loading />}>
         <RequestTabs active={active} />
@@ -59,18 +59,16 @@ async function RequestTabs({ active }: { active: RequestStatus | 'all' }) {
       key={href}
       href={href}
       aria-current={current ? 'page' : undefined}
-      className={cn(
-        'inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-md px-3 text-sm whitespace-nowrap',
-        current ? 'bg-surface font-bold ' : 'text-muted-foreground hover:text-foreground',
-      )}
+      /* 丸い札にする。押せることと、いまどれを見ているかを形で示す */
+      className={cn('chip shrink-0 whitespace-nowrap', current && 'font-bold')}
     >
       {label}
-      <span className="tabular rounded-full bg-raised px-1.5 text-xs">{count}</span>
+      <span className="tabular text-xs opacity-80">{count}</span>
     </Link>
   );
 
   return (
-    <nav aria-label="要望の絞り込み" className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-lg bg-raised p-1">
+    <nav aria-label="要望の絞り込み" className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 py-1">
       {item('/requests', 'すべて', total, active === 'all')}
       {REQUEST_TABS.map((status) =>
         item(
@@ -106,29 +104,31 @@ async function RequestList({ active }: { active: RequestStatus | 'all' }) {
   return (
     <section className="content-section" aria-label="要望一覧">
       <div className="section-heading">
-        <div><h2>要望 <span className="tabular text-primary">{requests.length}</span></h2></div>
+        <div>
+          <h2>
+            要望 <span className="tabular text-primary">{requests.length}</span>
+          </h2>
+        </div>
       </div>
-    <ul>
-      {requests.map((r) => (
-        <li key={r.id}>
-          <Link
-            href={`/requests/${r.id}`}
-            className="row-link"
-          >
-            <span className="min-w-0 flex-1 basis-48 font-semibold">{r.title}</span>
-            <Badge tone={requestStatusTone(r.status)}>{labels[`request.status.${r.status}`]}</Badge>
-            <span className="text-xs text-muted-foreground">
-              {r.reporterName}さん・{formatRelative(r.createdAt)}
+
+      {/* **1件ずつ独立したカードにする。** 表に見せない */}
+      <div className="card-list">
+        {requests.map((r) => (
+          <Link key={r.id} href={`/requests/${r.id}`} className="card">
+            <span className="flex items-start gap-2">
+              <span className="card-title min-w-0 flex-1">{r.title}</span>
+              <Badge tone={requestStatusTone(r.status)}>
+                {labels[`request.status.${r.status}`]}
+              </Badge>
             </span>
-            {r.convertedTaskKey && (
-              <span className="tabular text-xs text-muted-foreground">
-                {r.convertedTaskKey}
-              </span>
-            )}
+            <span className="stack-meta mt-2">
+              <span>{r.reporterName}さんから</span>
+              <span>{formatRelative(r.createdAt)}</span>
+              {r.convertedTaskKey && <span className="tabular">{r.convertedTaskKey}</span>}
+            </span>
           </Link>
-        </li>
-      ))}
-    </ul>
+        ))}
+      </div>
     </section>
   );
 }
