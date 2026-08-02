@@ -235,11 +235,18 @@ app → infra
 
 **codex も VPS を見られる。** 鍵は共有しない――同じユーザーで動くので `~/.ssh` を
 そのまま読める。`~/.codex/config.toml` に `[sandbox_workspace_write] network_access = true`
-を入れてある。ただし **`ssh -F ~/.ssh/config` と書くこと。**
-codex のサンドボックスは user namespace の中で動き、`/etc` の中身が root ではなく
-65534 に見えるため、素の `ssh` は `Bad owner or permissions on
-/etc/ssh/ssh_config.d/20-systemd-ssh-proxy.conf` で止まる。`-F` を付けると
-システム全体の設定を読まなくなり、この判定を通らない。
+を入れてある。
+
+**入り口は `scripts/vps.sh` に統一する。** 素の `ssh` を投げさせない。理由は2つあり、
+どちらも codex が自力では気づけない（`AGENTS.md` にも書いた）。
+
+- codex のサンドボックスは user namespace の中で動き、`/etc` の中身が root ではなく
+  65534 に見える。素の `ssh` は `Bad owner or permissions on
+  /etc/ssh/ssh_config.d/20-systemd-ssh-proxy.conf` で止まる。`-F ~/.ssh/config` を
+  付けるとシステム全体の設定を読まなくなり、この判定を通らない
+- IP を直接書かせると `owner@133.18.123.41` を組み立てて `Permission denied
+  (publickey)` になる。正しい利用者と鍵は `~/.ssh/config` の `nippou-prod` にある。
+  **鍵が渡っていないのではなく、別名を使っていないだけ**
 
 訊いてよいのは**成果物そのもの**についてだけ（出したものを見て判断できること）。
 決めた内容と理由は、報告と作業ログに残す。**事後に説明するのであって、事前に許可を取らない。**
