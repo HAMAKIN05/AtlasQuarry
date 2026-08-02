@@ -36,6 +36,8 @@ type Props = {
   initialAssigneeId: string;
   /** プロジェクト詳細の開発項目から来たときの絞り込み。`?featureId=` を受ける */
   initialFeatureId: string;
+  /** 他の画面の「タスクを追加」から来たか。来ていれば追加フォームを開いて始める */
+  startAdding: boolean;
 };
 
 /**
@@ -91,6 +93,7 @@ export function TaskWorkspace({
   currentActorId,
   initialAssigneeId,
   initialFeatureId,
+  startAdding,
 }: Props) {
   const router = useRouter();
   const labels = useLabels();
@@ -182,6 +185,7 @@ export function TaskWorkspace({
           <NewTaskForm
             productId={projectId}
             projectName={project?.name ?? ''}
+            defaultOpen={startAdding}
             features={features}
             members={members}
             onCreated={(task) => setTasks((prev) => [...prev, task])}

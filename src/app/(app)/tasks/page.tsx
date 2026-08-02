@@ -10,7 +10,14 @@ import { requireActor } from '@/lib/auth/cookies';
 import { TaskWorkspace } from './TaskWorkspace';
 
 type Props = {
-  searchParams: Promise<{ projectId?: string; view?: string; assigneeId?: string; featureId?: string }>;
+  searchParams: Promise<{
+    projectId?: string;
+    view?: string;
+    assigneeId?: string;
+    featureId?: string;
+    /** 他の画面の「タスクを追加」から来たときに立つ。追加フォームを開いて始める */
+    new?: string;
+  }>;
 };
 
 export const metadata = { title: 'タスク | AtlasQuarry' };
@@ -81,6 +88,7 @@ export default async function TasksPage({ searchParams }: Props) {
          */
         initialAssigneeId={params.featureId ? '' : hasOwnTasks ? actor.id : ''}
         initialFeatureId={params.featureId ?? ''}
+        startAdding={params.new === '1'}
       />
     </div>
   );

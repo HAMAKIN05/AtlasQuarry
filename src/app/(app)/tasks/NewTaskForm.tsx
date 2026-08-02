@@ -19,6 +19,7 @@ export function NewTaskForm({
   features,
   members,
   onCreated,
+  defaultOpen = false,
 }: {
   productId: string;
   /** 追加直後の行に出す名前。サーバーから返る前の仮表示に使う */
@@ -26,8 +27,10 @@ export function NewTaskForm({
   features: Option[];
   members: Option[];
   onCreated: (task: TaskListItem) => void;
+  /** 他の画面から「タスクを追加」で来たとき、開いた状態で始める */
+  defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [title, setTitle] = useState('');
   const [featureId, setFeatureId] = useState('');
   const [assigneeId, setAssigneeId] = useState('');

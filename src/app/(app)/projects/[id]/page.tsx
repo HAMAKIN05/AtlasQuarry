@@ -89,6 +89,14 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
         <Link href={`/tasks?projectId=${project.id}`} className="chip shrink-0">
           タスク一覧
         </Link>
+        {/*
+          **このプロジェクトに入るタスクを、ここから直接足せるようにする。**
+          「まずどこに入れるか決めろ」を消すのが目的なので、押した先では
+          プロジェクトが埋まった状態で追加フォームが開く。
+        */}
+        <Link href={`/tasks?projectId=${project.id}&new=1`} className="chip shrink-0">
+          ＋ タスクを追加
+        </Link>
       </nav>
 
       {isGantt ? (
