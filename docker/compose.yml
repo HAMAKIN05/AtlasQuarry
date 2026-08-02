@@ -20,6 +20,8 @@ services:
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       STORAGE_LOCAL_PATH: /var/atlasquarry/attachments
+      # ログイン画面からの自己登録に要る合言葉。空なら自己登録は常に失敗する（＝無効）
+      REGISTRATION_CODE: ${REGISTRATION_CODE}
     volumes:
       - atlasquarry-attachments:/var/atlasquarry/attachments
     depends_on:

@@ -3,9 +3,10 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
+import { PASSWORD_MIN_LENGTH } from '@/lib/auth/policy';
 import { ApiError, api } from '@/lib/api/client';
 
-const PASSWORD_MIN_LENGTH = 12;
+
 
 /** 名前変更とパスワード変更。パスワード欄は空なら変更しない。 */
 export function ProfileForm({ initialName }: { initialName: string }) {

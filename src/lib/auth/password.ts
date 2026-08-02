@@ -1,5 +1,7 @@
 import { hash, verify } from '@node-rs/argon2';
 
+export { PASSWORD_MIN_LENGTH } from './policy';
+
 /**
  * パスワードハッシュ（技術仕様書 §2.3）。
  *
@@ -13,8 +15,6 @@ const ARGON2_OPTIONS = {
   timeCost: 3,
   parallelism: 4,
 } as const;
-
-export const PASSWORD_MIN_LENGTH = 12;
 
 export async function hashPassword(plain: string): Promise<string> {
   return hash(plain, ARGON2_OPTIONS);

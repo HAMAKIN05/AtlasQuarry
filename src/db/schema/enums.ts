@@ -70,6 +70,12 @@ export const ENTITY_TYPES = [
   'request',
   'document',
   'comment',
+  /*
+   * 2026-08-02 追加。ログイン画面からの自己登録で `actor` を作るため。
+   * **全ての書き込み操作を activity に記録する**（CLAUDE.md 絶対ルール3）以上、
+   * アカウントの作成も記録先が要る。マイグレーション 0002 で CHECK 制約を張り直した。
+   */
+  'actor',
 ] as const;
 export type EntityType = (typeof ENTITY_TYPES)[number];
 

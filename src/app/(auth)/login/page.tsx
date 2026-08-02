@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 
 import { currentActor } from '@/lib/auth/cookies';
 
-import { LoginForm } from './LoginForm';
+import { AuthPanel } from './AuthPanel';
 
 export const metadata = { title: 'ログイン | AtlasQuarry' };
 
@@ -18,7 +18,7 @@ export default async function LoginPage() {
         <h1 className="text-2xl font-bold tracking-tight">AtlasQuarry</h1>
         <p className="mt-1 text-sm text-muted-foreground">社内システム内製化のタスク管理</p>
       </div>
-      <LoginForm />
+      <AuthPanel />
     </main>
   );
 }

@@ -2,6 +2,7 @@ import { and, eq } from 'drizzle-orm';
 
 import { db } from '@/db/client';
 import { actor } from '@/db/schema';
+import { recordActivity } from '@/domain/activity/recorder';
 import { fakeVerifyPassword, hashPassword, verifyPassword } from '@/lib/auth/password';
 import {
   checkLoginLock,
@@ -203,4 +204,131 @@ export async function changePassword(
     .update(actor)
     .set({ passwordHash: await hashPassword(newPassword) })
     .where(eq(actor.id, actorId));
+}
+
+
+/* ------------------------------------------------------------------ *
+ * 自己登録
+ * ------------------------------------------------------------------ */
+
+/**
+ * ログイン画面からの自己登録。
+ *
+ * **誰でも登録できる形にはしない。** このアプリは公開URLで動いており、
+ * 素の自己登録は第三者がアカウントを作れることを意味する。
+ * `REGISTRATION_CODE`（環境変数）を知っている人だけが登録できる。
+ *
+ * v0.1 にメール送信が無いため、招待リンク（F-10、v0.2）は作れない。
+ * 合言葉方式は、その制約下で**テーブルを増やさずに**入口を絞れる最小の手段。
+ *
+ * 決めていること:
+ *
+ *   - **役割は必ず `requester`。** 作成・判断・メンバー管理はできない。
+ *     必要になったときだけ、既存の owner / manager が設定画面で上げる
+ *   - **登録しても自動ログインしない。** 成功も失敗も同じ文言を返し、
+ *     メールアドレスが既に存在するかどうかを外から判別させない
+ *   - **利用停止済みのアカウントを復活させない。** 停止の解除は設定画面から明示的に行う
+ *   - 合言葉・その比較結果はログに出さない
+ */
+export type RegisterInput = {
+  name: string;
+  email: string;
+  password: string;
+  code: string;
+};
+
+/** 登録の試行を数えるための固定キー。ログインの (IP, メール) と混ぜない。 */
+const REGISTER_SCOPE_EMAIL = '__register__';
+
+/** 成功も失敗も同じ文言。存在の有無を漏らさない。 */
+const REGISTER_DONE_MESSAGE = '登録を受け付けました。ログインしてください';
+
+export async function register(input: RegisterInput, meta: SessionMeta): Promise<{ message: string }> {
+  const expected = process.env.REGISTRATION_CODE;
+  const email = input.email.trim().toLowerCase();
+  const ip = meta.ip ?? null;
+
+  /*
+   * **IP 単位で 15分5回まで。** 合言葉の総当たりを防ぐ。
+   * ログインの (IP, メール) ロックとは別のキーにする。混ぜると、登録の試行で
+   * 実在アカウントのログインを締め出せてしまう。
+   */
+  const lock = await checkLoginLock(REGISTER_SCOPE_EMAIL, ip);
+  if (lock.locked) {
+    throw new RateLimitError(
+      '登録の試行回数が上限に達しました。しばらく待ってからお試しください',
+      lock.retryAfterSeconds,
+    );
+  }
+
+  if (input.password.length < PASSWORD_MIN_LENGTH) {
+    throw new ValidationError(`パスワードは${PASSWORD_MIN_LENGTH}文字以上にしてください`, {
+      fields: { password: [`パスワードは${PASSWORD_MIN_LENGTH}文字以上にしてください`] },
+    });
+  }
+
+  const codeOk = expected !== undefined && expected.length > 0 && timingSafeEquals(input.code, expected);
+
+  // 合言葉が違う場合も、既存メールの場合も、**同じ扱い**にする
+  if (!codeOk) {
+    await db.transaction(async (tx) => {
+      await recordLoginAttempt(tx, { email: REGISTER_SCOPE_EMAIL, ip, succeeded: false });
+    });
+    throw new ValidationError('登録できませんでした。入力内容と合言葉を確かめてください', {
+      fields: {},
+    });
+  }
+
+  const existing = await db
+    .select({ id: actor.id })
+    .from(actor)
+    .where(eq(actor.email, email))
+    .limit(1);
+
+  if (existing.length > 0) {
+    // 存在を知らせない。失敗として数えたうえで、成功と同じ文言を返す
+    await db.transaction(async (tx) => {
+      await recordLoginAttempt(tx, { email: REGISTER_SCOPE_EMAIL, ip, succeeded: false });
+    });
+    return { message: REGISTER_DONE_MESSAGE };
+  }
+
+  const passwordHash = await hashPassword(input.password);
+
+  await db.transaction(async (tx) => {
+    const [created] = await tx
+      .insert(actor)
+      .values({
+        type: 'human',
+        name: input.name.trim(),
+        email,
+        role: 'requester',
+        passwordHash,
+        isActive: true,
+      })
+      .returning({ id: actor.id, name: actor.name });
+
+    // 書き込みは activity に残す（CLAUDE.md 絶対ルール3）。**合言葉は残さない**
+    await recordActivity(tx, {
+      actorId: created!.id,
+      entityType: 'actor',
+      entityId: created!.id,
+      action: 'create',
+      diff: { name: created!.name, role: 'requester', via: 'self-register' },
+      ip,
+      userAgent: meta.userAgent,
+    });
+
+    await recordLoginAttempt(tx, { email: REGISTER_SCOPE_EMAIL, ip, succeeded: true });
+  });
+
+  return { message: REGISTER_DONE_MESSAGE };
+}
+
+/** 長さの差からも情報を出さない比較。 */
+function timingSafeEquals(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
 }
