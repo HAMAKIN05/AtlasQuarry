@@ -6,8 +6,10 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 import { TaskCheck } from '@/components/TaskCheck';
+import { Band, Face, SeamRow, seamColor } from '@/components/SeamLedger';
 import { useLabels } from '@/components/LabelsProvider';
 import { EmptyState } from '@/components/app-ui';
+import type { TaskStatus } from '@/db/schema/enums';
 import type { TaskListItem } from '@/domain/task/service';
 import { dueLabel, isOverdue } from '@/lib/format';
 
@@ -48,6 +50,33 @@ type Props = {
  * いまは既定が「自分の担当」。それ以外の絞り込みは畳んであり、必要な人だけ開く。
  * かんばんは残す（一度消えたときに「かんばんが無い」と指摘された。使われている）。
  */
+/**
+ * 行のわき。**プロジェクト → 相手 → 期限**の順で固定する。
+ * 並びが毎回同じであることが、説明文よりも早く読み方を伝える。
+ */
+function TaskMeta({ task, showAssignee }: { task: TaskListItem; showAssignee?: boolean }) {
+  const due = dueLabel(task.dueDate, task.status);
+  const late = isOverdue(task.dueDate, task.status);
+
+  return (
+    <>
+      <span>{task.productKey}</span>
+      {showAssignee && task.assigneeName && <span>{task.assigneeName}</span>}
+      {due && <span data-late={late || undefined}>{due}</span>}
+    </>
+  );
+}
+
+/**
+ * 段の定義。**この並びが、そのまま「次に何をするか」の順。**
+ * 未着手を「次に進める」と呼ぶのは、状態名ではなく次の行動で読ませるため。
+ */
+const BANDS = [
+  { key: 'next', label: '次に進める', statuses: ['todo', 'backlog'] as TaskStatus[] },
+  { key: 'doing', label: '進行中', statuses: ['in_progress'] as TaskStatus[] },
+  { key: 'wait', label: '待ち', statuses: ['review'] as TaskStatus[] },
+] as const;
+
 export function TaskWorkspace({
   projects,
   projectId,
@@ -86,6 +115,12 @@ export function TaskWorkspace({
 
   const project = projects.find((p) => p.id === projectId);
   const filtered = assigneeId !== '' || featureId !== '' || showClosed;
+
+  /* 完了は段に混ぜず、畳んだまま帳面の末尾に置く */
+  const doneTasks = useMemo(
+    () => visible.filter((t) => t.status === 'done' || t.status === 'cancelled'),
+    [visible],
+  );
 
   function replaceTask(id: string, patch: Partial<TaskListItem>) {
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
@@ -221,66 +256,95 @@ export function TaskWorkspace({
       ) : view === 'board' ? (
         <KanbanBoard tasks={visible} allTasks={tasks} onTasksChange={setTasks} />
       ) : (
-        <ul aria-label="タスク一覧">
-          {visible.map((t) => {
-            const due = dueLabel(t.dueDate, t.status);
-            const late = isOverdue(t.dueDate, t.status);
+        /*
+         * **状態はバッジではなく段で示す。**
+         * 「次に進める」「進行中」「待ち」「完了」の順に上から積む。どの段に載っているかが
+         * そのまま状態なので、行ごとに色付きのバッジを読ませる必要がない。
+         * 完了は畳んだ状態から始める（済んだものが場所を取らないように）。
+         */
+        <div className="flex flex-col">
+          {BANDS.map(({ key, label, statuses }) => {
+            const rows = visible.filter((t) => statuses.includes(t.status));
+            if (rows.length === 0) return null;
+
+            // 「次に進める」は先頭の1件だけを大きく出す。残りは進行中に混ぜない
+            const isNext = key === 'next';
+            const [head, ...rest] = rows;
 
             return (
-              <li key={t.id}>
-                <div className="row-link">
-                  <TaskCheck
-                    taskId={t.id}
-                    status={t.status}
-                    title={t.title}
-                    onDone={(next) => replaceTask(t.id, { status: next })}
+              <Band key={key} label={label} count={rows.length}>
+                {isNext && head && (
+                  <Face
+                    seam={seamColor(head.productKey)}
+                    href={`/tasks/${head.key}`}
+                    title={head.title}
+                    meta={<TaskMeta task={head} showAssignee />}
                   />
-
-                  {/*
-                    **行に出すのはタイトル・期限・相手だけ。**
-                    タスクキー、通常の優先度、状態バッジは詳細へ退避した。
-                    日本語のスマホ画面では、小さなバッジが増えるほど情報が多いのではなく
-                    読みにくく見える。
-                  */}
-                  <Link href={`/tasks/${t.key}`} className="min-w-0 flex-1 basis-40 hover:underline">
-                    {t.title}
-                  </Link>
-
-                  {t.priority === 'urgent' && (
-                    <span className="shrink-0 text-xs font-bold text-destructive">
-                      {labels['task.priority.urgent']}
-                    </span>
-                  )}
-                  {assigneeId === '' && t.assigneeName && (
-                    <span className="shrink-0 text-xs text-muted-foreground">{t.assigneeName}</span>
-                  )}
-                  {due && (
-                    <span
-                      className={
-                        late
-                          ? 'tabular shrink-0 text-xs font-bold text-destructive'
-                          : 'tabular shrink-0 text-xs text-muted-foreground'
+                )}
+                <ul>
+                  {(isNext ? rest : rows).map((t, i, arr) => (
+                    <SeamRow
+                      key={t.id}
+                      seam={seamColor(t.productKey)}
+                      seamStart={i === 0 || arr[i - 1]!.productKey !== t.productKey}
+                      seamEnd={i === arr.length - 1 || arr[i + 1]!.productKey !== t.productKey}
+                      lead={
+                        <TaskCheck
+                          taskId={t.id}
+                          status={t.status}
+                          title={t.title}
+                          onDone={(next) => replaceTask(t.id, { status: next })}
+                        />
                       }
-                    >
-                      {due}
-                    </span>
-                  )}
-
-                  {/*
-                    状態を変えるのに、かんばんへ切り替えて長押しドラッグ、を必須にしない。
-                    一覧からも明示的に選べるようにする（ドラッグは覚えないと使えない）。
-                  */}
-                  <TaskStatusMenu
-                    taskId={t.id}
-                    status={t.status}
-                    onChanged={(next) => replaceTask(t.id, { status: next })}
-                  />
-                </div>
-              </li>
+                      href={`/tasks/${t.key}`}
+                      title={t.title}
+                      meta={<TaskMeta task={t} showAssignee={assigneeId === ''} />}
+                      trailing={
+                        <TaskStatusMenu
+                          taskId={t.id}
+                          status={t.status}
+                          onChanged={(next) => replaceTask(t.id, { status: next })}
+                        />
+                      }
+                    />
+                  ))}
+                </ul>
+              </Band>
             );
           })}
-        </ul>
+
+          {/* 完了は畳んでおく。開けば同じ帳面の続きとして出る */}
+          {doneTasks.length > 0 && (
+            <details className="band">
+              <summary className="band-heading cursor-pointer list-none select-none">
+                完了<span className="count">{doneTasks.length}</span>
+              </summary>
+              <ul>
+                {doneTasks.map((t, i, arr) => (
+                  <SeamRow
+                    key={t.id}
+                    seam={seamColor(t.productKey)}
+                    seamStart={i === 0 || arr[i - 1]!.productKey !== t.productKey}
+                    seamEnd={i === arr.length - 1 || arr[i + 1]!.productKey !== t.productKey}
+                    lead={
+                      <TaskCheck
+                        taskId={t.id}
+                        status={t.status}
+                        title={t.title}
+                        onDone={(next) => replaceTask(t.id, { status: next })}
+                      />
+                    }
+                    href={`/tasks/${t.key}`}
+                    title={t.title}
+                    meta={<TaskMeta task={t} showAssignee={assigneeId === ''} />}
+                  />
+                ))}
+              </ul>
+            </details>
+          )}
+        </div>
       )}
+
     </>
   );
 }

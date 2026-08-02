@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 
 import { TaskCheck } from '@/components/TaskCheck';
+import { Band, Face, SeamRow, seamColor } from '@/components/SeamLedger';
 import { EmptyState, Loading, Progress } from '@/components/app-ui';
 import { Button } from '@/components/ui/button';
 import { listProducts } from '@/domain/product/service';
@@ -85,88 +86,77 @@ async function DecisionsFirst({ actorId }: { actorId: string }) {
     openTasksOf(actorId),
   ]);
 
-  if (requests.length === 0) {
-    return (
-      <FocusSection
-        title="いま動かすこと"
-        /*
-         * **何の一覧なのかを言う。** 「判断待ちの要望はありません。」だけを出して
-         * その下にタスクを並べると、本番の画面では否定文の直後に用件が続いて
-         * 噛み合わなかった。落とし先を明示する。
-         */
-        note={
-          myTasks.length === 0
-            ? '判断待ちの要望はありません。'
-            : '判断待ちの要望はありません。代わりに、あなたの担当タスクを出しています。'
-        }
-        seeAll={myTasks.length > 3 ? { href: '/tasks', label: 'タスクをすべて見る' } : undefined}
-      >
-        {myTasks.length === 0 ? (
-          <EmptyState
-            title="手元に動かすものはありません"
-            description="要望が出されるか、タスクが割り当てられると、ここに用件が並びます。"
-            actionLabel="要望を見る"
-            actionHref="/requests"
-          />
-        ) : (
-          <ul>
-            {myTasks.slice(0, 3).map((task) => (
-              <TaskFocusRow key={task.id} task={task} />
-            ))}
-          </ul>
-        )}
-      </FocusSection>
-    );
-  }
+  const [head, ...restRequests] = requests;
 
   return (
-    <FocusSection
-      title="いま動かすこと"
-      note={`${requests.length} 件の要望が、あなたの判断で止まっています。`}
-      seeAll={requests.length > 3 ? { href: '/requests', label: '要望をすべて見る' } : undefined}
-    >
-      <ul>
-        {requests.slice(0, 3).map((request) => (
-          <li key={request.id} className="focus-row">
-            <Link href={`/requests/${request.id}`} className="focus-title hover:underline">
-              {request.title}
-            </Link>
-            <p className="focus-meta">
-              <span>{request.reporterName}さんから</span>
-              {/*
-                要望に期限は無い（テーブルに持っていない。勝手に足さない）。
-                判断待ちの列で効くのは締切より**どれだけ待たせているか**なので、
-                起票からの経過を出す。1週間を超えたら急ぐものとして色を付ける。
-              */}
-              <span data-late={waitingTooLong(request.createdAt)}>
-                {formatRelative(request.createdAt)}から待っています
-              </span>
-            </p>
-            <div className="mt-1 flex flex-wrap gap-2">
-              <Button asChild size="sm">
-                <Link href={`/requests/${request.id}`}>この要望を判断する</Link>
-              </Button>
-            </div>
-          </li>
-        ))}
-      </ul>
-
+    <>
       {/*
-        **判断待ちで埋まっても、自分の担当タスクが見えなくなるようにしない。**
-        管理者もタスクを持つ。判断だけを出すと、ホームが「決める人の画面」に寄りすぎて
-        自分の作業が見えなくなる、という指摘への対応。
+        **判断待ちの先頭1件を「いま掘る面」にする。**
+        件数を数字で見せるのではなく、実際に決めるものを1件だけ大きく置く。
+        面積が優先順位を伝えるので、「◯件あります」という説明が要らない。
       */}
-      {myTasks.length > 0 && (
-        <div className="mt-4 flex flex-col gap-1">
-          <h2 className="text-xs font-semibold text-subtle">あなたの担当</h2>
+      {head ? (
+        <Band label="あなたが止めている">
+          <Face
+            seam={seamColor('request')}
+            href={`/requests/${head.id}`}
+            overline={`${head.reporterName}さんから · ${formatRelative(head.createdAt)}待ち`}
+            title={head.title}
+            meta={<span>やるかどうかを決める</span>}
+          />
+        </Band>
+      ) : (
+        <Band label="あなたが止めている">
+          <p className="empty-inline">判断待ちの要望はありません。</p>
+        </Band>
+      )}
+
+      {restRequests.length > 0 && (
+        <Band label="ほかの判断待ち" count={restRequests.length}>
           <ul>
-            {myTasks.slice(0, 3).map((task) => (
-              <TaskFocusRow key={task.id} task={task} />
+            {restRequests.slice(0, 3).map((request) => (
+              <SeamRow
+                key={request.id}
+                seam={seamColor('request')}
+                href={`/requests/${request.id}`}
+                title={request.title}
+                meta={
+                  <>
+                    <span>{request.reporterName}さんから</span>
+                    <span data-late={waitingTooLong(request.createdAt) || undefined}>
+                      {formatRelative(request.createdAt)}待ち
+                    </span>
+                  </>
+                }
+              />
             ))}
           </ul>
-        </div>
+        </Band>
       )}
-    </FocusSection>
+
+      {/*
+        **判断で埋まっても、自分の担当が見えなくなるようにしない。**
+        管理者もタスクを持つ。
+      */}
+      {myTasks.length > 0 && (
+        <Band label="あなたの担当" count={myTasks.length}>
+          <ul>
+            {myTasks.slice(0, 3).map((task, i, arr) => (
+              <SeamRow
+                key={task.id}
+                seam={seamColor(task.productKey)}
+                seamStart={i === 0 || arr[i - 1]!.productKey !== task.productKey}
+                seamEnd={i === arr.length - 1 || arr[i + 1]!.productKey !== task.productKey}
+                lead={<TaskCheck taskId={task.id} status={task.status} title={task.title} />}
+                href={`/tasks/${task.key}`}
+                title={task.title}
+                meta={<FocusMeta task={task} />}
+              />
+            ))}
+          </ul>
+        </Band>
+      )}
+    </>
   );
 }
 
@@ -177,100 +167,75 @@ function waitingTooLong(createdAt: Date | string | null): boolean {
   return Date.now() - at.getTime() > 7 * 24 * 60 * 60 * 1000;
 }
 
-/** 開発者向け。**期限を過ぎたもの → 期限が近いもの**の順に、最大5件。 */
+/**
+ * 開発者向け。**期限を過ぎたもの → 期限が近いもの**の順。
+ *
+ * 先頭の1件だけを「いま掘る面」として大きく置き、残りは帳面の行として続ける。
+ * **面積そのものが優先順位**なので、どれから手を付けるかを説明せずに伝えられる。
+ */
 async function MyWorkFirst({ actorId }: { actorId: string }) {
   const tasks = await openTasksOf(actorId);
-  const late = tasks.filter((task) => isOverdue(task.dueDate, task.status));
 
-  return (
-    <FocusSection
-      title="いま動かすこと"
-      note={
-        tasks.length === 0
-          ? undefined
-          : late.length > 0
-            ? `${late.length} 件が期限を過ぎています。`
-            : `担当しているタスクが ${tasks.length} 件あります。`
-      }
-      seeAll={tasks.length > 5 ? { href: '/tasks', label: 'タスクをすべて見る' } : undefined}
-    >
-      {tasks.length === 0 ? (
+  if (tasks.length === 0) {
+    return (
+      <Band label="いま掘る">
         <EmptyState
           title="担当しているタスクはありません"
           description="タスクは要望から作るか、タスク画面で直接追加できます。"
           actionLabel="タスクを見る"
           actionHref="/tasks"
         />
-      ) : (
-        <ul>
-          {tasks.slice(0, 5).map((task) => (
-            <TaskFocusRow key={task.id} task={task} />
-          ))}
-        </ul>
+      </Band>
+    );
+  }
+
+  const [head, ...rest] = tasks;
+
+  return (
+    <>
+      <Band label="いま掘る">
+        <Face
+          seam={seamColor(head!.productKey)}
+          href={`/tasks/${head!.key}`}
+          title={head!.title}
+          meta={<FocusMeta task={head!} />}
+        />
+      </Band>
+
+      {rest.length > 0 && (
+        <Band label="このあと" count={rest.length}>
+          <ul>
+            {rest.slice(0, 4).map((task, i, arr) => (
+              <SeamRow
+                key={task.id}
+                seam={seamColor(task.productKey)}
+                seamStart={i === 0 || arr[i - 1]!.productKey !== task.productKey}
+                seamEnd={i === arr.length - 1 || arr[i + 1]!.productKey !== task.productKey}
+                lead={<TaskCheck taskId={task.id} status={task.status} title={task.title} />}
+                href={`/tasks/${task.key}`}
+                title={task.title}
+                meta={<FocusMeta task={task} />}
+              />
+            ))}
+          </ul>
+        </Band>
       )}
-    </FocusSection>
+    </>
   );
 }
 
-/** 用件1行。**タイトルを主役にし、わきは相手と期限だけ。** その場で完了にできる。 */
-function TaskFocusRow({ task }: { task: TaskListItem }) {
+function FocusMeta({ task }: { task: TaskListItem }) {
   const late = isOverdue(task.dueDate, task.status);
-
   return (
-    <li className="focus-row">
-      <div className="flex items-start gap-3">
-        <span className="pt-0.5">
-          <TaskCheck taskId={task.id} status={task.status} title={task.title} />
+    <>
+      <span>{task.productKey}</span>
+      {task.dueDate && (
+        <span data-late={late || undefined}>
+          {late ? '期限超過 ' : '期限 '}
+          {formatDate(task.dueDate)}
         </span>
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <Link href={`/tasks/${task.key}`} className="focus-title hover:underline">
-            {task.title}
-          </Link>
-          <p className="focus-meta">
-            <span>{task.productKey}</span>
-            {task.dueDate && (
-              <span data-late={late}>
-                {late ? '期限超過 ' : '期限 '}
-                {formatDate(task.dueDate)}
-              </span>
-            )}
-          </p>
-        </div>
-      </div>
-    </li>
-  );
-}
-
-/**
- * 最上部の枠。
- *
- * 見出しは1つだけ大きくする。**画面内で一番大きい文字がここになるようにして、
- * 開いた人の視線が最初にここへ行くようにする。**
- */
-function FocusSection({
-  title,
-  note,
-  seeAll,
-  children,
-}: {
-  title: string;
-  note?: string;
-  seeAll?: { href: string; label: string };
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="flex flex-col gap-2" aria-label={title}>
-      <div className="flex min-h-11 flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{title}</h1>
-        {seeAll && (
-          <Link href={seeAll.href} className="text-sm text-muted-foreground hover:text-foreground">
-            {seeAll.label}
-          </Link>
-        )}
-      </div>
-      {note && <p className="text-sm text-muted-foreground">{note}</p>}
-      {children}
-    </section>
+      )}
+    </>
   );
 }
 

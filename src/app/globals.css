@@ -2,56 +2,71 @@
 @import 'tw-animate-css';
 
 /*
- * AtlasQuarry のテーマ。
+ * AtlasQuarry のテーマ ――「切羽帳（きりはちょう）」。
  *
- * **「Linear / Raycast 風」をやめた。** 以前はそう書いて実装していたが、
- * 青みグラファイト・極細罫線・面の段差・紫の発光は、近年の開発者向け SaaS の定番セットで、
- * 内容と無関係な「それらしさ」でしかなかった。指摘された「AI感」の正体がこれ。
+ * **ダーク＋カードの構成を捨てた。** 5回作り直して5回とも否定されたが、
+ * 直近まで直していたのは配色と質感だけで、骨格（カードを並べるダッシュボード）は
+ * ずっと同じだった。「きしょい」の正体はそこだと判断した。
  *
- * いまの方向は **3人が毎日使う内製の道具としての静けさ**。
- * 質感の演出（全画面のグラデーション、面の上端ハイライト、浮いた影）は全部外した。
- * 面は明度差だけで分ける。
+ * 名前の由来（Atlas＝測量図 / Quarry＝採石場）を**装飾ではなく構造**に入れる。
+ * 切羽（きりは）は採石場で今まさに掘っている面のこと。この道具は
+ * **上から下へ掘り進む1冊の帳面**として作る。
  *
- * **色が付いている＝意味がある。** バイオレットは3つの用途に限る。
- *   1. 押せるもの（主ボタン・リンク）
- *   2. いまいる場所（ナビの現在地、選択中）
- *   3. 自分が止めている判断
- * 進捗バーや装飾には使わない。状態色は**実際に急ぐもの**（期限超過）に絞る。
+ *   - カードで囲わない。横幅いっぱいの帳面に、行が上から積む
+ *   - 状態はバッジの色ではなく **並ぶ位置** で示す
+ *     （次に掘る → 進行中 → 待ち → 完了）
+ *   - 同じプロジェクトの連続は、左端の 3px の線（地層線）でつなぐ。装飾ではなく情報
+ *   - 角丸と影は原則使わない。丸めるのは押せるものだけ
+ *   - **ライト固定。** 暗色は「モダンに見せる」ために使われがちで、
+ *     毎日開く業務画面では情報が沈む。前回の「黒くなっただけ」はそれ
+ *
+ * 色が付いている＝意味がある、という原則は引き継ぐ。使う色は4つだけ。
+ *   front（次に掘る・押せる） / wait（待ち） / risk（期限超過） / done（完了）
  */
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  --radius: 0.5rem;
+  /* 丸めるのは押せるものだけ。面と行は角丸なし */
+  --radius: 0.625rem;
 
-  /* 面。数値が上がるほど手前 */
-  --background: oklch(0.165 0.012 268);
-  --surface: oklch(0.205 0.014 268);
-  --surface-raised: oklch(0.245 0.016 268);
-  --surface-hover: oklch(0.265 0.017 268);
+  /* 面。石灰岩の白。数値が上がるほど手前 */
+  --background: oklch(0.965 0.008 85);
+  --surface: oklch(0.995 0.003 85);
+  --surface-raised: oklch(0.935 0.01 85);
+  --surface-hover: oklch(0.955 0.009 85);
 
-  --foreground: oklch(0.94 0.006 268);
-  --muted-foreground: oklch(0.68 0.014 268);
-  --subtle-foreground: oklch(0.55 0.014 268);
+  --foreground: oklch(0.245 0.018 65);
+  --muted-foreground: oklch(0.505 0.016 65);
+  --subtle-foreground: oklch(0.6 0.014 65);
 
-  /* 枠。見えるか見えないかの境目に置く */
-  --border: oklch(0.3 0.014 268);
-  --border-strong: oklch(0.38 0.016 268);
+  --border: oklch(0.85 0.012 85);
+  --border-strong: oklch(0.76 0.014 85);
 
-  /* アクセント。バイオレット */
-  --primary: oklch(0.62 0.19 285);
-  --primary-hover: oklch(0.67 0.19 285);
+  /* front。次に掘るもの・押せるもの・いまいる場所 */
+  --primary: oklch(0.53 0.11 235);
+  --primary-hover: oklch(0.47 0.11 235);
   --primary-foreground: oklch(0.99 0 0);
-  --primary-soft: oklch(0.62 0.19 285 / 0.14);
-  --primary-line: oklch(0.62 0.19 285 / 0.4);
+  --primary-soft: oklch(0.53 0.11 235 / 0.1);
+  --primary-line: oklch(0.53 0.11 235 / 0.45);
 
-  /* 状態。ダークで濁らないよう彩度を落として明度を上げる */
-  --success: oklch(0.78 0.14 158);
-  --success-soft: oklch(0.78 0.14 158 / 0.14);
-  --warning: oklch(0.82 0.13 82);
-  --warning-soft: oklch(0.82 0.13 82 / 0.14);
-  --destructive: oklch(0.68 0.19 20);
-  --destructive-soft: oklch(0.68 0.19 20 / 0.15);
+  --success: oklch(0.625 0.045 155);
+  --success-soft: oklch(0.625 0.045 155 / 0.14);
+  --warning: oklch(0.7 0.105 82);
+  --warning-soft: oklch(0.7 0.105 82 / 0.16);
+  --destructive: oklch(0.58 0.155 28);
+  --destructive-soft: oklch(0.58 0.155 28 / 0.12);
+
+  /*
+   * 地層線。**同じプロジェクトの連続を示す。**
+   * 6色までに抑える。増やすと意味のない色分けになる。
+   */
+  --seam-1: oklch(0.62 0.09 235);
+  --seam-2: oklch(0.62 0.08 155);
+  --seam-3: oklch(0.66 0.1 60);
+  --seam-4: oklch(0.6 0.1 300);
+  --seam-5: oklch(0.62 0.1 20);
+  --seam-6: oklch(0.6 0.06 200);
 
   --ring: var(--primary);
 }
@@ -81,6 +96,13 @@
   --color-warning-soft: var(--warning-soft);
   --color-destructive: var(--destructive);
   --color-destructive-soft: var(--destructive-soft);
+
+  --color-seam-1: var(--seam-1);
+  --color-seam-2: var(--seam-2);
+  --color-seam-3: var(--seam-3);
+  --color-seam-4: var(--seam-4);
+  --color-seam-5: var(--seam-5);
+  --color-seam-6: var(--seam-6);
 
   --color-ring: var(--ring);
 
@@ -207,8 +229,12 @@
    * 以前は上端 1px のハイライトと影で持ち上げていたが、外した。
    * 紙も金属も模していない画面で「浮いている」表現をすると、その質感だけが目に残る。
    */
+  /*
+   * 作業面。**角丸も影も使わない。** 帳面の1ページであって、浮いたカードではない。
+   * 面の区別は明度と 1px の罫線だけで作る。
+   */
   .surface {
-    @apply rounded-md bg-surface;
+    @apply border border-border bg-surface;
   }
 
   /* 一覧の1行。枠を引かず、hover で面を持ち上げる */
@@ -251,6 +277,77 @@
   /* 期限を過ぎているものだけ色を持たせる。急ぐものが一目で分かるのが目的 */
   .focus-meta [data-late='true'] {
     @apply font-bold text-destructive;
+  }
+
+  /* ------------------------------------------------------------------ *
+   * 切羽帳
+   * ------------------------------------------------------------------ */
+
+  /*
+   * 段の見出し。「── 次に掘る ──────」の横罫。
+   * **状態はここでしか示さない。** 行ごとにバッジを付けない。
+   * どの段に載っているかが、そのまま状態になる。
+   */
+  .band {
+    @apply flex flex-col;
+  }
+  .band-heading {
+    @apply flex items-baseline gap-2 pt-6 pb-1.5 text-[0.8rem] font-semibold tracking-[0.04em] text-muted-foreground;
+  }
+  .band-heading::after {
+    content: '';
+    @apply ml-1 h-px flex-1 bg-border;
+  }
+  .band-heading .count {
+    font-variant-numeric: tabular-nums;
+    @apply text-[0.8rem] font-bold text-foreground;
+  }
+
+  /*
+   * 帳面の1行。左端 3px が地層線（プロジェクトの連続）。
+   * 罫線は行の下だけ。囲わない。
+   */
+  .seam-row {
+    @apply relative flex min-h-14 items-start gap-3 border-b border-border/70 py-3 pr-1 pl-4 last:border-b-0;
+    @apply transition-colors hover:bg-hover;
+  }
+  .seam-row::before {
+    content: '';
+    @apply absolute top-0 bottom-0 left-0 w-[3px];
+    background: var(--seam, var(--border-strong));
+  }
+  /* 同じプロジェクトが続く間は線をつなぐ。切れ目でだけ途切れる */
+  .seam-row[data-seam-start='true']::before {
+    @apply top-1.5;
+  }
+  .seam-row[data-seam-end='true']::before {
+    @apply bottom-1.5;
+  }
+  .seam-title {
+    @apply text-[1rem] leading-snug font-medium;
+  }
+  .seam-meta {
+    font-variant-numeric: tabular-nums;
+    @apply flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[0.78rem] text-muted-foreground;
+  }
+  .seam-meta [data-late='true'] {
+    @apply font-bold text-destructive;
+  }
+
+  /*
+   * いま掘っている面。**画面で唯一、囲って良いもの。**
+   * 「次はこれ」を1件だけ大きく置く。ここだけ面積で優先順位を示す。
+   */
+  .face {
+    @apply relative block border border-border-strong bg-surface py-4 pr-4 pl-5 transition-colors hover:bg-hover;
+  }
+  .face::before {
+    content: '';
+    @apply absolute top-0 bottom-0 left-0 w-[3px];
+    background: var(--seam, var(--primary));
+  }
+  .face-title {
+    @apply text-[1.25rem] leading-snug font-semibold;
   }
 
   /* 空状態も面を増やさず、コンテキストの末尾として短く置く。 */
