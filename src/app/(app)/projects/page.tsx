@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
 
+import { Dot } from '@/components/Ledger';
 import { Badge, EmptyState, Loading, PageHeader, Progress } from '@/components/app-ui';
 import { listProducts } from '@/domain/product/service';
 import { requireActor } from '@/lib/auth/cookies';
@@ -61,7 +62,8 @@ async function ProjectList({ canCreate }: { canCreate: boolean }) {
     <div className="card-list" aria-label="プロジェクト一覧">
       {projects.map((p) => (
         <Link key={p.id} href={`/projects/${p.id}`} className="card">
-          <span className="flex items-start gap-2">
+          <span className="flex items-center gap-2">
+            <Dot seed={p.key} />
             <span className="card-title min-w-0 flex-1">{p.name}</span>
             {p.status !== 'active' && (
               <Badge tone="neutral">{PROJECT_STATUS_LABELS[p.status]}</Badge>

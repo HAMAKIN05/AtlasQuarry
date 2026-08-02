@@ -1,12 +1,10 @@
-import { ArrowRightIcon, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
 import { TaskCheck } from '@/components/TaskCheck';
-import { Band, Hero, Row, Stack } from '@/components/Ledger';
-import { EmptyState, Loading, Progress } from '@/components/app-ui';
-import { Button } from '@/components/ui/button';
-import { listProducts } from '@/domain/product/service';
+import { Band, Dot, Hero, Row, Stack } from '@/components/Ledger';
+import { EmptyState, Loading } from '@/components/app-ui';
 import { listRequests } from '@/domain/request/service';
 import { listTasks, type TaskListItem } from '@/domain/task/service';
 import { requireActor } from '@/lib/auth/cookies';
@@ -37,36 +35,123 @@ export default async function HomePage() {
   const canTriage = can(actor, 'request.triage');
 
   return (
-    <div className="flex flex-col gap-8">
-      <Suspense fallback={<Loading label="いま動かすことを探しています" />}>
-        {canTriage ? (
-          <DecisionsFirst actorId={actor.id} />
-        ) : (
-          <MyWorkFirst actorId={actor.id} />
-        )}
+    <div className="flex flex-col gap-7">
+      {/*
+        **ダッシュボードをやめて「今日」にした。**
+        入口が「状況の一覧」だと、作業を始める前に読む時間が要る。
+        上から「今日やる → 判断待ち → 期限が近い」の順に、
+        **自分がいま動かすものだけ**を出す。プロジェクトの一覧はタブへ移した。
+      */}
+      <h1 className="text-2xl font-bold tracking-tight">今日</h1>
+
+      <Suspense fallback={<Loading label="今日やることを探しています" />}>
+        <TodayWork actorId={actor.id} />
       </Suspense>
 
-      {/*
-        **「要望を出す」の入口を常に置く。**
-        思いついたときに書くものなので、下部タブの意味を理解していることに
-        依存させない。判断待ちが0件のときも、要望が無いときも、ここは消さない。
-      */}
-      <Link
-        href="/requests/new"
-        className="flex min-h-14 items-center gap-2 rounded-2xl border border-dashed border-border-strong px-4 text-sm font-semibold text-muted-foreground transition-colors hover:border-primary-line hover:text-foreground"
-      >
-        <PlusIcon className="size-4 shrink-0" aria-hidden="true" />
-        こうなったら楽になる、を書く
-      </Link>
+      {canTriage && (
+        <Suspense fallback={<Loading />}>
+          <PendingDecisions />
+        </Suspense>
+      )}
 
       <Suspense fallback={<Loading />}>
         <Milestones />
       </Suspense>
 
-      <Suspense fallback={<Loading />}>
-        <ProjectOverview />
-      </Suspense>
+      {/* どの画面からでも頭から出せるように、追加は常に手前に置く */}
+      <Link href="/requests/new" className="fab">
+        <PlusIcon className="size-5" aria-hidden="true" />
+        要望を出す
+      </Link>
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * 今日やる
+ * ------------------------------------------------------------------ */
+
+/**
+ * 自分の担当のうち、**今日動かすもの**。
+ *
+ * 期限を過ぎたもの → 今日まで → それ以外、の順。先頭の1件だけを大きく置き、
+ * 残りはカードで積む。**面積が優先順位を伝える**ので、件数の説明が要らない。
+ */
+async function TodayWork({ actorId }: { actorId: string }) {
+  const tasks = await openTasksOf(actorId);
+
+  if (tasks.length === 0) {
+    return (
+      <EmptyState
+        title="今日やることはありません"
+        description="担当のタスクが割り当てられるか、要望から作られると、ここに並びます。"
+        actionLabel="タスクを見る"
+        actionHref="/tasks"
+      />
+    );
+  }
+
+  const [head, ...rest] = tasks;
+
+  return (
+    <div className="flex flex-col gap-5">
+      <Hero
+        href={`/tasks/${head!.key}`}
+        overline={heroReason(head!)}
+        title={head!.title}
+        meta={<FocusMeta task={head!} />}
+        action="このタスクを開く"
+      />
+
+      {rest.length > 0 && (
+        <Band label="このあと" count={rest.length}>
+          <Stack>
+            {rest.slice(0, 5).map((task) => (
+              <Row
+                key={task.id}
+                lead={<TaskCheck taskId={task.id} status={task.status} title={task.title} />}
+                href={`/tasks/${task.key}`}
+                title={task.title}
+                meta={<FocusMeta task={task} />}
+              />
+            ))}
+          </Stack>
+        </Band>
+      )}
+    </div>
+  );
+}
+
+/**
+ * 判断待ちの要望。
+ *
+ * **入口の最上段には置かない。** 常に一番上だと「一日の作業」より
+ * 「滞留の警告」が入口を支配する。今日やることの次に置く。
+ */
+async function PendingDecisions() {
+  const requests = await listRequests(['received', 'reviewing']);
+  if (requests.length === 0) return null;
+
+  return (
+    <Band label="あなたの判断待ち" count={requests.length}>
+      <Stack>
+        {requests.slice(0, 5).map((request) => (
+          <Row
+            key={request.id}
+            href={`/requests/${request.id}`}
+            title={request.title}
+            meta={
+              <>
+                <span>{request.reporterName}さんから</span>
+                <span data-late={waitingTooLong(request.createdAt) || undefined}>
+                  {formatRelative(request.createdAt)}待ち
+                </span>
+              </>
+            }
+          />
+        ))}
+      </Stack>
+    </Band>
   );
 }
 
@@ -74,148 +159,11 @@ export default async function HomePage() {
  * 最上部。役割で「いま動かすこと」の中身を変える
  * ------------------------------------------------------------------ */
 
-/**
- * 経営者・管理者向け。**自分が止めている判断**を先に出す。
- *
- * 判断待ちが無いときだけ、自分の担当タスクに落とす。「0件です」で終わらせると
- * ホームが空になる。
- */
-async function DecisionsFirst({ actorId }: { actorId: string }) {
-  const [requests, myTasks] = await Promise.all([
-    listRequests(['received', 'reviewing']),
-    openTasksOf(actorId),
-  ]);
-
-  const [head, ...restRequests] = requests;
-
-  return (
-    <>
-      {/*
-        **判断待ちの先頭1件を「いま掘る面」にする。**
-        件数を数字で見せるのではなく、実際に決めるものを1件だけ大きく置く。
-        面積が優先順位を伝えるので、「◯件あります」という説明が要らない。
-      */}
-      {head ? (
-        <Band label="あなたが止めている">
-          <Hero
-            href={`/requests/${head.id}`}
-            overline={`${head.reporterName}さんから · ${formatRelative(head.createdAt)}待ち`}
-            title={head.title}
-            action="やるかどうかを決める" 
-          />
-        </Band>
-      ) : (
-        <Band label="あなたが止めている">
-          <p className="empty-inline">判断待ちの要望はありません。</p>
-        </Band>
-      )}
-
-      {restRequests.length > 0 && (
-        <Band label="ほかの判断待ち" count={restRequests.length}>
-          <Stack>
-            {restRequests.slice(0, 3).map((request) => (
-              <Row
-                key={request.id}
-                href={`/requests/${request.id}`}
-                title={request.title}
-                meta={
-                  <>
-                    <span>{request.reporterName}さんから</span>
-                    <span data-late={waitingTooLong(request.createdAt) || undefined}>
-                      {formatRelative(request.createdAt)}待ち
-                    </span>
-                  </>
-                }
-              />
-            ))}
-          </Stack>
-        </Band>
-      )}
-
-      {/*
-        **判断で埋まっても、自分の担当が見えなくなるようにしない。**
-        管理者もタスクを持つ。
-      */}
-      {myTasks.length > 0 && (
-        <Band label="あなたの担当" count={myTasks.length}>
-          <Stack>
-            {myTasks.slice(0, 3).map((task, i, arr) => (
-              <Row
-                key={task.id}
-                lead={<TaskCheck taskId={task.id} status={task.status} title={task.title} />}
-                href={`/tasks/${task.key}`}
-                title={task.title}
-                meta={<FocusMeta task={task} />}
-              />
-            ))}
-          </Stack>
-        </Band>
-      )}
-    </>
-  );
-}
-
 /** 判断待ちが1週間を超えたら急ぐものとして扱う。 */
 function waitingTooLong(createdAt: Date | string | null): boolean {
   if (!createdAt) return false;
   const at = typeof createdAt === 'string' ? new Date(createdAt) : createdAt;
   return Date.now() - at.getTime() > 7 * 24 * 60 * 60 * 1000;
-}
-
-/**
- * 開発者向け。**期限を過ぎたもの → 期限が近いもの**の順。
- *
- * 先頭の1件だけを「いま掘る面」として大きく置き、残りは帳面の行として続ける。
- * **面積そのものが優先順位**なので、どれから手を付けるかを説明せずに伝えられる。
- */
-async function MyWorkFirst({ actorId }: { actorId: string }) {
-  const tasks = await openTasksOf(actorId);
-
-  if (tasks.length === 0) {
-    return (
-      <Band label="いま掘る">
-        <EmptyState
-          title="担当しているタスクはありません"
-          description="タスクは要望から作るか、タスク画面で直接追加できます。"
-          actionLabel="タスクを見る"
-          actionHref="/tasks"
-        />
-      </Band>
-    );
-  }
-
-  const [head, ...rest] = tasks;
-
-  return (
-    <>
-      <Band label="いま掘る">
-        <Hero
-          href={`/tasks/${head!.key}`}
-          /* **なぜこれが先頭なのかを1行で言う。** 順番だけ見せても納得できない */
-          overline={heroReason(head!)}
-          title={head!.title}
-          meta={<FocusMeta task={head!} />}
-          action="このタスクを開く"
-        />
-      </Band>
-
-      {rest.length > 0 && (
-        <Band label="このあと" count={rest.length}>
-          <Stack>
-            {rest.slice(0, 4).map((task, i, arr) => (
-              <Row
-                key={task.id}
-                lead={<TaskCheck taskId={task.id} status={task.status} title={task.title} />}
-                href={`/tasks/${task.key}`}
-                title={task.title}
-                meta={<FocusMeta task={task} />}
-              />
-            ))}
-          </Stack>
-        </Band>
-      )}
-    </>
-  );
 }
 
 /** 先頭に置いた理由。期限超過 → 今日まで → それ以外、の順に強い理由を返す。 */
@@ -229,7 +177,11 @@ function FocusMeta({ task }: { task: TaskListItem }) {
   const late = isOverdue(task.dueDate, task.status);
   return (
     <>
-      <span>{task.productKey}</span>
+      {/* **点でプロジェクトを示す。** 名前だけだと、どの案件の話か毎回読まないと分からない */}
+      <span className="inline-flex items-center gap-1.5">
+        <Dot seed={task.productKey} />
+        {task.productKey}
+      </span>
       {task.dueDate && (
         <span data-late={late || undefined}>
           {late ? '期限超過 ' : '期限 '}
@@ -337,59 +289,6 @@ function MilestoneGroup({
         ))}
       </div>
     </div>
-  );
-}
-
-async function ProjectOverview() {
-  const projects = await listProducts();
-
-  return (
-    <section className="content-section">
-      <div className="section-heading">
-        <div>
-          <h2>プロジェクト</h2>
-        </div>
-        {projects.length > 0 && (
-          <Link
-            href="/projects"
-            className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-primary"
-          >
-            すべて見る
-            <ArrowRightIcon className="size-4" aria-hidden="true" />
-          </Link>
-        )}
-      </div>
-
-      {projects.length === 0 ? (
-        <EmptyState
-          title="プロジェクトがまだありません"
-          description="内製化する対象ごとに作ります。たとえば「日報自動化」「SNS分析」のような単位です。"
-          actionLabel="プロジェクトを見る"
-          actionHref="/projects"
-        />
-      ) : (
-        /*
-         * **1件ずつ独立したカードにする。**
-         * まとめて1枚にして薄い線で仕切っていたが、それだと「表」に見えて
-         * 1件ずつが独立している感じが出なかった、という指摘への対応。
-         */
-        <div className="card-list">
-          {projects.map((p) => (
-            <Link key={p.id} href={`/projects/${p.id}`} className="card">
-              <span className="card-title block">{p.name}</span>
-              <Progress
-                className="mt-3"
-                done={p.progress.doneTasks}
-                total={p.progress.totalTasks}
-              />
-              <span className="stack-meta mt-2">
-                {p.nextDueDate ? `次の期限 ${formatDate(p.nextDueDate)}` : '期限なし'}
-              </span>
-            </Link>
-          ))}
-        </div>
-      )}
-    </section>
   );
 }
 

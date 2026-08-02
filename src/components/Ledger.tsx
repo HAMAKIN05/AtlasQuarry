@@ -1,6 +1,19 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
+/** プロジェクトごとの点の色。6色で打ち止め、以降は循環させる。 */
+export function dotColor(key: string | null | undefined): string {
+  if (!key) return 'var(--border-strong)';
+  let hash = 0;
+  for (let i = 0; i < key.length; i += 1) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+  return `var(--dot-${(hash % 6) + 1})`;
+}
+
+/** プロジェクトを示す点。名前だけだと、どの案件の話か毎回読まないと分からない。 */
+export function Dot({ seed }: { seed: string | null | undefined }) {
+  return <span className="dot" style={{ ['--dot' as string]: dotColor(seed) }} aria-hidden="true" />;
+}
+
 /**
  * 一覧の部品。
  *

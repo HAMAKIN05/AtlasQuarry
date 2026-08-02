@@ -25,22 +25,22 @@
   --radius: 1rem;
 
   /* 下地は白ではなく、ごくわずかに色を持たせる。白いカードが浮く */
-  --background: oklch(0.955 0.008 160);
+  --background: oklch(0.985 0.003 160);
   --surface: oklch(1 0 0);
   --surface-raised: oklch(0.93 0.01 160);
-  --surface-hover: oklch(0.975 0.006 160);
+  --surface-hover: oklch(0.968 0.005 160);
 
   --foreground: oklch(0.26 0.02 160);
   --muted-foreground: oklch(0.52 0.018 160);
   --subtle-foreground: oklch(0.63 0.015 160);
 
   /* 線はほとんど使わない。使うときも見えるか見えないかの境目 */
-  --border: oklch(0.915 0.008 160);
+  --border: oklch(0.9 0.006 160);
   --border-strong: oklch(0.86 0.01 160);
 
   /* primary。明るい緑。健康的で、業務ツールの青にも紫にも寄らない */
-  --primary: oklch(0.66 0.15 152);
-  --primary-hover: oklch(0.6 0.15 152);
+  --primary: oklch(0.58 0.14 152);
+  --primary-hover: oklch(0.52 0.14 152);
   --primary-foreground: oklch(1 0 0);
   --primary-soft: oklch(0.66 0.15 152 / 0.13);
   --primary-line: oklch(0.66 0.15 152 / 0.5);
@@ -58,6 +58,14 @@
    */
   --shadow-card: 0 1px 2px oklch(0.26 0.02 160 / 0.07), 0 8px 24px oklch(0.26 0.02 160 / 0.08);
   --shadow-lift: 0 2px 6px oklch(0.26 0.02 160 / 0.08), 0 16px 40px oklch(0.26 0.02 160 / 0.14);
+
+  /* プロジェクトを示す点の色。6色で打ち止め */
+  --dot-1: oklch(0.62 0.16 25);
+  --dot-2: oklch(0.68 0.15 70);
+  --dot-3: oklch(0.6 0.14 152);
+  --dot-4: oklch(0.58 0.14 235);
+  --dot-5: oklch(0.55 0.16 300);
+  --dot-6: oklch(0.62 0.12 200);
 
   --ring: var(--primary);
 }
@@ -246,8 +254,7 @@
    * 線で囲うと途端に古く見える。角は 1rem。
    */
   .surface {
-    @apply rounded-2xl bg-surface;
-    box-shadow: var(--shadow-card);
+    @apply rounded-xl border border-border bg-surface;
   }
 
   /* 一覧の1行。カードの中で使う前提。仕切りは薄い線1本だけ */
@@ -329,12 +336,17 @@
    * まとめて1枚にしていたが、区切りが薄い線1本だけだと「表」に見えて、
    * 1件ずつが独立している感じが出なかった。
    */
+  /*
+   * **影で浮かせるのをやめた。** 白い大きな角丸に濃い影を付けると、
+   * 情報より「浮いていること」が目に残って安っぽく見える。
+   * 1件ずつ独立していることは、余白と薄い罫線で示せば足りる。
+   * 影を使うのは、本当に浮いているもの（追加ボタン・モーダル）だけにする。
+   */
   .card {
-    @apply block rounded-2xl bg-surface p-4 transition-shadow;
-    box-shadow: var(--shadow-card);
+    @apply block rounded-xl border border-border bg-surface p-4 transition-colors;
   }
   .card:hover {
-    box-shadow: var(--shadow-lift);
+    @apply border-border-strong bg-hover;
   }
   .card-title {
     @apply text-[1.05rem] leading-snug font-bold;
@@ -342,7 +354,28 @@
 
   /* カードを縦に積む間隔。**詰めない。** 詰めると表に戻る */
   .card-list {
-    @apply flex flex-col gap-2.5;
+    @apply flex flex-col gap-2;
+  }
+
+  /*
+   * プロジェクトを示す色の点。**名前だけだと、どの案件の話か毎回読まないと分からない。**
+   * 色は6色までに抑える。増やすと意味のない色分けになる。
+   */
+  .dot {
+    @apply inline-block size-2.5 shrink-0 rounded-full;
+    background: var(--dot, var(--border-strong));
+  }
+
+  /*
+   * 常設の追加ボタン。**どの画面からでも、まず頭から出せるようにする。**
+   * ここだけは浮かせてよい（本当に手前にあるものなので）。
+   */
+  .fab {
+    /* **下部タブの上に置く。** タブと重なると、タブが押せなくなる（実際に隠した） */
+    @apply fixed right-4 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-20;
+    @apply flex min-h-14 items-center gap-2 rounded-full px-5;
+    @apply bg-primary text-base font-bold text-primary-foreground lg:hidden;
+    box-shadow: var(--shadow-lift);
   }
 
   /*
@@ -350,11 +383,10 @@
    * 面積そのものが優先順位を伝えるので、「◯件あります」と説明しなくてよい。
    */
   .hero {
-    @apply block rounded-2xl bg-surface p-5 transition-shadow;
-    box-shadow: var(--shadow-lift);
+    @apply block rounded-xl border-2 border-primary-line bg-surface p-5 transition-colors;
   }
   .hero:hover {
-    box-shadow: var(--shadow-lift), 0 0 0 2px var(--primary-line);
+    @apply bg-hover;
   }
   .hero-title {
     @apply text-[1.35rem] leading-snug font-bold;
@@ -368,9 +400,8 @@
 
   /* 丸い札。絞り込みや状態の切り替えに使う */
   .chip {
-    @apply inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 text-sm font-semibold transition-colors;
-    @apply bg-surface text-muted-foreground hover:text-foreground;
-    box-shadow: var(--shadow-card);
+    @apply inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border px-4 text-sm font-semibold transition-colors;
+    @apply bg-surface text-muted-foreground hover:border-border-strong hover:text-foreground;
   }
   .chip[aria-pressed='true'],
   .chip[aria-current='page'] {

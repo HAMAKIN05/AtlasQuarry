@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 import { TaskCheck } from '@/components/TaskCheck';
-import { Band, Hero, Row, Stack } from '@/components/Ledger';
+import { Band, Dot, Hero, Row, Stack } from '@/components/Ledger';
 import { useLabels } from '@/components/LabelsProvider';
 import { EmptyState } from '@/components/app-ui';
 import type { TaskStatus } from '@/db/schema/enums';
@@ -60,7 +60,10 @@ function TaskMeta({ task, showAssignee }: { task: TaskListItem; showAssignee?: b
 
   return (
     <>
-      <span>{task.productKey}</span>
+      <span className="inline-flex items-center gap-1.5">
+        <Dot seed={task.productKey} />
+        {task.productKey}
+      </span>
       {showAssignee && task.assigneeName && <span>{task.assigneeName}</span>}
       {due && <span data-late={late || undefined}>{due}</span>}
     </>

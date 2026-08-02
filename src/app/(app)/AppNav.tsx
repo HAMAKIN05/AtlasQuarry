@@ -1,9 +1,9 @@
 'use client';
 
 import {
+  CalendarCheckIcon,
   ChevronDownIcon,
   FolderKanbanIcon,
-  HomeIcon,
   ListChecksIcon,
   MessageSquarePlusIcon,
   SettingsIcon,
@@ -28,7 +28,13 @@ import { ROLE_LABELS } from '@/lib/labels';
  * 機能名を並べるのではなく、利用者が次に取る行動の順に並べている。
  */
 const ITEMS = [
-  { href: '/', label: 'ホーム', Icon: HomeIcon, exact: true },
+  /*
+   * **「ホーム」をやめて「今日」にした。**
+   * 「ホーム」は何が置いてある場所なのかを名前が説明していない。入口が
+   * ダッシュボードだと、作業を始める前に読む時間が要る。
+   * ここは「いま自分がやること・決めること」だけを出す面にする。
+   */
+  { href: '/', label: '今日', Icon: CalendarCheckIcon, exact: true },
   { href: '/requests', label: '要望', Icon: MessageSquarePlusIcon, exact: false },
   { href: '/tasks', label: 'タスク', Icon: ListChecksIcon, exact: false },
   { href: '/projects', label: 'プロジェクト', Icon: FolderKanbanIcon, exact: false },

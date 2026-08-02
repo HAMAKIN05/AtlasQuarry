@@ -47,31 +47,50 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
     <div className="flex flex-col gap-5">
       <BackLink href="/projects" label="プロジェクト一覧" />
 
-      <PageHeader
-        title={project.name}
-        description={project.description ?? undefined}
-        action={
-          <Link href={`/tasks?projectId=${project.id}`} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none border border-border bg-surface hover:bg-hover">
-            タスクを見る
-          </Link>
-        }
-      />
-      <p className="-mt-2 tabular text-xs text-muted-foreground">タスク番号の記号：{project.key}</p>
+      <PageHeader title={project.name} description={project.description ?? undefined} />
+      <p className="-mt-2 tabular text-xs text-muted-foreground">
+        タスク番号の記号：{project.key}
+      </p>
 
-      <nav className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-lg bg-raised p-1" aria-label="表示の切り替え">
+      {/*
+        **かんばんは主操作としてプロジェクト名の直下に置く。**
+        「プロジェクトのところからもかんばんへ行きたい」という指摘。
+        下の切り替えの列に混ぜると弱いので、押せるボタンとして1つ出す。
+        開くのは**このプロジェクトに絞ったかんばん**（タスク画面と同じもの）。
+      */}
+      <Link
+        href={`/tasks?projectId=${project.id}&view=board`}
+        className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 text-base font-bold text-primary-foreground transition-colors hover:bg-primary-hover sm:w-auto sm:self-start"
+      >
+        かんばんを開く
+      </Link>
+
+      {/*
+        **このプロジェクトの見方を1列に並べる。**
+        以前は「開発項目一覧／ガント」の2つだけで、タスクとかんばんへは
+        別の場所（見出しの右のボタン）から行く作りだった。
+        「プロジェクトのところからもかんばんへ行きたい」という指摘のとおり、
+        **同じプロジェクトを別の切り口で見る手段は、同じ列に並べる。**
+        タスク一覧とかんばんは、このプロジェクトに絞った状態で開く。
+      */}
+      {/* かんばんは上の主ボタンにあるので、ここには重ねて置かない */}
+      <nav className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 py-1" aria-label="このプロジェクトの見方">
         <Link
           href={`/projects/${project.id}`}
-          className="inline-flex min-h-9 shrink-0 items-center rounded-md px-3 text-sm whitespace-nowrap text-muted-foreground aria-[current=page]:bg-surface aria-[current=page]:font-bold aria-[current=page]:text-foreground aria-[current=page]:"
+          className="chip shrink-0"
           aria-current={isGantt ? undefined : 'page'}
         >
-          開発項目一覧
+          開発項目
         </Link>
         <Link
           href={`/projects/${project.id}?view=gantt`}
-          className="inline-flex min-h-9 shrink-0 items-center rounded-md px-3 text-sm whitespace-nowrap text-muted-foreground aria-[current=page]:bg-surface aria-[current=page]:font-bold aria-[current=page]:text-foreground aria-[current=page]:"
+          className="chip shrink-0"
           aria-current={isGantt ? 'page' : undefined}
         >
-          ガント
+          予定
+        </Link>
+        <Link href={`/tasks?projectId=${project.id}`} className="chip shrink-0">
+          タスク一覧
         </Link>
       </nav>
 
