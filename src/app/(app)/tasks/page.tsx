@@ -75,7 +75,12 @@ export default async function TasksPage({ searchParams }: Props) {
         features={features.map((f) => ({ id: f.id, name: f.name }))}
         members={members}
         currentActorId={actor.id}
-        initialAssigneeId={hasOwnTasks ? actor.id : ''}
+        /*
+         * 開発項目から来たときは、担当の既定より**そちらを優先**する。
+         * 「この開発項目を見る」で来た人は、自分の担当だけを見たいわけではない。
+         */
+        initialAssigneeId={params.featureId ? '' : hasOwnTasks ? actor.id : ''}
+        initialFeatureId={params.featureId ?? ''}
       />
     </div>
   );

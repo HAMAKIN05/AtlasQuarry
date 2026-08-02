@@ -123,8 +123,17 @@ export function KanbanBoard({ tasks, allTasks, onTasksChange }: Props) {
         </p>
       )}
 
+      {/*
+        **かんばんを「状態を変える唯一の手段」にしない。**
+        オーナーから「どっからするの？」と言われた。持ち手のアイコンだけでは
+        気づけないし、Safari の長押しは横スクロールと取り違えやすい。
+        状態変更の正規ルートは一覧の「状態」で、こちらは慣れた人の近道と位置づける。
+      */}
       <p className="mb-3 text-sm text-muted-foreground hint-mobile">
-        カード左の持ち手を長押ししてから動かすと、状態を変えられます。
+        カードの左にある持ち手（⋮⋮）を<b>長押ししてから</b>動かすと、状態を変えられます。
+        <br />
+        動かさずに変えたいときは、
+        <b>一覧に戻って各行の「状態」から</b>変えられます。
       </p>
 
       <DndContext
@@ -149,7 +158,9 @@ export function KanbanBoard({ tasks, allTasks, onTasksChange }: Props) {
                   strategy={verticalListSortingStrategy}
                 >
                   {items.length === 0 ? (
-                    <p className="grid min-h-20 place-items-center rounded-md border border-dashed text-xs text-muted-foreground">ここにドラッグ</p>
+                    <p className="grid min-h-20 place-items-center rounded-md border border-dashed text-xs text-muted-foreground">
+                      ここへ移動
+                    </p>
                   ) : (
                     items.map((task) => <TaskCard key={task.id} task={task} />)
                   )}

@@ -32,6 +32,8 @@ type Props = {
    * 常に自分で固定すると、担当が付いていない経営者・管理者は毎回空の画面を見ることになる。
    */
   initialAssigneeId: string;
+  /** プロジェクト詳細の開発項目から来たときの絞り込み。`?featureId=` を受ける */
+  initialFeatureId: string;
 };
 
 /**
@@ -55,6 +57,7 @@ export function TaskWorkspace({
   members,
   currentActorId,
   initialAssigneeId,
+  initialFeatureId,
 }: Props) {
   const router = useRouter();
   const labels = useLabels();
@@ -62,7 +65,12 @@ export function TaskWorkspace({
   const [view, setView] = useState<'list' | 'board'>(initialView);
   // 既定は自分（担当が無い人は全員）。**開いた瞬間に自分の仕事が見えるのが普通**
   const [assigneeId, setAssigneeId] = useState(initialAssigneeId);
-  const [featureId, setFeatureId] = useState('');
+  /*
+   * プロジェクト詳細の開発項目から `?featureId=…` で来る。**受け取っていなかった。**
+   * 「この開発項目のタスクを見る」を押したのに、プロジェクト全体のタスクに着地していた。
+   * 押した結果と着地が食い違うのは、遷移そのものへの不信になる。
+   */
+  const [featureId, setFeatureId] = useState(initialFeatureId);
   const [showClosed, setShowClosed] = useState(false);
 
   const visible = useMemo(

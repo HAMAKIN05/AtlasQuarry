@@ -14,6 +14,7 @@ import { dueLabel, formatDate, isOverdue } from '@/lib/format';
 import { FEATURE_STATUS_LABELS } from '@/lib/labels';
 
 import { GanttChart } from '@/components/GanttChart';
+import { MobileSchedule } from '@/components/MobileSchedule';
 import { NewFeatureForm } from './NewFeatureForm';
 
 type Props = {
@@ -116,7 +117,16 @@ async function GanttPanel({ projectId }: { projectId: string }) {
           開始日と期限が入っているタスクがまだありません。タスクに日付を入れると帯が出ます。
         </p>
       )}
-      <GanttChart rows={rows} />
+
+      {/*
+        **スマホと PC で見せ方を変える。** 横長のガントを縮めても読めないので、
+        スマホは「現在地 → 縦タイムライン → 2週間のミニガント」の3段にする
+        （オーナーから渡された整理のとおり）。PC は従来どおり全期間のガント。
+      */}
+      <MobileSchedule rows={rows} />
+      <div className="hidden lg:block">
+        <GanttChart rows={rows} />
+      </div>
     </section>
   );
 }

@@ -98,9 +98,15 @@ export function AppNav({ actor, pendingRequests }: Props) {
       </nav>
 
       {/* スマホ：下部のタブ。片手で持って親指が届く位置 */}
+      {/*
+        **半透明をやめて不透明にする。** 下に文字が透けると「固定されていない／
+        切れている」ように見える。実機で下が切れていると言われた画面がこれ。
+        セーフエリアぶんの下余白は `layout.tsx` の viewport で
+        `viewport-fit=cover` を入れて初めて効く。
+      */}
       <nav
         aria-label="メインメニュー"
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 bg-background/90 pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_0_var(--border)] backdrop-blur-md lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 bg-background pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_0_var(--border)] lg:hidden"
       >
         {ITEMS.map(({ href, label, Icon, exact }) => {
           const current = isCurrent(href, exact);
@@ -145,12 +151,24 @@ function Account({
 
   return (
     <div className={cn('flex min-w-0 items-center gap-2 text-sm', stacked && 'flex-wrap')}>
-      <span className="truncate font-semibold">{actor.name}</span>
-      <Badge tone="neutral">{ROLE_LABELS[actor.role]}</Badge>
+      <span className="min-w-0 truncate font-semibold">{actor.name}</span>
+      {/*
+        役割バッジはスマホでは出さない。**3人しかいない組織で、自分の役割を
+        毎画面で知らせる必要がない。** 幅を食って右端を押し出す原因にもなっていた。
+      */}
+      <span className={cn('hidden shrink-0', stacked ? 'inline-flex' : 'lg:inline-flex')}>
+        <Badge tone="neutral">{ROLE_LABELS[actor.role]}</Badge>
+      </span>
       <Button
         type="button"
         variant="ghost"
         size="sm"
+        /*
+         * **`shrink-0` を外す。** 200px まで押し込んだとき、ページ全体で
+         * 唯一これだけが縮まなかった。縮まない要素が1つでもあると、
+         * iOS Safari は shrink-to-fit でレイアウト自体を広げてしまう。
+         */
+        className="min-w-0 shrink"
         disabled={busy}
         onClick={async () => {
           setBusy(true);
