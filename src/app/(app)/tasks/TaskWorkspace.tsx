@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 import { TaskCheck } from '@/components/TaskCheck';
-import { Band, Face, SeamRow, seamColor } from '@/components/SeamLedger';
+import { Band, Hero, Row, Stack } from '@/components/Ledger';
 import { useLabels } from '@/components/LabelsProvider';
 import { EmptyState } from '@/components/app-ui';
 import type { TaskStatus } from '@/db/schema/enums';
@@ -274,20 +274,16 @@ export function TaskWorkspace({
             return (
               <Band key={key} label={label} count={rows.length}>
                 {isNext && head && (
-                  <Face
-                    seam={seamColor(head.productKey)}
+                  <Hero
                     href={`/tasks/${head.key}`}
                     title={head.title}
                     meta={<TaskMeta task={head} showAssignee />}
                   />
                 )}
-                <ul>
+                <Stack>
                   {(isNext ? rest : rows).map((t, i, arr) => (
-                    <SeamRow
+                    <Row
                       key={t.id}
-                      seam={seamColor(t.productKey)}
-                      seamStart={i === 0 || arr[i - 1]!.productKey !== t.productKey}
-                      seamEnd={i === arr.length - 1 || arr[i + 1]!.productKey !== t.productKey}
                       lead={
                         <TaskCheck
                           taskId={t.id}
@@ -308,7 +304,7 @@ export function TaskWorkspace({
                       }
                     />
                   ))}
-                </ul>
+                </Stack>
               </Band>
             );
           })}
@@ -319,13 +315,10 @@ export function TaskWorkspace({
               <summary className="band-heading cursor-pointer list-none select-none">
                 完了<span className="count">{doneTasks.length}</span>
               </summary>
-              <ul>
+              <Stack>
                 {doneTasks.map((t, i, arr) => (
-                  <SeamRow
+                  <Row
                     key={t.id}
-                    seam={seamColor(t.productKey)}
-                    seamStart={i === 0 || arr[i - 1]!.productKey !== t.productKey}
-                    seamEnd={i === arr.length - 1 || arr[i + 1]!.productKey !== t.productKey}
                     lead={
                       <TaskCheck
                         taskId={t.id}
@@ -339,7 +332,7 @@ export function TaskWorkspace({
                     meta={<TaskMeta task={t} showAssignee={assigneeId === ''} />}
                   />
                 ))}
-              </ul>
+              </Stack>
             </details>
           )}
         </div>

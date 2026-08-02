@@ -2,71 +2,62 @@
 @import 'tw-animate-css';
 
 /*
- * AtlasQuarry のテーマ ――「切羽帳（きりはちょう）」。
+ * AtlasQuarry のテーマ。
  *
- * **ダーク＋カードの構成を捨てた。** 5回作り直して5回とも否定されたが、
- * 直近まで直していたのは配色と質感だけで、骨格（カードを並べるダッシュボード）は
- * ずっと同じだった。「きしょい」の正体はそこだと判断した。
+ * **概念的なテーマ付けはやめた。** 名前の由来を構造に埋める案（角のない帳面）は
+ * 「カクカクしすぎ、ダサい」で否定された。狙うのは**モダンさと使いやすさ**だけ。
+ * 参照はオーナーが挙げた『あすけん』のような、日本のスマホアプリの作法。
  *
- * 名前の由来（Atlas＝測量図 / Quarry＝採石場）を**装飾ではなく構造**に入れる。
- * 切羽（きりは）は採石場で今まさに掘っている面のこと。この道具は
- * **上から下へ掘り進む1冊の帳面**として作る。
+ *   - 明るい下地に、**白い角丸カード**を浮かべる。角は 16px、内側の要素は 12px
+ *   - 影は**やわらかく薄く**。輪郭を線で引かず、影と面の白さで浮かせる
+ *   - **余白を惜しまない。** 詰め込むより、1画面の情報を減らして読みやすくする
+ *   - **数字は大きく。** 小さい文字を並べるより、要点の数字を大きく1つ置く
+ *   - 色は明るく、彩度を保つ。くすませない
  *
- *   - カードで囲わない。横幅いっぱいの帳面に、行が上から積む
- *   - 状態はバッジの色ではなく **並ぶ位置** で示す
- *     （次に掘る → 進行中 → 待ち → 完了）
- *   - 同じプロジェクトの連続は、左端の 3px の線（地層線）でつなぐ。装飾ではなく情報
- *   - 角丸と影は原則使わない。丸めるのは押せるものだけ
- *   - **ライト固定。** 暗色は「モダンに見せる」ために使われがちで、
- *     毎日開く業務画面では情報が沈む。前回の「黒くなっただけ」はそれ
- *
- * 色が付いている＝意味がある、という原則は引き継ぐ。使う色は4つだけ。
- *   front（次に掘る・押せる） / wait（待ち） / risk（期限超過） / done（完了）
+ * 色の役割は4つだけ。
+ *   primary（押せる・いまここ・主役）/ warn（待ち）/ risk（期限超過）/ done（完了）
  */
 
 :root {
   color-scheme: light;
 
-  /* 丸めるのは押せるものだけ。面と行は角丸なし */
-  --radius: 0.625rem;
+  /* 角丸。カードは 1rem、内側の要素は 0.75rem、ボタンは丸に近づける */
+  --radius: 1rem;
 
-  /* 面。石灰岩の白。数値が上がるほど手前 */
-  --background: oklch(0.965 0.008 85);
-  --surface: oklch(0.995 0.003 85);
-  --surface-raised: oklch(0.935 0.01 85);
-  --surface-hover: oklch(0.955 0.009 85);
+  /* 下地は白ではなく、ごくわずかに色を持たせる。白いカードが浮く */
+  --background: oklch(0.975 0.006 160);
+  --surface: oklch(1 0 0);
+  --surface-raised: oklch(0.968 0.008 160);
+  --surface-hover: oklch(0.955 0.01 160);
 
-  --foreground: oklch(0.245 0.018 65);
-  --muted-foreground: oklch(0.505 0.016 65);
-  --subtle-foreground: oklch(0.6 0.014 65);
+  --foreground: oklch(0.26 0.02 160);
+  --muted-foreground: oklch(0.52 0.018 160);
+  --subtle-foreground: oklch(0.63 0.015 160);
 
-  --border: oklch(0.85 0.012 85);
-  --border-strong: oklch(0.76 0.014 85);
+  /* 線はほとんど使わない。使うときも見えるか見えないかの境目 */
+  --border: oklch(0.915 0.008 160);
+  --border-strong: oklch(0.86 0.01 160);
 
-  /* front。次に掘るもの・押せるもの・いまいる場所 */
-  --primary: oklch(0.53 0.11 235);
-  --primary-hover: oklch(0.47 0.11 235);
-  --primary-foreground: oklch(0.99 0 0);
-  --primary-soft: oklch(0.53 0.11 235 / 0.1);
-  --primary-line: oklch(0.53 0.11 235 / 0.45);
+  /* primary。明るい緑。健康的で、業務ツールの青にも紫にも寄らない */
+  --primary: oklch(0.66 0.15 152);
+  --primary-hover: oklch(0.6 0.15 152);
+  --primary-foreground: oklch(1 0 0);
+  --primary-soft: oklch(0.66 0.15 152 / 0.13);
+  --primary-line: oklch(0.66 0.15 152 / 0.5);
 
-  --success: oklch(0.625 0.045 155);
-  --success-soft: oklch(0.625 0.045 155 / 0.14);
-  --warning: oklch(0.7 0.105 82);
-  --warning-soft: oklch(0.7 0.105 82 / 0.16);
-  --destructive: oklch(0.58 0.155 28);
-  --destructive-soft: oklch(0.58 0.155 28 / 0.12);
+  --success: oklch(0.66 0.15 152);
+  --success-soft: oklch(0.66 0.15 152 / 0.13);
+  --warning: oklch(0.78 0.15 78);
+  --warning-soft: oklch(0.78 0.15 78 / 0.18);
+  --destructive: oklch(0.63 0.19 25);
+  --destructive-soft: oklch(0.63 0.19 25 / 0.13);
 
   /*
-   * 地層線。**同じプロジェクトの連続を示す。**
-   * 6色までに抑える。増やすと意味のない色分けになる。
+   * 影。**輪郭線の代わり。** 2段重ねて、接地の1pxと広がりの1枚を作る。
+   * 濃くすると途端に古く見えるので、薄いまま広げる。
    */
-  --seam-1: oklch(0.62 0.09 235);
-  --seam-2: oklch(0.62 0.08 155);
-  --seam-3: oklch(0.66 0.1 60);
-  --seam-4: oklch(0.6 0.1 300);
-  --seam-5: oklch(0.62 0.1 20);
-  --seam-6: oklch(0.6 0.06 200);
+  --shadow-card: 0 1px 2px oklch(0.26 0.02 160 / 0.05), 0 6px 20px oklch(0.26 0.02 160 / 0.06);
+  --shadow-lift: 0 2px 4px oklch(0.26 0.02 160 / 0.06), 0 12px 32px oklch(0.26 0.02 160 / 0.1);
 
   --ring: var(--primary);
 }
@@ -103,6 +94,9 @@
   --color-seam-4: var(--seam-4);
   --color-seam-5: var(--seam-5);
   --color-seam-6: var(--seam-6);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-lift: var(--shadow-lift);
 
   --color-ring: var(--ring);
 
@@ -192,7 +186,7 @@
   input:not([type='checkbox']):not([type='radio']):not([type='file']),
   select,
   textarea {
-    @apply min-h-11 w-full rounded-md border border-border bg-background px-3 py-2 text-[0.94rem];
+    @apply min-h-12 w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-[0.94rem];
     @apply placeholder:text-subtle;
     @apply transition-colors focus-visible:border-primary-line;
     @apply disabled:cursor-not-allowed disabled:opacity-50;
@@ -209,7 +203,7 @@
 
   /* 詳細画面の項目表 */
   .grid > div:has(> dt) {
-    @apply grid grid-cols-[6rem_minmax(0,1fr)] items-center gap-3 border-b border-border/60 px-4 py-2.5 last:border-b-0;
+    @apply grid grid-cols-[6rem_minmax(0,1fr)] items-center gap-3 border-b border-border px-4 py-3 last:border-b-0;
   }
   dt {
     @apply text-[0.8rem] text-subtle;
@@ -230,17 +224,18 @@
    * 紙も金属も模していない画面で「浮いている」表現をすると、その質感だけが目に残る。
    */
   /*
-   * 作業面。**角丸も影も使わない。** 帳面の1ページであって、浮いたカードではない。
-   * 面の区別は明度と 1px の罫線だけで作る。
+   * 白いカード。**輪郭線ではなく、やわらかい影で浮かせる。**
+   * 線で囲うと途端に古く見える。角は 1rem。
    */
   .surface {
-    @apply border border-border bg-surface;
+    @apply rounded-2xl bg-surface;
+    box-shadow: var(--shadow-card);
   }
 
-  /* 一覧の1行。枠を引かず、hover で面を持ち上げる */
+  /* 一覧の1行。カードの中で使う前提。仕切りは薄い線1本だけ */
   .row-link {
-    @apply flex min-h-12 flex-wrap items-center gap-x-2.5 gap-y-1 border-b border-border/70 px-1 py-2.5 last:border-b-0;
-    @apply transition-colors hover:bg-raised;
+    @apply flex min-h-14 flex-wrap items-center gap-x-2.5 gap-y-1 px-4 py-3;
+    @apply border-b border-border transition-colors last:border-b-0 hover:bg-hover;
   }
 
   /* 画面内の情報群。箱で囲わず、見出しと罫線でまとまりを作る。 */
@@ -248,7 +243,7 @@
     @apply flex flex-col gap-2;
   }
   .section-heading {
-    @apply flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border pb-2;
+    @apply flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1;
   }
   .section-heading h2 {
     @apply text-lg font-bold tracking-tight;
@@ -280,79 +275,83 @@
   }
 
   /* ------------------------------------------------------------------ *
-   * 切羽帳
+   * カードと段
    * ------------------------------------------------------------------ */
 
   /*
-   * 段の見出し。「── 次に掘る ──────」の横罫。
-   * **状態はここでしか示さない。** 行ごとにバッジを付けない。
-   * どの段に載っているかが、そのまま状態になる。
+   * 段の見出し。カードの**外**に置く小さな見出し。
+   * 状態（次にやる／進行中／待ち／完了）は、この見出しとカードのまとまりで示す。
+   * 行ごとに色付きのバッジを読ませない。
    */
   .band {
-    @apply flex flex-col;
+    @apply flex flex-col gap-2;
   }
   .band-heading {
-    @apply flex items-baseline gap-2 pt-6 pb-1.5 text-[0.8rem] font-semibold tracking-[0.04em] text-muted-foreground;
-  }
-  .band-heading::after {
-    content: '';
-    @apply ml-1 h-px flex-1 bg-border;
+    @apply flex items-center gap-2 px-1 text-[0.82rem] font-bold text-muted-foreground;
   }
   .band-heading .count {
     font-variant-numeric: tabular-nums;
-    @apply text-[0.8rem] font-bold text-foreground;
+    @apply rounded-full bg-raised px-2 py-0.5 text-[0.75rem] font-bold text-muted-foreground;
   }
 
   /*
-   * 帳面の1行。左端 3px が地層線（プロジェクトの連続）。
-   * 罫線は行の下だけ。囲わない。
+   * 行をまとめた白いカード。**1件ずつ独立したカードにしない。**
+   * カードが増えるほど影と角が散らかる。まとまりを1枚にして、中を細い線で仕切る。
    */
-  .seam-row {
-    @apply relative flex min-h-14 items-start gap-3 border-b border-border/70 py-3 pr-1 pl-4 last:border-b-0;
-    @apply transition-colors hover:bg-hover;
+  .stack {
+    @apply overflow-hidden rounded-2xl bg-surface;
+    box-shadow: var(--shadow-card);
   }
-  .seam-row::before {
-    content: '';
-    @apply absolute top-0 bottom-0 left-0 w-[3px];
-    background: var(--seam, var(--border-strong));
+  .stack-row {
+    @apply flex min-h-16 items-center gap-3 px-4 py-3 transition-colors;
+    @apply border-b border-border last:border-b-0 hover:bg-hover;
   }
-  /* 同じプロジェクトが続く間は線をつなぐ。切れ目でだけ途切れる */
-  .seam-row[data-seam-start='true']::before {
-    @apply top-1.5;
+  .stack-title {
+    @apply text-[0.98rem] leading-snug font-semibold;
   }
-  .seam-row[data-seam-end='true']::before {
-    @apply bottom-1.5;
-  }
-  .seam-title {
-    @apply text-[1rem] leading-snug font-medium;
-  }
-  .seam-meta {
+  .stack-meta {
     font-variant-numeric: tabular-nums;
     @apply flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[0.78rem] text-muted-foreground;
   }
-  .seam-meta [data-late='true'] {
+  .stack-meta [data-late='true'] {
     @apply font-bold text-destructive;
   }
 
   /*
-   * いま掘っている面。**画面で唯一、囲って良いもの。**
-   * 「次はこれ」を1件だけ大きく置く。ここだけ面積で優先順位を示す。
+   * 主役のカード。**いま手を付ける1件だけ**を大きく置く。
+   * 面積そのものが優先順位を伝えるので、「◯件あります」と説明しなくてよい。
    */
-  .face {
-    @apply relative block border border-border-strong bg-surface py-4 pr-4 pl-5 transition-colors hover:bg-hover;
+  .hero {
+    @apply block rounded-2xl bg-surface p-5 transition-shadow;
+    box-shadow: var(--shadow-lift);
   }
-  .face::before {
-    content: '';
-    @apply absolute top-0 bottom-0 left-0 w-[3px];
-    background: var(--seam, var(--primary));
+  .hero:hover {
+    box-shadow: var(--shadow-lift), 0 0 0 2px var(--primary-line);
   }
-  .face-title {
-    @apply text-[1.25rem] leading-snug font-semibold;
+  .hero-title {
+    @apply text-[1.35rem] leading-snug font-bold;
+  }
+
+  /* 大きい数字。要点は小さい文字を並べず、数字1つで見せる */
+  .stat-value {
+    font-variant-numeric: tabular-nums;
+    @apply text-[2rem] leading-none font-bold tracking-tight;
+  }
+
+  /* 丸い札。絞り込みや状態の切り替えに使う */
+  .chip {
+    @apply inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 text-sm font-semibold transition-colors;
+    @apply bg-surface text-muted-foreground hover:text-foreground;
+    box-shadow: var(--shadow-card);
+  }
+  .chip[aria-pressed='true'],
+  .chip[aria-current='page'] {
+    @apply bg-primary text-primary-foreground;
   }
 
   /* 空状態も面を増やさず、コンテキストの末尾として短く置く。 */
   .empty-inline {
-    @apply border-l-2 border-border px-4 py-3 text-sm text-muted-foreground;
+    @apply rounded-2xl bg-raised px-4 py-4 text-sm text-muted-foreground;
   }
 
   .markdown {

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 
 import { TaskCheck } from '@/components/TaskCheck';
-import { Band, Face, SeamRow, seamColor } from '@/components/SeamLedger';
+import { Band, Hero, Row, Stack } from '@/components/Ledger';
 import { EmptyState, Loading, Progress } from '@/components/app-ui';
 import { Button } from '@/components/ui/button';
 import { listProducts } from '@/domain/product/service';
@@ -97,12 +97,11 @@ async function DecisionsFirst({ actorId }: { actorId: string }) {
       */}
       {head ? (
         <Band label="あなたが止めている">
-          <Face
-            seam={seamColor('request')}
+          <Hero
             href={`/requests/${head.id}`}
             overline={`${head.reporterName}さんから · ${formatRelative(head.createdAt)}待ち`}
             title={head.title}
-            meta={<span>やるかどうかを決める</span>}
+            action="やるかどうかを決める" 
           />
         </Band>
       ) : (
@@ -113,11 +112,10 @@ async function DecisionsFirst({ actorId }: { actorId: string }) {
 
       {restRequests.length > 0 && (
         <Band label="ほかの判断待ち" count={restRequests.length}>
-          <ul>
+          <Stack>
             {restRequests.slice(0, 3).map((request) => (
-              <SeamRow
+              <Row
                 key={request.id}
-                seam={seamColor('request')}
                 href={`/requests/${request.id}`}
                 title={request.title}
                 meta={
@@ -130,7 +128,7 @@ async function DecisionsFirst({ actorId }: { actorId: string }) {
                 }
               />
             ))}
-          </ul>
+          </Stack>
         </Band>
       )}
 
@@ -140,20 +138,17 @@ async function DecisionsFirst({ actorId }: { actorId: string }) {
       */}
       {myTasks.length > 0 && (
         <Band label="あなたの担当" count={myTasks.length}>
-          <ul>
+          <Stack>
             {myTasks.slice(0, 3).map((task, i, arr) => (
-              <SeamRow
+              <Row
                 key={task.id}
-                seam={seamColor(task.productKey)}
-                seamStart={i === 0 || arr[i - 1]!.productKey !== task.productKey}
-                seamEnd={i === arr.length - 1 || arr[i + 1]!.productKey !== task.productKey}
                 lead={<TaskCheck taskId={task.id} status={task.status} title={task.title} />}
                 href={`/tasks/${task.key}`}
                 title={task.title}
                 meta={<FocusMeta task={task} />}
               />
             ))}
-          </ul>
+          </Stack>
         </Band>
       )}
     </>
@@ -194,34 +189,40 @@ async function MyWorkFirst({ actorId }: { actorId: string }) {
   return (
     <>
       <Band label="いま掘る">
-        <Face
-          seam={seamColor(head!.productKey)}
+        <Hero
           href={`/tasks/${head!.key}`}
+          /* **なぜこれが先頭なのかを1行で言う。** 順番だけ見せても納得できない */
+          overline={heroReason(head!)}
           title={head!.title}
           meta={<FocusMeta task={head!} />}
+          action="このタスクを開く"
         />
       </Band>
 
       {rest.length > 0 && (
         <Band label="このあと" count={rest.length}>
-          <ul>
+          <Stack>
             {rest.slice(0, 4).map((task, i, arr) => (
-              <SeamRow
+              <Row
                 key={task.id}
-                seam={seamColor(task.productKey)}
-                seamStart={i === 0 || arr[i - 1]!.productKey !== task.productKey}
-                seamEnd={i === arr.length - 1 || arr[i + 1]!.productKey !== task.productKey}
                 lead={<TaskCheck taskId={task.id} status={task.status} title={task.title} />}
                 href={`/tasks/${task.key}`}
                 title={task.title}
                 meta={<FocusMeta task={task} />}
               />
             ))}
-          </ul>
+          </Stack>
         </Band>
       )}
     </>
   );
+}
+
+/** 先頭に置いた理由。期限超過 → 今日まで → それ以外、の順に強い理由を返す。 */
+function heroReason(task: TaskListItem): string {
+  if (isOverdue(task.dueDate, task.status)) return '期限を過ぎています';
+  if (task.dueDate && task.dueDate === new Date().toISOString().slice(0, 10)) return '今日までです';
+  return '次に進めるもの';
 }
 
 function FocusMeta({ task }: { task: TaskListItem }) {
@@ -311,7 +312,7 @@ function MilestoneGroup({
   return (
     <div className="flex flex-col gap-1">
       <h3 className="text-xs font-semibold text-subtle">{label}</h3>
-      <ul>
+      <Stack>
         {tasks.map((task) => (
           <li key={task.id}>
             <Link href={`/tasks/${task.key}`} className="row-link">
@@ -337,7 +338,7 @@ function MilestoneGroup({
             </Link>
           </li>
         ))}
-      </ul>
+      </Stack>
     </div>
   );
 }
@@ -372,7 +373,7 @@ async function ProjectOverview() {
           actionHref="/projects"
         />
       ) : (
-        <ul>
+        <Stack>
           {projects.map((project) => (
             <li key={project.id}>
               <Link
@@ -388,7 +389,7 @@ async function ProjectOverview() {
               </Link>
             </li>
           ))}
-        </ul>
+        </Stack>
       )}
     </section>
   );
