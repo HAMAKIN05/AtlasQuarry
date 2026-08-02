@@ -151,16 +151,16 @@ export function TaskWorkspace({
 
         <div className="flex items-center gap-2">
           {/*
-            **一覧とかんばんを同格の主操作として並べない。**
-            紫のセグメントで2つ並べると「まずどちらで見るか決めろ」という画面になる。
-            この画面の主操作はタスクを追加すること・進めることで、表示形式の選択ではない。
-            かんばんは残す（消したときに指摘されている）が、**いま出ていない方へ行く
-            控えめな1本のボタン**にする。
+            一覧とかんばんを同格の主操作としては並べない（この画面の主操作は
+            タスクを追加すること・進めることで、表示形式の選択ではない）。
+            ただし **灰色の文字にしたら見つけられなくなった**（「かんばんどこいった？」）。
+            主操作より弱く、しかし**押せると分かる形**にする。丸い札にして、
+            いま出ていない方の名前を出す。
           */}
           <button
             type="button"
             onClick={() => setView(view === 'list' ? 'board' : 'list')}
-            className="inline-flex min-h-11 items-center gap-1.5 px-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="chip shrink-0"
           >
             {view === 'list' ? (
               <>
