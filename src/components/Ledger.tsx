@@ -85,13 +85,17 @@ export function Row({
   return (
     <li className="card flex items-center gap-3">
       {lead && <span className="shrink-0">{lead}</span>}
-      <span className="flex min-w-0 flex-1 flex-col gap-1">
-        <Link href={href} className="card-title hover:underline">
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <Link href={href} className="card-title">
           {title}
         </Link>
         {meta && <span className="stack-meta">{meta}</span>}
       </span>
-      {trailing && <span className="shrink-0">{trailing}</span>}
+      {/*
+        **右端は1つだけ。** その場で操作するもの（状態の変更）があればそれを出し、
+        無ければ「次の画面へ行く」印として chevron を出す。両方は出さない。
+      */}
+      {trailing ? <span className="shrink-0">{trailing}</span> : <span className="chevron" aria-hidden="true" />}
     </li>
   );
 }

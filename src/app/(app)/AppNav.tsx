@@ -68,7 +68,12 @@ export function AppNav({ actor, pendingRequests }: Props) {
         文字がバーの下でいきなり切られたように見える（実機で「上が切れてる」と
         指摘されたのがこれ。切れているのではなく、境目が見えていなかった）。
       */}
-      <header className="order-1 z-10 flex shrink-0 items-center justify-between gap-2 border-b border-border bg-surface px-4 py-2 shadow-[0_2px_8px_oklch(0.26_0.02_160/0.05)] lg:hidden">
+      {/*
+        iOS のナビゲーションバー。**半透明＋blur＋1px のヘアライン。**
+        下の内容が透けて動くことで「上に乗っている」ことが伝わる。
+        影は使わない（iOS のバーは影ではなく境界線で分ける）。
+      */}
+      <header className="order-1 z-10 flex shrink-0 items-center justify-between gap-2 border-b border-border bg-[oklch(0.98_0.002_286/0.78)] px-5 py-2 backdrop-blur-[20px] backdrop-saturate-150 lg:hidden">
         {/* 右側（氏名＝設定への入口）を先に立てるので、題字は縮んでよい */}
         <Link href="/" className="flex min-h-11 min-w-0 shrink items-center truncate font-bold tracking-tight">
           AtlasQuarry
@@ -130,7 +135,7 @@ export function AppNav({ actor, pendingRequests }: Props) {
       */}
       <nav
         aria-label="メインメニュー"
-        className="order-3 grid shrink-0 grid-cols-4 bg-background pb-[max(env(safe-area-inset-bottom),0.375rem)] shadow-[0_-1px_0_var(--border)] lg:hidden"
+        className="order-3 grid shrink-0 grid-cols-4 border-t border-border bg-[oklch(0.98_0.002_286/0.78)] pb-[max(env(safe-area-inset-bottom),0.375rem)] backdrop-blur-[20px] backdrop-saturate-150 lg:hidden"
       >
         {MOBILE_ITEMS.map(({ href, label, Icon, exact }) => {
           const current = isCurrent(href, exact);
@@ -140,11 +145,11 @@ export function AppNav({ actor, pendingRequests }: Props) {
               href={href}
               aria-current={current ? 'page' : undefined}
               className={cn(
-                'relative flex min-h-15 flex-col items-center justify-center gap-0.5 px-1 text-[0.7rem]',
+                'relative flex min-h-[49px] flex-col items-center justify-center gap-1 px-1 text-[10px] leading-[12px]',
                 current ? 'font-bold text-primary' : 'text-muted-foreground',
               )}
             >
-              <Icon className="size-5" aria-hidden="true" />
+              <Icon className="size-[22px]" aria-hidden="true" />
               {label}
               {href === '/requests' && pendingRequests > 0 && (
                 <Badge

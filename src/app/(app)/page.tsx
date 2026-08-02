@@ -38,7 +38,7 @@ export default async function TodayPage() {
 
   return (
     <div className="flex flex-col gap-7">
-      <h1 className="text-2xl font-bold tracking-tight">今日</h1>
+      <h1 className="large-title">今日</h1>
 
       <Suspense fallback={<Loading label="今日の対応を探しています" />}>
         <TodayTasks actorId={actor.id} />

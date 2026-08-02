@@ -2,70 +2,68 @@
 @import 'tw-animate-css';
 
 /*
- * AtlasQuarry のテーマ。
+ * AtlasQuarry のテーマ。**iOS の作法に合わせる。**
  *
- * **概念的なテーマ付けはやめた。** 名前の由来を構造に埋める案（角のない帳面）は
- * 「カクカクしすぎ、ダサい」で否定された。狙うのは**モダンさと使いやすさ**だけ。
- * 参照はオーナーが挙げた『あすけん』のような、日本のスマホアプリの作法。
+ * 要求は「iOS系のアプリみたいな高級感」。質感を模倣する（ガラス・強い影・反射）のではなく、
+ * **情報密度・余白・境界の位置を iOS の実数値に合わせる**ことで出す。
  *
- *   - 明るい下地に、**白い角丸カード**を浮かべる。角は 16px、内側の要素は 12px
- *   - 影は**やわらかく薄く**。輪郭を線で引かず、影と面の白さで浮かせる
- *   - **余白を惜しまない。** 詰め込むより、1画面の情報を減らして読みやすくする
- *   - **数字は大きく。** 小さい文字を並べるより、要点の数字を大きく1つ置く
- *   - 色は明るく、彩度を保つ。くすませない
+ *   - 下地は systemGroupedBackground（#F2F2F7）、面は白
+ *   - 画面の左右余白 20px、面の角丸 10px、行の高さ 44px（情報が2行なら 52px）
+ *   - セパレータは 0.5px の #C6C6C8。**本文の開始位置から引く**（面の全幅に通さない）
+ *   - 上下のバーは半透明＋blur(20px)＋1px のヘアライン
+ *   - 大見出しは 34px/41px/700、本文 17px/22px
+ *   - 押した瞬間だけ rgba(120,120,128,.12) で塗る
  *
- * 色の役割は4つだけ。
- *   primary（押せる・いまここ・主役）/ warn（待ち）/ risk（期限超過）/ done（完了）
+ * **日本語の字間は 0 に固定する。** SF Pro の Large Title には負のトラッキングがあるが、
+ * Hiragino に同じ値を当てると詰まりすぎる。
+ *
+ * **1件＝1カードは崩さない。** iOS の inset grouped は複数行を1面にまとめるが、
+ * それは「表に見える」として明確に否定されている。面の作法（下地・角丸・余白・
+ * ヘアライン・chevron）だけを採り、まとめ方は独立カードのままにする。
  */
 
 :root {
   color-scheme: light;
 
-  /* 角丸。カードは 1rem、内側の要素は 0.75rem、ボタンは丸に近づける */
-  --radius: 1rem;
+  --radius: 0.625rem; /* 10px。iOS の grouped surface と同じ */
 
-  /* 下地は白ではなく、ごくわずかに色を持たせる。白いカードが浮く */
-  --background: oklch(0.985 0.003 160);
-  --surface: oklch(1 0 0);
-  --surface-raised: oklch(0.93 0.01 160);
-  --surface-hover: oklch(0.968 0.005 160);
+  --background: oklch(0.958 0.002 286);      /* #F2F2F7 */
+  --surface: oklch(1 0 0);                   /* #FFFFFF */
+  --surface-raised: oklch(0.925 0.003 286);
+  --surface-hover: oklch(0.955 0.002 286);
 
-  --foreground: oklch(0.26 0.02 160);
-  --muted-foreground: oklch(0.52 0.018 160);
-  --subtle-foreground: oklch(0.63 0.015 160);
+  --foreground: oklch(0 0 0);
+  --muted-foreground: oklch(0.45 0.008 286); /* rgba(60,60,67,.60) 相当 */
+  --subtle-foreground: oklch(0.68 0.006 286);
 
-  /* 線はほとんど使わない。使うときも見えるか見えないかの境目 */
-  --border: oklch(0.9 0.006 160);
-  --border-strong: oklch(0.86 0.01 160);
+  --border: oklch(0.83 0.003 286);           /* #C6C6C8 セパレータ */
+  --border-strong: oklch(0.78 0.004 286);
 
-  /* primary。明るい緑。健康的で、業務ツールの青にも紫にも寄らない */
-  --primary: oklch(0.58 0.14 152);
-  --primary-hover: oklch(0.52 0.14 152);
+  /* systemGreen #34C759。使うのは選択中タブ・完了・主操作・進捗だけ */
+  --primary: oklch(0.755 0.184 145);
+  --primary-hover: oklch(0.69 0.175 145);
   --primary-foreground: oklch(1 0 0);
-  --primary-soft: oklch(0.66 0.15 152 / 0.13);
-  --primary-line: oklch(0.66 0.15 152 / 0.5);
+  --primary-soft: oklch(0.755 0.184 145 / 0.14);
+  --primary-line: oklch(0.755 0.184 145 / 0.5);
 
-  --success: oklch(0.66 0.15 152);
-  --success-soft: oklch(0.66 0.15 152 / 0.13);
-  --warning: oklch(0.78 0.15 78);
-  --warning-soft: oklch(0.78 0.15 78 / 0.18);
-  --destructive: oklch(0.63 0.19 25);
-  --destructive-soft: oklch(0.63 0.19 25 / 0.13);
+  --success: oklch(0.755 0.184 145);
+  --success-soft: oklch(0.755 0.184 145 / 0.14);
+  --warning: oklch(0.79 0.16 70);            /* systemOrange 寄り */
+  --warning-soft: oklch(0.79 0.16 70 / 0.16);
+  --destructive: oklch(0.6 0.22 26);         /* systemRed 寄り */
+  --destructive-soft: oklch(0.6 0.22 26 / 0.12);
 
-  /*
-   * 影。**輪郭線の代わり。** 2段重ねて、接地の1pxと広がりの1枚を作る。
-   * 濃くすると途端に古く見えるので、薄いまま広げる。
-   */
-  --shadow-card: 0 1px 2px oklch(0.26 0.02 160 / 0.07), 0 8px 24px oklch(0.26 0.02 160 / 0.08);
-  --shadow-lift: 0 2px 6px oklch(0.26 0.02 160 / 0.08), 0 16px 40px oklch(0.26 0.02 160 / 0.14);
+  /* 押下。iOS は押している間だけ塗る */
+  --pressed: oklch(0.55 0.005 286 / 0.12);
+  --chevron: oklch(0.83 0.003 286);
 
-  /* プロジェクトを示す点の色。6色で打ち止め */
-  --dot-1: oklch(0.62 0.16 25);
-  --dot-2: oklch(0.68 0.15 70);
-  --dot-3: oklch(0.6 0.14 152);
-  --dot-4: oklch(0.58 0.14 235);
-  --dot-5: oklch(0.55 0.16 300);
-  --dot-6: oklch(0.62 0.12 200);
+  /* プロジェクトを示す点。iOS のシステムカラーに寄せる */
+  --dot-1: oklch(0.63 0.21 25);
+  --dot-2: oklch(0.79 0.16 70);
+  --dot-3: oklch(0.755 0.184 145);
+  --dot-4: oklch(0.6 0.19 258);
+  --dot-5: oklch(0.55 0.2 300);
+  --dot-6: oklch(0.68 0.13 210);
 
   --ring: var(--primary);
 }
@@ -103,8 +101,8 @@
   --color-seam-5: var(--seam-5);
   --color-seam-6: var(--seam-6);
 
-  --shadow-card: var(--shadow-card);
-  --shadow-lift: var(--shadow-lift);
+  --color-pressed: var(--pressed);
+  --color-chevron: var(--chevron);
 
   --color-ring: var(--ring);
 
@@ -144,10 +142,12 @@
 
   body {
     /* 情報量を出すため基準を 15px にする。16px だと1画面に入る量が減って間延びする */
-    @apply bg-background font-sans text-[0.94rem] text-foreground antialiased;
+    /* iOS の body は 17px / 22px。日本語の字間は 0 に固定する */
+    @apply bg-background font-sans text-[17px] text-foreground antialiased;
     max-width: 100%;
     overflow-x: clip;
-    line-height: 1.6;
+    line-height: 1.4;
+    letter-spacing: 0;
     /*
      * 以前は全画面に紫の radial-gradient を敷いていた。**外した。**
      * 中身と関係のない発光で、業務の道具に必要なものではなかった。
@@ -179,12 +179,15 @@
     @apply rounded-sm outline-2 outline-offset-2 outline-ring;
   }
 
+  /*
+   * **見出しの字間を詰めない。** SF Pro の Large Title には負のトラッキングがあるが、
+   * 日本語（Hiragino / 游ゴシック）に同じ値を当てると詰まりすぎる。
+   */
   h1,
   h2,
   h3 {
-    /* 見出しは字間を詰める。詰めないと締まらない */
-    letter-spacing: -0.02em;
-    line-height: 1.3;
+    letter-spacing: 0;
+    line-height: 1.25;
   }
 
   /*
@@ -253,8 +256,9 @@
    * 白いカード。**輪郭線ではなく、やわらかい影で浮かせる。**
    * 線で囲うと途端に古く見える。角は 1rem。
    */
+  /* iOS の grouped surface。**枠線も影も引かない。** 下地との明度差だけで面を作る */
   .surface {
-    @apply rounded-xl border border-border bg-surface;
+    @apply rounded-[10px] bg-surface;
   }
 
   /* 一覧の1行。カードの中で使う前提。仕切りは薄い線1本だけ */
@@ -311,8 +315,12 @@
   .band {
     @apply flex flex-col gap-2;
   }
+  .band + .band {
+    @apply mt-2;
+  }
+  /* 段の見出し。iOS の grouped list のセクション見出しと同じ位置・大きさ */
   .band-heading {
-    @apply flex items-center gap-2 px-1 text-[0.82rem] font-bold text-muted-foreground;
+    @apply flex items-center gap-2 px-4 text-[13px] leading-[18px] font-semibold text-muted-foreground;
   }
   .band-heading .count {
     font-variant-numeric: tabular-nums;
@@ -323,9 +331,10 @@
    * 行をまとめた白いカード。**1件ずつ独立したカードにしない。**
    * カードが増えるほど影と角が散らかる。まとまりを1枚にして、中を細い線で仕切る。
    */
+  /* iOS の footnote（13px / 18px） */
   .stack-meta {
     font-variant-numeric: tabular-nums;
-    @apply flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[0.78rem] text-muted-foreground;
+    @apply flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[13px] leading-[18px] text-muted-foreground;
   }
   .stack-meta [data-late='true'] {
     @apply font-bold text-destructive;
@@ -342,19 +351,42 @@
    * 1件ずつ独立していることは、余白と薄い罫線で示せば足りる。
    * 影を使うのは、本当に浮いているもの（追加ボタン・モーダル）だけにする。
    */
+  /*
+   * 1件ぶんの面。iOS の grouped surface と同じ角丸・余白にする。
+   * **押している間だけ**塗る（iOS は hover を持たない端末が前提）。
+   */
   .card {
-    @apply block rounded-xl border border-border bg-surface p-4 transition-colors;
+    @apply relative block min-h-11 rounded-[10px] bg-surface px-4 py-3;
   }
-  .card:hover {
-    @apply border-border-strong bg-hover;
+  .card:active {
+    background: var(--pressed);
   }
+  @media (hover: hover) {
+    .card:hover {
+      @apply bg-hover;
+    }
+  }
+  /* iOS の body emphasis（17px / 22px / 600） */
   .card-title {
-    @apply text-[1.05rem] leading-snug font-bold;
+    @apply text-[17px] leading-[22px] font-semibold;
   }
 
   /* カードを縦に積む間隔。**詰めない。** 詰めると表に戻る */
   .card-list {
     @apply flex flex-col gap-2;
+  }
+
+  /*
+   * 右端の chevron。**押すと次の画面へ行く行にだけ**付ける。
+   * その場で操作するもの（状態の変更など）が右端にある行には付けない。
+   */
+  .chevron {
+    @apply pointer-events-none ml-1 shrink-0 self-center;
+    width: 8px;
+    height: 8px;
+    border-top: 2px solid var(--chevron);
+    border-right: 2px solid var(--chevron);
+    transform: rotate(45deg);
   }
 
   /*
@@ -383,16 +415,21 @@
    * 面積そのものが優先順位を伝えるので、「◯件あります」と説明しなくてよい。
    */
   .hero {
-    @apply block rounded-xl border-2 border-primary-line bg-surface p-5 transition-colors;
+    @apply block rounded-[10px] bg-surface p-4;
   }
-  .hero:hover {
-    @apply bg-hover;
+  .hero:active {
+    background: var(--pressed);
   }
   .hero-title {
-    @apply text-[1.35rem] leading-snug font-bold;
+    @apply text-[22px] leading-[28px] font-bold;
   }
 
   /* 大きい数字。要点は小さい文字を並べず、数字1つで見せる */
+  /* 画面の大見出し。iOS の Large Title（34px / 41px / 700） */
+  .large-title {
+    @apply text-[34px] leading-[41px] font-bold;
+  }
+
   .stat-value {
     font-variant-numeric: tabular-nums;
     @apply text-[2rem] leading-none font-bold tracking-tight;
@@ -400,8 +437,11 @@
 
   /* 丸い札。絞り込みや状態の切り替えに使う */
   .chip {
-    @apply inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border px-4 text-sm font-semibold transition-colors;
-    @apply bg-surface text-muted-foreground hover:border-border-strong hover:text-foreground;
+    @apply inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-[15px] font-medium;
+    @apply bg-surface text-foreground;
+  }
+  .chip:active {
+    background: var(--pressed);
   }
   .chip[aria-pressed='true'],
   .chip[aria-current='page'] {

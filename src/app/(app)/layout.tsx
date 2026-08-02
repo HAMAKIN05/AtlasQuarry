@@ -51,7 +51,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           actor={{ id: actor.id, name: actor.name, role: actor.role }}
           pendingRequests={pendingRequests}
         />
-        <main className="order-2 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-8 lg:order-none lg:overflow-visible lg:px-6 lg:py-8">
+        <main className="order-2 min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pt-4 pb-10 lg:order-none lg:overflow-visible lg:px-6 lg:py-8">
           <div className="mx-auto w-full max-w-5xl">{children}</div>
         </main>
       </div>
