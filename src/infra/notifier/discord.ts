@@ -4,6 +4,8 @@ import { db } from '@/db/client';
 import { integration } from '@/db/schema';
 import { open as openSealed } from '@/infra/crypto/secret-box';
 
+import { discordIdOf } from '@/domain/actor/identity';
+
 import type { NotifierAdapter, NotifyPayload } from './types';
 
 /**
@@ -47,13 +49,27 @@ export const discordNotifier: NotifierAdapter = {
     const appUrl = process.env.APP_URL ?? '';
     const link = payload.url ? `${appUrl}${payload.url}` : null;
 
+    const discordId = await discordIdOf(payload.actorId);
+    const mention = discordId ? `<@${discordId}>` : null;
+
     const res = await fetch(config.webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        // 宛先の名前は本文に入れる。Discord のメンションは F-22b の紐付けが要る
-        content: [`**${payload.title}**`, payload.body, link].filter(Boolean).join('\n'),
-        allowed_mentions: { parse: [] },
+        /*
+         * **紐付けがあれば名前を呼ぶ**（F-22b）。無ければ表示名を書くだけ。
+         * 呼べないと「誰かに何かが起きた」としか読めず、本人が気づかない。
+         */
+        content: [
+          mention ? `${mention} ` : `${payload.to.name}さん `,
+          `**${payload.title}**`,
+          payload.body,
+          link,
+        ]
+          .filter(Boolean)
+          .join('\n'),
+        // **呼ぶのは宛先1人だけ。** 本文に紛れた @everyone 等を勝手に展開させない
+        allowed_mentions: mention ? { users: [discordId] } : { parse: [] },
       }),
     });
 

@@ -1,9 +1,11 @@
 import Link from 'next/link';
 
 import { BackLink, PageHeader } from '@/components/app-ui';
+import { discordIdOf } from '@/domain/actor/identity';
 import { requireActor } from '@/lib/auth/cookies';
 import { ROLE_DESCRIPTIONS, ROLE_LABELS } from '@/lib/labels';
 
+import { DiscordLink } from './DiscordLink';
 import { ProfileForm } from './ProfileForm';
 import { TotpSection } from './TotpSection';
 
@@ -12,6 +14,7 @@ export const metadata = { title: '自分の設定 | AtlasQuarry' };
 /** 設定 → 自分の設定。名前・パスワード・2要素認証。 */
 export default async function ProfileSettingsPage() {
   const actor = await requireActor();
+  const discordId = await discordIdOf(actor.id);
 
   return (
     <div className="flex flex-col gap-5">
@@ -35,6 +38,7 @@ export default async function ProfileSettingsPage() {
 
       <ProfileForm initialName={actor.name} />
       <TotpSection enabled={actor.hasTotp} />
+      <DiscordLink initial={discordId} />
     </div>
   );
 }

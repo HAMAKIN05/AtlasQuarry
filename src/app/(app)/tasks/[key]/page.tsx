@@ -20,6 +20,9 @@ import { dueLabel, formatDateFull, formatDateTime, isOverdue } from '@/lib/forma
 import { ACTIVITY_ACTION_LABELS } from '@/lib/labels';
 import { renderMarkdown } from '@/lib/markdown';
 
+import { Attachments } from '@/components/Attachments';
+import { listAttachments } from '@/domain/attachment/service';
+
 import { TaskStatusMenu } from '../TaskStatusMenu';
 
 import { CommentForm } from './CommentForm';
@@ -165,6 +168,10 @@ export default async function TaskDetailPage({ params }: Props) {
           <EditorPanel task={task} canDelete={can(actor, 'task.delete')} />
         </Suspense>
       )}
+
+      <Suspense fallback={<Loading />}>
+        <AttachmentsPanel taskId={task.id} canEdit={editable} />
+      </Suspense>
 
       <Suspense fallback={<Loading />}>
         <CommentsPanel taskId={task.id} actor={actor} />
@@ -343,5 +350,24 @@ async function Relations({ task }: { task: { id: string; productId: string; pare
         </Link>
       )}
     </section>
+  );
+}
+
+
+async function AttachmentsPanel({ taskId, canEdit }: { taskId: string; canEdit: boolean }) {
+  const files = await listAttachments('task', taskId);
+  return (
+    <Attachments
+      targetType="task"
+      targetId={taskId}
+      canEdit={canEdit}
+      initial={files.map((f) => ({
+        id: f.id,
+        filename: f.filename,
+        sizeBytes: f.sizeBytes,
+        mimeType: f.mimeType,
+        uploaderName: f.uploaderName,
+      }))}
+    />
   );
 }

@@ -43,6 +43,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/drizzle-orm ./node_modules/drizzle-orm
 
+# 添付ファイルの置き場（F-13）。**ボリュームを被せても所有者が残るよう、先に作っておく。**
+# root 所有のまま mount されると、実行ユーザー（nextjs）が書けない（実際に踏んだ）。
+RUN mkdir -p /var/atlasquarry/attachments && chown -R nextjs:nodejs /var/atlasquarry
+
 USER nextjs
 EXPOSE 3000
 
