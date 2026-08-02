@@ -7,8 +7,8 @@ import { parseOrThrow, readJson } from '@/lib/validation';
 
 /** タスクの作業実績（F-17）。 */
 
-export const GET = authed<{ key: string }>(async ({ params }) => {
-  const task = await getTaskByKey(params.key);
+export const GET = authed<{ idOrKey: string }>(async ({ params }) => {
+  const task = await getTaskByKey(params.idOrKey);
   return ok({ items: await listWorkLogs(task.id) });
 });
 
@@ -18,9 +18,9 @@ const bodySchema = z.object({
   note: z.string().trim().max(500).nullable().optional(),
 });
 
-export const POST = authed<{ key: string }>(async ({ request, actor, meta, params }) => {
+export const POST = authed<{ idOrKey: string }>(async ({ request, actor, meta, params }) => {
   const input = parseOrThrow(bodySchema, await readJson(request));
-  const task = await getTaskByKey(params.key);
+  const task = await getTaskByKey(params.idOrKey);
 
   const created = await addWorkLog(
     { ...actor, ip: meta.ip, userAgent: meta.userAgent },

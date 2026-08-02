@@ -324,6 +324,16 @@ WSL に `docker` は無い。Docker Desktop の `docker.exe` を使う
 `cmd.exe /c start "" "C:\Program Files\Docker\Docker\Docker Desktop.exe"` で起動でき、
 デーモンが上がるまで1〜2分かかる。
 
+### 同じ階層に別名の動的セグメントを作らない（前科1回）
+
+`api/v1/tasks/[key]` と `api/v1/tasks/[idOrKey]` のように、**同じ階層で名前だけ違う
+`[...]` を並べると、`next build` は通るのに起動した瞬間に全ページが 500 になる**
+（`You cannot use different slug names for the same dynamic path`）。
+型チェックもテストも素通りする。
+
+`npm run build` の頭で `scripts/check-routes.mjs` が見るようにしてある。
+新しい API を足すときは、**既にあるセグメント名に合わせる。**
+
 ### 古い中身を配らないための確認（前科2回）
 
 1. **`build` の終了コードを見てから `save` する。** パイプで繋がない。
@@ -336,6 +346,13 @@ WSL に `docker` は無い。Docker Desktop の `docker.exe` を使う
 5. **本番のログにエラーが出ていないか。** 画面は Suspense のフォールバックのまま出るので、
    見た目では気づけない（`seamColor()` をサーバーから呼んで落としたことがある）
 6. デプロイ後は**日報側の 8000 / 8100 の疎通**も見る（同居しているサーバー）
+
+### バックアップ
+
+`/opt/atlasquarry/scripts/backup-cron.sh` を毎日 4:00 に cron が回す
+（日次7＋週次4＋月次6、出力は `/opt/atlasquarry/backups/`、ログは
+`/var/log/atlasquarry-backup.log`）。**月1回 `restore.sh` を実際に流して確かめること。**
+取れていることと戻せることは別。
 
 ---
 
