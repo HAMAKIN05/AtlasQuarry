@@ -75,6 +75,13 @@ async function ScheduleBody({ selected }: { selected: string | null }) {
         </nav>
       )}
 
+      {/* 選んでいる案件があれば、その全体像へ行ける導線を置く */}
+      {selected && (
+        <Link href={`/projects/${selected}`} className="chip self-start">
+          このプロジェクトを開く
+        </Link>
+      )}
+
       <MobileSchedule rows={rows} projectId={selected ?? undefined} />
 
       <div className="hidden lg:block">

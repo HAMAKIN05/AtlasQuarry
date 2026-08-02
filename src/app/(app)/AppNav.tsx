@@ -5,7 +5,6 @@ import {
   CalendarRangeIcon,
   ChevronDownIcon,
   FolderKanbanIcon,
-  ListChecksIcon,
   MessageSquarePlusIcon,
   SettingsIcon,
 } from 'lucide-react';
@@ -28,32 +27,27 @@ import { ROLE_LABELS } from '@/lib/labels';
  *
  * 機能名を並べるのではなく、利用者が次に取る行動の順に並べている。
  */
+/**
+ * ナビゲーションの並び。
+ *
+ * **左端＝アプリの基点**として読まれる。ここにプロジェクトを置く。
+ * 「プロジェクトが大枠で全ての起点なのに、ドックも右端で重要感がない」という
+ * 指摘への対応。右端は「到着物・補助」として受け取られやすいので要望を置く。
+ *
+ * **タスクのタブは廃止した。** タスクは必ずプロジェクトに属するので、
+ * 全体のタブにすると案件の文脈が切れる。一覧とかんばんはプロジェクトの中の見方にした。
+ */
 const ITEMS = [
-  /*
-   * **「ホーム」をやめて「今日」にした。**
-   * 「ホーム」は何が置いてある場所なのかを名前が説明していない。入口が
-   * ダッシュボードだと、作業を始める前に読む時間が要る。
-   * ここは「いま自分がやること・決めること」だけを出す面にする。
-   */
-  { href: '/', label: '今日', Icon: CalendarCheckIcon, exact: true },
-  { href: '/requests', label: '要望', Icon: MessageSquarePlusIcon, exact: false },
-  { href: '/tasks', label: 'タスク', Icon: ListChecksIcon, exact: false },
-  /*
-   * **ガントを「予定」としてタブに昇格させた。**
-   * プロジェクト詳細の奥に置いていたら「見るのにいろんなところを開いて探す」と
-   * 言われた。経営者と上司が日常的に見るものなので入口に置く。
-   */
+  { href: '/', label: 'プロジェクト', Icon: FolderKanbanIcon, exact: true },
+  { href: '/today', label: '今日', Icon: CalendarCheckIcon, exact: false },
   { href: '/schedule', label: '予定', Icon: CalendarRangeIcon, exact: false },
-  { href: '/projects', label: 'プロジェクト', Icon: FolderKanbanIcon, exact: false },
+  { href: '/requests', label: '要望', Icon: MessageSquarePlusIcon, exact: false },
   { href: '/settings', label: '設定', Icon: SettingsIcon, exact: false },
 ] as const;
 
 /**
  * スマホの下部タブからは**設定を外す。**
- *
- * 毎日の仕事は「把握する・要望を出す／判断する・進める・案件を眺める」の4つで、
- * 設定はその流れに入っていない。日常の導線に混ぜると、5つのうちどれが仕事用なのかを
- * 毎回選ばせることになる。設定へは上部の氏名から入る。
+ * 毎日の仕事の流れに入っていない。設定へは上部の氏名から入る。
  */
 const MOBILE_ITEMS = ITEMS.filter((item) => item.href !== '/settings');
 
@@ -142,7 +136,7 @@ export function AppNav({ actor, pendingRequests }: Props) {
       */}
       <nav
         aria-label="メインメニュー"
-        className="order-3 grid shrink-0 grid-cols-5 border-t border-border bg-[oklch(0.98_0.002_286/0.78)] pb-[max(env(safe-area-inset-bottom),0.375rem)] backdrop-blur-[20px] backdrop-saturate-150 lg:hidden"
+        className="order-3 grid shrink-0 grid-cols-4 border-t border-border bg-[oklch(0.98_0.002_286/0.78)] pb-[max(env(safe-area-inset-bottom),0.375rem)] backdrop-blur-[20px] backdrop-saturate-150 lg:hidden"
       >
         {MOBILE_ITEMS.map(({ href, label, Icon, exact }) => {
           const current = isCurrent(href, exact);

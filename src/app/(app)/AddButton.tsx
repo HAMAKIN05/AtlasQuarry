@@ -40,13 +40,18 @@ export function AddButton({ canCreateTask }: { canCreateTask: boolean }) {
             className="fixed inset-0 z-30 bg-black/20 lg:hidden"
           />
           <div className="fixed right-4 bottom-[calc(9.5rem+env(safe-area-inset-bottom))] z-40 flex w-56 flex-col overflow-hidden rounded-[10px] bg-surface shadow-[0_8px_32px_oklch(0_0_0/0.18)] lg:hidden">
-            {canCreateTask && (
+            {/*
+              **案件の中にいるときは「タスクを追加」を先に出す。**
+              外にいるときは「要望を出す」を先に出す。押した文脈で、
+              いちばんありそうなものが上に来るようにする。
+            */}
+            {canCreateTask && projectId && (
               <Link
                 href={taskHref}
                 onClick={() => setOpen(false)}
                 className="min-h-12 border-b border-border px-4 py-3 text-[17px] font-semibold"
               >
-                タスクを追加
+                このプロジェクトにタスクを追加
               </Link>
             )}
             <Link
@@ -56,6 +61,15 @@ export function AddButton({ canCreateTask }: { canCreateTask: boolean }) {
             >
               要望を出す
             </Link>
+            {canCreateTask && !projectId && (
+              <Link
+                href={taskHref}
+                onClick={() => setOpen(false)}
+                className="min-h-12 border-t border-border px-4 py-3 text-[17px] font-semibold"
+              >
+                タスクを追加
+              </Link>
+            )}
           </div>
         </>
       )}

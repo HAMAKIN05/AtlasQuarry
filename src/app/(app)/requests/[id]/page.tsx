@@ -76,7 +76,12 @@ export default async function RequestDetailPage({ params }: Props) {
         {req.productName && (
           <div>
             <dt>プロジェクト</dt>
-            <dd>{req.productName}</dd>
+            <dd>
+              {/* 案件の全体像へ戻れるようにする。判断するには進捗と予定が要る */}
+              <Link href={`/projects/${req.productId}`} className="text-primary">
+                {req.productName}
+              </Link>
+            </dd>
           </div>
         )}
         {req.decidedByName && (

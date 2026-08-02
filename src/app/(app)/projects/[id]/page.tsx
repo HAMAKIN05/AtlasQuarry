@@ -2,18 +2,23 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
+import { GanttChart } from '@/components/GanttChart';
+import { MobileSchedule } from '@/components/MobileSchedule';
 import { Badge, EmptyState, Loading, PageHeader, taskStatusTone, BackLink } from '@/components/app-ui';
 import { getProductById } from '@/domain/product/service';
 import { loadLabels } from '@/domain/setting/labels';
-import type { Labels } from '@/lib/labels';
 import { groupTasks } from '@/domain/task/grouping';
 import { listTasks, type TaskListItem } from '@/domain/task/service';
 import { requireActor } from '@/lib/auth/cookies';
 import { NotFoundError } from '@/lib/errors';
 import { dueLabel, formatDate, isOverdue } from '@/lib/format';
+import type { Labels } from '@/lib/labels';
+import { cn } from '@/lib/cn';
 
-
-type Props = { params: Promise<{ id: string }> };
+type Props = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ view?: string }>;
+};
 
 export const metadata = { title: 'プロジェクト | AtlasQuarry' };
 
@@ -26,98 +31,154 @@ async function loadProject(id: string) {
   }
 }
 
-/** S-04 プロジェクト詳細。開発項目＝そのプロジェクトの中の作業のまとまり。 */
-export default async function ProjectDetailPage({ params }: Props) {
+const VIEWS = [
+  { key: 'overview', label: '概要' },
+  { key: 'tasks', label: 'タスク' },
+  { key: 'schedule', label: '予定' },
+] as const;
+
+/**
+ * プロジェクトホーム。**この案件の親画面はここ1つ。**
+ *
+ * 見方を `概要 / タスク / 予定` の3つに固定する。以前は開発項目の一覧が本体で、
+ * タスクもガントも別の場所にあり、案件の全体像を見る場所が無かった。
+ */
+export default async function ProjectHomePage({ params, searchParams }: Props) {
   await requireActor();
   const { id } = await params;
+  const { view } = await searchParams;
+  const current = VIEWS.find((v) => v.key === view)?.key ?? 'overview';
 
   const project = await loadProject(id);
   if (!project) notFound();
 
   return (
     <div className="flex flex-col gap-5">
-      <BackLink href="/projects" label="プロジェクト一覧" />
+      <BackLink href="/" label="プロジェクト" />
 
       <PageHeader title={project.name} description={project.description ?? undefined} />
 
-      {/*
-        **かんばんは主操作としてプロジェクト名の直下に置く。**
-        「プロジェクトのところからもかんばんへ行きたい」という指摘。
-        下の切り替えの列に混ぜると弱いので、押せるボタンとして1つ出す。
-        開くのは**このプロジェクトに絞ったかんばん**（タスク画面と同じもの）。
-      */}
-      <Link
-        href={`/tasks?projectId=${project.id}&view=board`}
-        className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 text-base font-bold text-primary-foreground transition-colors hover:bg-primary-hover sm:w-auto sm:self-start"
-      >
-        かんばんを開く
-      </Link>
-
-      {/*
-        **このプロジェクトの見方を1列に並べる。**
-        以前は「開発項目一覧／ガント」の2つだけで、タスクとかんばんへは
-        別の場所（見出しの右のボタン）から行く作りだった。
-        「プロジェクトのところからもかんばんへ行きたい」という指摘のとおり、
-        **同じプロジェクトを別の切り口で見る手段は、同じ列に並べる。**
-        タスク一覧とかんばんは、このプロジェクトに絞った状態で開く。
-      */}
-      {/* かんばんは上の主ボタンにあるので、ここには重ねて置かない */}
-      <nav className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 py-1" aria-label="このプロジェクトの見方">
-        <Link href={`/schedule?projectId=${project.id}`} className="chip shrink-0">
-          予定
-        </Link>
-        <Link href={`/tasks?projectId=${project.id}`} className="chip shrink-0">
-          タスク一覧
-        </Link>
-        {/*
-          **このプロジェクトに入るタスクを、ここから直接足せるようにする。**
-          「まずどこに入れるか決めろ」を消すのが目的なので、押した先では
-          プロジェクトが埋まった状態で追加フォームが開く。
-        */}
-        <Link href={`/tasks?projectId=${project.id}&new=1`} className="chip shrink-0">
-          ＋ タスクを追加
-        </Link>
+      <nav className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 py-1" aria-label="この案件の見方">
+        {VIEWS.map((v) => (
+          <Link
+            key={v.key}
+            href={v.key === 'overview' ? `/projects/${project.id}` : `/projects/${project.id}?view=${v.key}`}
+            className={cn('chip shrink-0')}
+            aria-current={current === v.key ? 'page' : undefined}
+          >
+            {v.label}
+          </Link>
+        ))}
       </nav>
 
-      {/*
-        **開発項目を画面から外した。**
-        「開発項目とタスクの関係がわかりにくすぎる」との指摘。プロジェクトの下に
-        開発項目があり、しかも開発項目に入らないタスクも許していたので、
-        構造そのものが例外を含んでいた。3人・プロジェクト3つの規模では、
-        **プロジェクト > タスク の2階層**で足りる。
-        テーブルと既存データは消していない（v0.2 で「まとまり」＝親タスクに寄せる）。
-      */}
-      <Suspense fallback={<Loading />}>
-        <ProjectTasks projectId={project.id} />
-      </Suspense>
+      {current === 'overview' && (
+        <Suspense fallback={<Loading />}>
+          <Overview projectId={project.id} />
+        </Suspense>
+      )}
+
+      {current === 'tasks' && (
+        <Suspense fallback={<Loading />}>
+          <ProjectTasks projectId={project.id} />
+        </Suspense>
+      )}
+
+      {current === 'schedule' && (
+        <Suspense fallback={<Loading />}>
+          <ProjectSchedule projectId={project.id} />
+        </Suspense>
+      )}
     </div>
   );
 }
 
-
-async function ProjectTasks({ projectId }: { projectId: string }) {
+/**
+ * 概要。**この案件でいま何が起きているか**を数字で先に出す。
+ * 数字は押せる（該当のタスクへ行く）。見て終わりの数字は置かない。
+ */
+async function Overview({ projectId }: { projectId: string }) {
   const [tasks, labels] = await Promise.all([listTasks({ productId: projectId }), loadLabels()]);
+  const today = new Date().toISOString().slice(0, 10);
 
-  if (tasks.length === 0) {
+  const open = tasks.filter((t) => t.status !== 'done' && t.status !== 'cancelled');
+  const late = open.filter((t) => t.dueDate !== null && t.dueDate < today).length;
+  const dueToday = open.filter((t) => t.dueDate === today).length;
+  const unassigned = open.filter((t) => !t.assigneeName).length;
+
+  const to = `/projects/${projectId}?view=tasks`;
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="grid grid-cols-3 gap-2">
+        <Link href={to} className="card">
+          <span className="text-[13px] text-muted-foreground">遅れ</span>
+          <span className={cn('stat-value mt-1 block', late > 0 && 'text-destructive')}>{late}</span>
+        </Link>
+        <Link href={to} className="card">
+          <span className="text-[13px] text-muted-foreground">今日まで</span>
+          <span className="stat-value mt-1 block">{dueToday}</span>
+        </Link>
+        <Link href={to} className="card">
+          <span className="text-[13px] text-muted-foreground">未割当</span>
+          <span className="stat-value mt-1 block">{unassigned}</span>
+        </Link>
+      </div>
+
+      {open.length === 0 ? (
+        <EmptyState
+          title="動いているタスクはありません"
+          description="右下の「＋」から追加できます。押した時点でこのプロジェクトが入ります。"
+        />
+      ) : (
+        <GroupedTaskList tasks={open} labels={labels} />
+      )}
+    </div>
+  );
+}
+
+async function ProjectSchedule({ projectId }: { projectId: string }) {
+  const tasks = await listTasks({ productId: projectId });
+  const rows = tasks
+    .filter((t) => t.startDate !== null || t.dueDate !== null)
+    .map((t) => ({
+      kind: 'task' as const,
+      id: t.id,
+      key: t.key,
+      label: t.title,
+      startDate: t.startDate,
+      dueDate: t.dueDate,
+      status: t.status,
+      featureId: t.featureId,
+      assigneeName: t.assigneeName,
+      progress: null,
+      href: `/tasks/${t.key}`,
+    }));
+
+  if (rows.length === 0) {
     return (
       <EmptyState
-        title="このプロジェクトのタスクはまだありません"
-        description="右下の「＋」から追加できます。押した時点でこのプロジェクトが入ります。"
+        title="予定に出せるタスクがありません"
+        description="タスクに開始日か期限を入れると、ここに時系列で並びます。"
       />
     );
   }
 
-  const open = tasks.filter((t) => t.status !== 'done' && t.status !== 'cancelled');
-  const { groups, loose } = groupTasks(open);
-  const closed = tasks.length - open.length;
+  return (
+    <>
+      <MobileSchedule rows={rows} projectId={projectId} />
+      <div className="hidden lg:block">
+        <GanttChart rows={rows} />
+      </div>
+    </>
+  );
+}
+
+/** まとまりごとに束ねた一覧。概要とタスクの両方から使う。 */
+function GroupedTaskList({ tasks, labels }: { tasks: TaskListItem[]; labels: Labels }) {
+  const { groups, loose } = groupTasks(tasks);
 
   return (
     <div className="flex flex-col gap-5">
-      {/*
-        **まとまり（子タスクを持つタスク）を見出しにして、中身を並べる。**
-        開発項目という別概念をやめ、既にある親子関係をそのまま使っている。
-        まとまりの期間と進捗は子から導く。
-      */}
       {groups.map((g) => (
         <section key={g.parent.id} className="flex flex-col gap-2">
           <h2 className="band-heading">
@@ -127,9 +188,7 @@ async function ProjectTasks({ projectId }: { projectId: string }) {
             <span className="count">
               {g.done}/{g.total}
             </span>
-            {g.dueDate && (
-              <span className="ml-auto font-normal">〜{formatDate(g.dueDate)}</span>
-            )}
+            {g.dueDate && <span className="ml-auto font-normal">〜{formatDate(g.dueDate)}</span>}
           </h2>
           <div className="card-list">
             {g.children.map((t) => (
@@ -152,6 +211,28 @@ async function ProjectTasks({ projectId }: { projectId: string }) {
           </div>
         </section>
       )}
+    </div>
+  );
+}
+
+async function ProjectTasks({ projectId }: { projectId: string }) {
+  const [tasks, labels] = await Promise.all([listTasks({ productId: projectId }), loadLabels()]);
+
+  if (tasks.length === 0) {
+    return (
+      <EmptyState
+        title="このプロジェクトのタスクはまだありません"
+        description="右下の「＋」から追加できます。押した時点でこのプロジェクトが入ります。"
+      />
+    );
+  }
+
+  const open = tasks.filter((t) => t.status !== 'done' && t.status !== 'cancelled');
+  const closed = tasks.length - open.length;
+
+  return (
+    <div className="flex flex-col gap-5">
+      <GroupedTaskList tasks={open} labels={labels} />
 
       {closed > 0 && (
         <Link
@@ -161,6 +242,10 @@ async function ProjectTasks({ projectId }: { projectId: string }) {
           終わったもの {closed} 件を含めて見る
         </Link>
       )}
+
+      <Link href={`/tasks?projectId=${projectId}&view=board`} className="chip self-start">
+        かんばんで見る
+      </Link>
     </div>
   );
 }

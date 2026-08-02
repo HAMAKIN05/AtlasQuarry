@@ -66,12 +66,17 @@ export default async function TaskDetailPage({ params }: Props) {
         プロジェクトへの導線は下の情報欄から辿らせる。
         ブラウザの戻るは「直前へ」、この矢印は「この情報の親へ」と役割を分ける。
       */}
+      {/*
+        **戻り先はプロジェクト。** 以前は「タスク一覧」に戻していたが、
+        タスクは必ずプロジェクトに属するので、案件の全体像へ戻れる方が役に立つ。
+        いちばん案件の文脈を必要とする画面で、親へ戻れないのは筋が悪かった。
+      */}
       <nav aria-label="戻る">
         <Link
-          href={`/tasks?projectId=${task.productId}`}
+          href={`/projects/${task.productId}`}
           className="inline-flex min-h-11 items-center text-sm text-muted-foreground hover:text-foreground"
         >
-          ← タスク一覧
+          ← {task.productName}
         </Link>
       </nav>
 
@@ -112,6 +117,14 @@ export default async function TaskDetailPage({ params }: Props) {
         <div>
           <dt>作った人</dt>
           <dd>{task.reporterName}さん</dd>
+        </div>
+        <div>
+          <dt>プロジェクト</dt>
+          <dd>
+            <Link href={`/projects/${task.productId}`} className="text-primary">
+              {task.productName}
+            </Link>
+          </dd>
         </div>
         <div>
           <dt>期限</dt>

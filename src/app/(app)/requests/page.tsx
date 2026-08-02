@@ -122,6 +122,7 @@ async function RequestList({ active }: { active: RequestStatus | 'all' }) {
               </Badge>
             </span>
             <span className="stack-meta mt-2">
+              {r.productName && <span>{r.productName}</span>}
               <span>{r.reporterName}さんから</span>
               <span>{formatRelative(r.createdAt)}</span>
               {r.convertedTaskKey && <span className="tabular">{r.convertedTaskKey}</span>}
