@@ -15,11 +15,14 @@ type Option = { id: string; name: string };
  */
 export function NewTaskForm({
   productId,
+  projectName,
   features,
   members,
   onCreated,
 }: {
   productId: string;
+  /** 追加直後の行に出す名前。サーバーから返る前の仮表示に使う */
+  projectName: string;
   features: Option[];
   members: Option[];
   onCreated: (task: TaskListItem) => void;
@@ -62,6 +65,7 @@ export function NewTaskForm({
         ...created,
         productId,
         productKey: '',
+        productName: projectName ?? '',
         featureName: features.find((f) => f.id === created.featureId)?.name ?? null,
         assigneeName: members.find((m) => m.id === created.assigneeId)?.name ?? null,
         completedAt: null,

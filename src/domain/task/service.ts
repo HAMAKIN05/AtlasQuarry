@@ -26,6 +26,7 @@ export type TaskListItem = {
   position: number;
   productId: string;
   productKey: string;
+  productName: string;
   featureId: string | null;
   featureName: string | null;
   assigneeId: string | null;
@@ -63,6 +64,8 @@ const LIST_COLUMNS = {
   position: task.position,
   productId: task.productId,
   productKey: product.key,
+  /** 画面に出すのは記号ではなく名前。記号は内部の識別子 */
+  productName: product.name,
   featureId: task.featureId,
   featureName: feature.name,
   assigneeId: task.assigneeId,

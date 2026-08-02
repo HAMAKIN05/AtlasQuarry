@@ -48,9 +48,6 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
       <BackLink href="/projects" label="プロジェクト一覧" />
 
       <PageHeader title={project.name} description={project.description ?? undefined} />
-      <p className="-mt-2 tabular text-xs text-muted-foreground">
-        タスク番号の記号：{project.key}
-      </p>
 
       {/*
         **かんばんは主操作としてプロジェクト名の直下に置く。**

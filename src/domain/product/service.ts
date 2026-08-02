@@ -87,20 +87,43 @@ export async function getProductById(id: string) {
 }
 
 export type CreateProductInput = {
-  key: string;
+  /** 省略したら自動で採番する。**画面からは渡さない。** */
+  key?: string;
   name: string;
   description: string | null;
   ownerId: string;
 };
 
+/**
+ * プロジェクトの記号を自動で決める。
+ *
+ * **利用者に振らせない。** 「タスクに付く番号の頭を英大文字2〜10文字で」と
+ * 訊かれても、決める理由も基準も無い（『プロジェクトNo.こっちに振らせるなよ』）。
+ * 記号は内部の識別子でしかないので、こちらで `P1` `P2` … と順に付ける。
+ *
+ * 日本語の名前からローマ字を作る案は採らない。「勤怠システム」から妥当な英字を
+ * 機械的に導く方法が無く、変な記号が付くくらいなら通し番号のほうが素直。
+ */
+async function nextProductKey(tx: Transaction): Promise<string> {
+  const rows = await tx.select({ key: product.key }).from(product);
+  const used = new Set(rows.map((r) => r.key));
+  for (let n = 1; n < 10_000; n += 1) {
+    const candidate = `P${n}`;
+    if (!used.has(candidate)) return candidate;
+  }
+  throw new ConflictError('プロジェクトの記号を採番できませんでした', null, 'PRODUCT_KEY_EXHAUSTED');
+}
+
 export async function createProduct(actor: ActorContext, input: CreateProductInput) {
   assertCan(actor, 'product.create');
 
   return db.transaction(async (tx) => {
+    const key = input.key ?? (await nextProductKey(tx));
+
     const existing = await tx
       .select({ id: product.id })
       .from(product)
-      .where(eq(product.key, input.key))
+      .where(eq(product.key, key))
       .limit(1);
     if (existing.length > 0) {
       throw new ConflictError('そのキーは既に使われています', null, 'PRODUCT_KEY_TAKEN');
@@ -109,7 +132,7 @@ export async function createProduct(actor: ActorContext, input: CreateProductInp
     const [created] = await tx
       .insert(product)
       .values({
-        key: input.key,
+        key,
         name: input.name,
         description: input.description,
         ownerId: input.ownerId,

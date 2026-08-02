@@ -178,9 +178,10 @@ function FocusMeta({ task }: { task: TaskListItem }) {
   return (
     <>
       {/* **点でプロジェクトを示す。** 名前だけだと、どの案件の話か毎回読まないと分からない */}
-      <span className="inline-flex items-center gap-1.5">
+      {/* **記号ではなく名前を出す。** 記号は内部の識別子で、読んでも意味がない */}
+      <span className="inline-flex min-w-0 items-center gap-1.5">
         <Dot seed={task.productKey} />
-        {task.productKey}
+        <span className="min-w-0 truncate">{task.productName}</span>
       </span>
       {task.dueDate && (
         <span data-late={late || undefined}>

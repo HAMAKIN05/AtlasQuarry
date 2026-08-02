@@ -5,7 +5,8 @@ import { authed, ok } from '@/lib/api/handler';
 import { optionalText, parseOrThrow, productKeySchema, readJson, requiredText, uuidSchema } from '@/lib/validation';
 
 const createSchema = z.object({
-  key: productKeySchema,
+  /** 記号はサーバーで採番する。互換のため受け取れるようにはしておく */
+  key: productKeySchema.optional(),
   name: requiredText(100, 'プロダクト名を入力してください'),
   description: optionalText(2000).optional().default(null),
   ownerId: uuidSchema.optional(),
