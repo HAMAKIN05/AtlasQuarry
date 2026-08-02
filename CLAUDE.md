@@ -233,6 +233,14 @@ app → infra
 判断が割れるときは `codex exec` に投げる。**「どちらか一方を選べ。両論併記はするな」**と
 条件を付け、前提（規模・既存の制約・本書の絶対ルール）を必ず渡す。その結論を採る。
 
+**codex も VPS を見られる。** 鍵は共有しない――同じユーザーで動くので `~/.ssh` を
+そのまま読める。`~/.codex/config.toml` に `[sandbox_workspace_write] network_access = true`
+を入れてある。ただし **`ssh -F ~/.ssh/config` と書くこと。**
+codex のサンドボックスは user namespace の中で動き、`/etc` の中身が root ではなく
+65534 に見えるため、素の `ssh` は `Bad owner or permissions on
+/etc/ssh/ssh_config.d/20-systemd-ssh-proxy.conf` で止まる。`-F` を付けると
+システム全体の設定を読まなくなり、この判定を通らない。
+
 訊いてよいのは**成果物そのもの**についてだけ（出したものを見て判断できること）。
 決めた内容と理由は、報告と作業ログに残す。**事後に説明するのであって、事前に許可を取らない。**
 
