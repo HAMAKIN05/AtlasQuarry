@@ -1,4 +1,4 @@
-import { ArrowRightIcon } from 'lucide-react';
+import { ArrowRightIcon, PlusIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
@@ -44,6 +44,19 @@ export default async function HomePage() {
           <MyWorkFirst actorId={actor.id} />
         )}
       </Suspense>
+
+      {/*
+        **「要望を出す」の入口を常に置く。**
+        思いついたときに書くものなので、下部タブの意味を理解していることに
+        依存させない。判断待ちが0件のときも、要望が無いときも、ここは消さない。
+      */}
+      <Link
+        href="/requests/new"
+        className="row-link -my-1 rounded-md border border-dashed border-border-strong px-3 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <PlusIcon className="size-4 shrink-0" aria-hidden="true" />
+        こうなったら楽になる、を書く
+      </Link>
 
       <Suspense fallback={<Loading />}>
         <Milestones />

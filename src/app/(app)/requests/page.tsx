@@ -3,7 +3,6 @@ import { Suspense } from 'react';
 
 import { Badge, EmptyState, Loading, PageHeader, requestStatusTone } from '@/components/app-ui';
 import { REQUEST_STATUSES, type RequestStatus } from '@/db/schema/enums';
-import { listProducts } from '@/domain/product/service';
 import { countRequestsByStatus, listRequests } from '@/domain/request/service';
 import { loadLabels } from '@/domain/setting/labels';
 import { requireActor } from '@/lib/auth/cookies';
@@ -32,14 +31,12 @@ export default async function RequestsPage({ searchParams }: Props) {
       ? (status as RequestStatus)
       : 'all';
 
-  const projects = await listProducts();
-
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
         title="要望"
         description="「こんなことができたら仕事が楽になる」を書く場所です。出された要望は管理者が見て、やるかどうかを判断します。"
-        action={<NewRequestButton projects={projects.map((p) => ({ id: p.id, name: p.name }))} />}
+        action={<NewRequestButton />}
       />
 
       <Suspense fallback={<Loading />}>
