@@ -7,13 +7,17 @@ import { MobileSchedule } from '@/components/MobileSchedule';
 import { Badge, EmptyState, Loading, PageHeader, taskStatusTone, BackLink } from '@/components/app-ui';
 import { getProductById } from '@/domain/product/service';
 import { loadLabels } from '@/domain/setting/labels';
+import { DOCUMENT_TYPE_LABELS, listDocuments, type DocumentListItem } from '@/domain/document/service';
 import { groupTasks } from '@/domain/task/grouping';
 import { listTasks, type TaskListItem } from '@/domain/task/service';
 import { requireActor } from '@/lib/auth/cookies';
+import { can } from '@/lib/auth/rbac';
 import { NotFoundError } from '@/lib/errors';
 import { dueLabel, formatDate, isOverdue } from '@/lib/format';
 import type { Labels } from '@/lib/labels';
 import { cn } from '@/lib/cn';
+
+import { NewDocButton } from './NewDocButton';
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -35,6 +39,8 @@ const VIEWS = [
   { key: 'overview', label: '概要' },
   { key: 'tasks', label: 'タスク' },
   { key: 'schedule', label: '予定' },
+  /* **資料はタブを増やさず、プロジェクトの中の見方にする**（下部タブは4本のまま） */
+  { key: 'docs', label: '資料' },
 ] as const;
 
 /**
@@ -44,7 +50,8 @@ const VIEWS = [
  * タスクもガントも別の場所にあり、案件の全体像を見る場所が無かった。
  */
 export default async function ProjectHomePage({ params, searchParams }: Props) {
-  await requireActor();
+  const actor = await requireActor();
+  const canEditDocs = can(actor, 'document.edit');
   const { id } = await params;
   const { view } = await searchParams;
   const current = VIEWS.find((v) => v.key === view)?.key ?? 'overview';
@@ -86,6 +93,12 @@ export default async function ProjectHomePage({ params, searchParams }: Props) {
       {current === 'schedule' && (
         <Suspense fallback={<Loading />}>
           <ProjectSchedule projectId={project.id} />
+        </Suspense>
+      )}
+
+      {current === 'docs' && (
+        <Suspense fallback={<Loading />}>
+          <ProjectDocs projectId={project.id} canEdit={canEditDocs} />
         </Suspense>
       )}
     </div>
@@ -260,6 +273,63 @@ function TaskCard({ task, labels }: { task: TaskListItem; labels: Labels }) {
           <Badge tone={taskStatusTone(task.status)}>{labels[`task.status.${task.status}`]}</Badge>
           {task.assigneeName && <span>{task.assigneeName}</span>}
           {due && <span data-late={isOverdue(task.dueDate, task.status) || undefined}>{due}</span>}
+        </span>
+      </span>
+      <span className="chevron" aria-hidden="true" />
+    </Link>
+  );
+}
+
+
+/** 資料（F-11 / F-23）。**階層は1段まで**なので、親ごとに畳んで出す。 */
+async function ProjectDocs({ projectId, canEdit }: { projectId: string; canEdit: boolean }) {
+  const docs = await listDocuments(projectId);
+
+  if (docs.length === 0) {
+    return (
+      <div className="flex flex-col gap-4">
+        <EmptyState
+          title="資料はまだありません"
+          description="仕様・覚え書き・議事録を、このプロジェクトの中に置けます。"
+        />
+        {canEdit && <NewDocButton projectId={projectId} />}
+      </div>
+    );
+  }
+
+  const parents = docs.filter((d) => d.parentId === null);
+  const childrenOf = (id: string) => docs.filter((d) => d.parentId === id);
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="card-list">
+        {parents.map((d) => (
+          <div key={d.id} className="flex flex-col gap-2">
+            <DocCard doc={d} />
+            {childrenOf(d.id).length > 0 && (
+              <div className="card-list pl-4">
+                {childrenOf(d.id).map((c) => (
+                  <DocCard key={c.id} doc={c} />
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      {canEdit && <NewDocButton projectId={projectId} />}
+    </div>
+  );
+}
+
+function DocCard({ doc }: { doc: DocumentListItem }) {
+  return (
+    <Link href={`/docs/${doc.id}`} className="card flex items-center gap-3">
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="card-title">{doc.title}</span>
+        <span className="stack-meta">
+          <Badge tone="neutral">{DOCUMENT_TYPE_LABELS[doc.type]}</Badge>
+          {doc.type === 'minutes' && doc.meetingDate && <span>{formatDate(doc.meetingDate)}</span>}
+          {doc.type === 'minutes' && !doc.isConfirmed && <Badge tone="warn">下書き</Badge>}
         </span>
       </span>
       <span className="chevron" aria-hidden="true" />
