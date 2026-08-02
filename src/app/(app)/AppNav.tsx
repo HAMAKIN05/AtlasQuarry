@@ -2,6 +2,7 @@
 
 import {
   CalendarCheckIcon,
+  CalendarRangeIcon,
   ChevronDownIcon,
   FolderKanbanIcon,
   ListChecksIcon,
@@ -37,6 +38,12 @@ const ITEMS = [
   { href: '/', label: '今日', Icon: CalendarCheckIcon, exact: true },
   { href: '/requests', label: '要望', Icon: MessageSquarePlusIcon, exact: false },
   { href: '/tasks', label: 'タスク', Icon: ListChecksIcon, exact: false },
+  /*
+   * **ガントを「予定」としてタブに昇格させた。**
+   * プロジェクト詳細の奥に置いていたら「見るのにいろんなところを開いて探す」と
+   * 言われた。経営者と上司が日常的に見るものなので入口に置く。
+   */
+  { href: '/schedule', label: '予定', Icon: CalendarRangeIcon, exact: false },
   { href: '/projects', label: 'プロジェクト', Icon: FolderKanbanIcon, exact: false },
   { href: '/settings', label: '設定', Icon: SettingsIcon, exact: false },
 ] as const;
@@ -135,7 +142,7 @@ export function AppNav({ actor, pendingRequests }: Props) {
       */}
       <nav
         aria-label="メインメニュー"
-        className="order-3 grid shrink-0 grid-cols-4 border-t border-border bg-[oklch(0.98_0.002_286/0.78)] pb-[max(env(safe-area-inset-bottom),0.375rem)] backdrop-blur-[20px] backdrop-saturate-150 lg:hidden"
+        className="order-3 grid shrink-0 grid-cols-5 border-t border-border bg-[oklch(0.98_0.002_286/0.78)] pb-[max(env(safe-area-inset-bottom),0.375rem)] backdrop-blur-[20px] backdrop-saturate-150 lg:hidden"
       >
         {MOBILE_ITEMS.map(({ href, label, Icon, exact }) => {
           const current = isCurrent(href, exact);

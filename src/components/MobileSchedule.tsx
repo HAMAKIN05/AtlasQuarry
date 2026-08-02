@@ -49,7 +49,14 @@ function diffDays(from: Date, to: Date): number {
 
 const OPEN_STATUSES = new Set(['backlog', 'todo', 'in_progress', 'review']);
 
-export function MobileSchedule({ rows, projectId }: { rows: GanttRow[]; projectId: string }) {
+export function MobileSchedule({
+  rows,
+  projectId,
+}: {
+  rows: GanttRow[];
+  /** 数字から飛ぶ先を絞るのに使う。全プロジェクトを出すときは省く */
+  projectId?: string;
+}) {
   const today = useMemo(() => ymd(new Date()), []);
 
   const tasks = useMemo(() => rows.filter((r) => r.kind === 'task'), [rows]);
@@ -113,10 +120,10 @@ function CurrentPosition({
 }: {
   stats: { late: number; today: number; unassigned: number };
   current: { label: string; percent: number; done: number; total: number } | null;
-  projectId: string;
+  projectId?: string;
 }) {
   /** **数字は押せるようにする。** 見て終わりの数字は行動につながらない。 */
-  const to = `/tasks?projectId=${projectId}`;
+  const to = projectId ? `/tasks?projectId=${projectId}` : '/tasks';
 
   return (
     <section aria-label="現在地" className="flex flex-col gap-2">
@@ -190,8 +197,16 @@ function VerticalTimeline({ rows, today }: { rows: GanttRow[]; today: string }) 
    */
   const items = useMemo(() => {
     return rows
+      /*
+       * **タスクだけを出す。開発項目の行は出さない。**
+       * 開発項目の期間は配下タスクの MIN / MAX なので、両方並べると
+       * 同じ期間の行が二重に見える。とくに配下が1件のときと、
+       * 「開発項目に入っていないタスク」という束は、束と中身が完全に重なる。
+       * 束ねた見え方が要るのは PC のガントで、日付順に読む縦の一覧では要らない。
+       */
+      .filter((r) => r.kind === 'task')
       .filter((r) => r.startDate !== null || r.dueDate !== null)
-      .filter((r) => r.kind === 'feature' || (r.status !== 'done' && r.status !== 'cancelled'))
+      .filter((r) => r.status !== 'done' && r.status !== 'cancelled')
       .map((r) => ({ row: r, at: (r.startDate ?? r.dueDate)! }))
       .sort(
         (a, b) =>
@@ -287,8 +302,10 @@ function MiniGantt({ rows, today }: { rows: GanttRow[]; today: string }) {
   const dated = useMemo(
     () =>
       rows
+        // 縦の一覧と同じ基準。束と中身を二重に出さない
+        .filter((r) => r.kind === 'task')
         .filter((r) => r.startDate !== null || r.dueDate !== null)
-        .filter((r) => r.kind === 'feature' || (r.status !== 'done' && r.status !== 'cancelled')),
+        .filter((r) => r.status !== 'done' && r.status !== 'cancelled'),
     [rows],
   );
 

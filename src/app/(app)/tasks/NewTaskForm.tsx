@@ -114,19 +114,10 @@ export function NewTaskForm({
         />
       </label>
 
-      {features.length > 0 && (
-        <label className="flex min-w-0 flex-col gap-1.5">
-          <span className="text-sm font-semibold text-muted-foreground">開発項目（任意）</span>
-          <select value={featureId} onChange={(e) => setFeatureId(e.target.value)}>
-            <option value="">指定しない</option>
-            {features.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
+      {/*
+        **開発項目の選択欄を外した。** 画面から開発項目という概念を無くしたため。
+        追加のときに決めるのは「やること」だけでよい。担当と期限も任意のまま。
+      */}
 
       <label className="flex min-w-0 flex-col gap-1.5">
         <span className="text-sm font-semibold text-muted-foreground">担当（任意）</span>

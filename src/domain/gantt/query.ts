@@ -1,5 +1,5 @@
 import type { TaskStatus } from '@/db/schema/enums';
-import { listFeatures } from '@/domain/product/service';
+import { listFeatures, listProducts } from '@/domain/product/service';
 import { listTasks } from '@/domain/task/service';
 
 /**
@@ -128,4 +128,38 @@ function minOf(values: Array<string | null>): string | null {
 function maxOf(values: Array<string | null>): string | null {
   const present = values.filter((v): v is string => v !== null);
   return present.length === 0 ? null : present.reduce((a, b) => (a > b ? a : b));
+}
+
+
+/**
+ * 全プロジェクトの予定。**「予定」タブ用。**
+ *
+ * **開発項目では束ねない。** 画面から開発項目という概念を無くしたので、
+ * まとまりの単位はプロジェクトになる。行はプロジェクトごとのタスクの並び。
+ *
+ * ガントを見るのに「プロジェクト → 詳細 → 予定の札」と辿らせていたのが
+ * 「いろんなところを開いて探さないといけない」と言われた原因。ここを入口にする。
+ */
+export type ProjectSchedule = {
+  projectId: string;
+  projectKey: string;
+  projectName: string;
+  rows: GanttRow[];
+};
+
+export async function getScheduleData(): Promise<ProjectSchedule[]> {
+  const products = await listProducts();
+
+  const out: ProjectSchedule[] = [];
+  for (const product of products) {
+    const tasks = await listTasks({ productId: product.id });
+    if (tasks.length === 0) continue;
+    out.push({
+      projectId: product.id,
+      projectKey: product.key,
+      projectName: product.name,
+      rows: tasks.map(taskRow),
+    });
+  }
+  return out;
 }

@@ -2,25 +2,16 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
-import { Badge, EmptyState, Loading, PageHeader, Progress, taskStatusTone, BackLink } from '@/components/app-ui';
-import { getGanttData } from '@/domain/gantt/query';
-import { getProductById, listFeatures } from '@/domain/product/service';
+import { Badge, EmptyState, Loading, PageHeader, taskStatusTone, BackLink } from '@/components/app-ui';
+import { getProductById } from '@/domain/product/service';
 import { loadLabels } from '@/domain/setting/labels';
 import { listTasks } from '@/domain/task/service';
 import { requireActor } from '@/lib/auth/cookies';
-import { can } from '@/lib/auth/rbac';
 import { NotFoundError } from '@/lib/errors';
-import { dueLabel, formatDate, isOverdue } from '@/lib/format';
-import { FEATURE_STATUS_LABELS } from '@/lib/labels';
+import { dueLabel, isOverdue } from '@/lib/format';
 
-import { GanttChart } from '@/components/GanttChart';
-import { MobileSchedule } from '@/components/MobileSchedule';
-import { NewFeatureForm } from './NewFeatureForm';
 
-type Props = {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ view?: string }>;
-};
+type Props = { params: Promise<{ id: string }> };
 
 export const metadata = { title: 'プロジェクト | AtlasQuarry' };
 
@@ -34,11 +25,9 @@ async function loadProject(id: string) {
 }
 
 /** S-04 プロジェクト詳細。開発項目＝そのプロジェクトの中の作業のまとまり。 */
-export default async function ProjectDetailPage({ params, searchParams }: Props) {
-  const actor = await requireActor();
+export default async function ProjectDetailPage({ params }: Props) {
+  await requireActor();
   const { id } = await params;
-  const { view } = await searchParams;
-  const isGantt = view === 'gantt';
 
   const project = await loadProject(id);
   if (!project) notFound();
@@ -72,18 +61,7 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
       */}
       {/* かんばんは上の主ボタンにあるので、ここには重ねて置かない */}
       <nav className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 py-1" aria-label="このプロジェクトの見方">
-        <Link
-          href={`/projects/${project.id}`}
-          className="chip shrink-0"
-          aria-current={isGantt ? undefined : 'page'}
-        >
-          開発項目
-        </Link>
-        <Link
-          href={`/projects/${project.id}?view=gantt`}
-          className="chip shrink-0"
-          aria-current={isGantt ? 'page' : undefined}
-        >
+        <Link href={`/schedule?projectId=${project.id}`} className="chip shrink-0">
           予定
         </Link>
         <Link href={`/tasks?projectId=${project.id}`} className="chip shrink-0">
@@ -99,131 +77,72 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
         </Link>
       </nav>
 
-      {isGantt ? (
-        <Suspense fallback={<Loading />}>
-          <GanttPanel projectId={project.id} />
-        </Suspense>
-      ) : (
-        <>
-          {can(actor, 'feature.create') && <NewFeatureForm productId={project.id} />}
-
-          <Suspense fallback={<Loading />}>
-            <FeatureList projectId={project.id} />
-          </Suspense>
-
-          <Suspense fallback={<Loading />}>
-            <LooseTasks projectId={project.id} />
-          </Suspense>
-        </>
-      )}
+      {/*
+        **開発項目を画面から外した。**
+        「開発項目とタスクの関係がわかりにくすぎる」との指摘。プロジェクトの下に
+        開発項目があり、しかも開発項目に入らないタスクも許していたので、
+        構造そのものが例外を含んでいた。3人・プロジェクト3つの規模では、
+        **プロジェクト > タスク の2階層**で足りる。
+        テーブルと既存データは消していない（v0.2 で「まとまり」＝親タスクに寄せる）。
+      */}
+      <Suspense fallback={<Loading />}>
+        <ProjectTasks projectId={project.id} />
+      </Suspense>
     </div>
   );
 }
 
-async function GanttPanel({ projectId }: { projectId: string }) {
-  const { rows, hasAnyPeriod } = await getGanttData(projectId);
 
-  if (rows.length === 0) {
+async function ProjectTasks({ projectId }: { projectId: string }) {
+  const [tasks, labels] = await Promise.all([listTasks({ productId: projectId }), loadLabels()]);
+
+  if (tasks.length === 0) {
     return (
       <EmptyState
-        title="まだ何もありません"
-        description="タスクを作って開始日と期限を入れると、ここに帯で並びます。"
-        actionLabel="タスクを見る"
-        actionHref={`/tasks?projectId=${projectId}`}
+        title="このプロジェクトのタスクはまだありません"
+        description="右下の「＋」から追加できます。押した時点でこのプロジェクトが入ります。"
       />
     );
   }
 
-  return (
-    <section className="surface p-4">
-      {!hasAnyPeriod && (
-        <p className="rounded-md bg-warning-soft px-3 py-2 text-sm text-warning">
-          開始日と期限が入っているタスクがまだありません。タスクに日付を入れると帯が出ます。
-        </p>
-      )}
-
-      {/*
-        **スマホと PC で見せ方を変える。** 横長のガントを縮めても読めないので、
-        スマホは「現在地 → 縦タイムライン → 2週間のミニガント」の3段にする
-        （オーナーから渡された整理のとおり）。PC は従来どおり全期間のガント。
-      */}
-      <MobileSchedule rows={rows} projectId={projectId} />
-      <div className="hidden lg:block">
-        <GanttChart rows={rows} />
-      </div>
-    </section>
-  );
-}
-
-async function FeatureList({ projectId }: { projectId: string }) {
-  const features = await listFeatures(projectId);
+  const open = tasks.filter((t) => t.status !== 'done' && t.status !== 'cancelled');
+  const closed = tasks.length - open.length;
 
   return (
-    <section className="surface p-4">
-      <h2 className="mb-3 text-base font-bold">開発項目（{features.length}）</h2>
-      <p className="mb-3 text-sm text-muted-foreground">タスクをまとめる単位です。「認証まわり」「帳票の出力」のように分けます。</p>
+    <section className="flex flex-col gap-2">
+      <h2 className="band-heading">
+        タスク<span className="count">{open.length}</span>
+      </h2>
 
-      {features.length === 0 ? (
-        <EmptyState
-          title="開発項目がまだありません"
-          description="無くてもタスクは作れます。数が増えて分かりにくくなったら作ってください。"
-        />
-      ) : (
-        <ul className="flex flex-col gap-2">
-          {features.map((f) => (
-            <li key={f.id}>
-              <Link href={`/tasks?projectId=${projectId}&featureId=${f.id}`} className="flex flex-col items-stretch gap-2 rounded-md bg-raised p-3 hover:bg-hover">
-                <span className="flex items-center gap-2">
-                  <span className="min-w-0 flex-1 basis-40 font-semibold">{f.name}</span>
-                  <Badge tone={f.status === 'active' ? 'progress' : 'neutral'}>
-                    {FEATURE_STATUS_LABELS[f.status]}
-                  </Badge>
-                </span>
-                <Progress done={f.progress.doneTasks} total={f.progress.totalTasks} />
-                {(f.progress.startDate || f.progress.dueDate) && (
-                  <span className="text-xs text-muted-foreground">
-                    {formatDate(f.progress.startDate)} 〜 {formatDate(f.progress.dueDate)}
-                  </span>
-                )}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-}
-
-async function LooseTasks({ projectId }: { projectId: string }) {
-  const [tasks, labels] = await Promise.all([
-    listTasks({ productId: projectId, featureId: null }),
-    loadLabels(),
-  ]);
-
-  if (tasks.length === 0) return null;
-
-  return (
-    <section className="surface p-4">
-      <h2 className="mb-3 text-base font-bold">開発項目に入っていないタスク（{tasks.length}）</h2>
-      <ul className="flex flex-col gap-2">
-        {tasks.map((t) => {
+      <div className="card-list">
+        {open.map((t) => {
           const due = dueLabel(t.dueDate, t.status);
           return (
-            <li key={t.id}>
-              <Link href={`/tasks/${t.key}`} className="flex min-h-13 flex-wrap items-center gap-x-2 gap-y-1 rounded-md bg-raised p-3 hover:bg-hover">
-                <span className="tabular shrink-0 text-xs text-muted-foreground">{t.key}</span>
-                <span className="min-w-0 flex-1 basis-40 font-semibold">{t.title}</span>
-                <Badge tone={taskStatusTone(t.status)}>{labels[`task.status.${t.status}`]}</Badge>
-                {due && (
-                  <span className={isOverdue(t.dueDate, t.status) ? 'tabular shrink-0 text-xs font-bold text-destructive' : 'tabular shrink-0 text-xs text-muted-foreground'}>
-                    {due}
-                  </span>
-                )}
-              </Link>
-            </li>
+            <Link key={t.id} href={`/tasks/${t.key}`} className="card flex items-center gap-3">
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="card-title">{t.title}</span>
+                <span className="stack-meta">
+                  <Badge tone={taskStatusTone(t.status)}>{labels[`task.status.${t.status}`]}</Badge>
+                  {t.assigneeName && <span>{t.assigneeName}</span>}
+                  {due && (
+                    <span data-late={isOverdue(t.dueDate, t.status) || undefined}>{due}</span>
+                  )}
+                </span>
+              </span>
+              <span className="chevron" aria-hidden="true" />
+            </Link>
           );
         })}
-      </ul>
+      </div>
+
+      {closed > 0 && (
+        <Link
+          href={`/tasks?projectId=${projectId}`}
+          className="px-1 py-2 text-sm font-semibold text-primary"
+        >
+          終わったもの {closed} 件を含めて見る
+        </Link>
+      )}
     </section>
   );
 }

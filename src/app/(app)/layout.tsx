@@ -6,6 +6,7 @@ import { loadLabels } from '@/domain/setting/labels';
 import { currentActor } from '@/lib/auth/cookies';
 import { can } from '@/lib/auth/rbac';
 
+import { AddButton } from './AddButton';
 import { AppNav } from './AppNav';
 
 /**
@@ -51,6 +52,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           actor={{ id: actor.id, name: actor.name, role: actor.role }}
           pendingRequests={pendingRequests}
         />
+        {/* どの画面からでも1件を捕まえられるように、追加は常に手前に置く */}
+        <AddButton canCreateTask={can(actor, 'task.create')} />
         <main className="order-2 min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pt-4 pb-10 lg:order-none lg:overflow-visible lg:px-6 lg:py-8">
           <div className="mx-auto w-full max-w-5xl">{children}</div>
         </main>

@@ -404,9 +404,9 @@
    */
   .fab {
     /* **下部タブの上に置く。** タブと重なると、タブが押せなくなる（実際に隠した） */
-    @apply fixed right-4 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-20;
-    @apply flex min-h-14 items-center gap-2 rounded-full px-5;
-    @apply bg-primary text-base font-bold text-primary-foreground lg:hidden;
+    @apply fixed right-4 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-40;
+    @apply flex size-14 items-center justify-center rounded-full;
+    @apply bg-primary text-primary-foreground lg:hidden;
     box-shadow: var(--shadow-lift);
   }
 
