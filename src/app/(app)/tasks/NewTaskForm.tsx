@@ -21,6 +21,7 @@ export function NewTaskForm({
   onCreated,
   open,
   onClose,
+  parentTaskId = null,
 }: {
   productId: string;
   /** 追加直後の行に出す名前。サーバーから返る前の仮表示に使う */
@@ -36,6 +37,8 @@ export function NewTaskForm({
    */
   open: boolean;
   onClose: () => void;
+  /** まとまり（親タスク）の中に足すとき。文脈から埋めるので画面では訊かない */
+  parentTaskId?: string | null;
 }) {
   const [title, setTitle] = useState('');
   const [featureId, setFeatureId] = useState('');
@@ -66,6 +69,7 @@ export function NewTaskForm({
         productId,
         title,
         featureId: featureId || null,
+        parentTaskId,
         assigneeId: assigneeId || null,
         dueDate: dueDate || null,
       });

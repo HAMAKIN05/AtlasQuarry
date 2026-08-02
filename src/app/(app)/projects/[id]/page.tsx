@@ -5,10 +5,12 @@ import { Suspense } from 'react';
 import { Badge, EmptyState, Loading, PageHeader, taskStatusTone, BackLink } from '@/components/app-ui';
 import { getProductById } from '@/domain/product/service';
 import { loadLabels } from '@/domain/setting/labels';
-import { listTasks } from '@/domain/task/service';
+import type { Labels } from '@/lib/labels';
+import { groupTasks } from '@/domain/task/grouping';
+import { listTasks, type TaskListItem } from '@/domain/task/service';
 import { requireActor } from '@/lib/auth/cookies';
 import { NotFoundError } from '@/lib/errors';
-import { dueLabel, isOverdue } from '@/lib/format';
+import { dueLabel, formatDate, isOverdue } from '@/lib/format';
 
 
 type Props = { params: Promise<{ id: string }> };
@@ -106,34 +108,50 @@ async function ProjectTasks({ projectId }: { projectId: string }) {
   }
 
   const open = tasks.filter((t) => t.status !== 'done' && t.status !== 'cancelled');
+  const { groups, loose } = groupTasks(open);
   const closed = tasks.length - open.length;
 
   return (
-    <section className="flex flex-col gap-2">
-      <h2 className="band-heading">
-        タスク<span className="count">{open.length}</span>
-      </h2>
-
-      <div className="card-list">
-        {open.map((t) => {
-          const due = dueLabel(t.dueDate, t.status);
-          return (
-            <Link key={t.id} href={`/tasks/${t.key}`} className="card flex items-center gap-3">
-              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="card-title">{t.title}</span>
-                <span className="stack-meta">
-                  <Badge tone={taskStatusTone(t.status)}>{labels[`task.status.${t.status}`]}</Badge>
-                  {t.assigneeName && <span>{t.assigneeName}</span>}
-                  {due && (
-                    <span data-late={isOverdue(t.dueDate, t.status) || undefined}>{due}</span>
-                  )}
-                </span>
-              </span>
-              <span className="chevron" aria-hidden="true" />
+    <div className="flex flex-col gap-5">
+      {/*
+        **まとまり（子タスクを持つタスク）を見出しにして、中身を並べる。**
+        開発項目という別概念をやめ、既にある親子関係をそのまま使っている。
+        まとまりの期間と進捗は子から導く。
+      */}
+      {groups.map((g) => (
+        <section key={g.parent.id} className="flex flex-col gap-2">
+          <h2 className="band-heading">
+            <Link href={`/tasks/${g.parent.key}`} className="text-foreground">
+              {g.parent.title}
             </Link>
-          );
-        })}
-      </div>
+            <span className="count">
+              {g.done}/{g.total}
+            </span>
+            {g.dueDate && (
+              <span className="ml-auto font-normal">〜{formatDate(g.dueDate)}</span>
+            )}
+          </h2>
+          <div className="card-list">
+            {g.children.map((t) => (
+              <TaskCard key={t.id} task={t} labels={labels} />
+            ))}
+          </div>
+        </section>
+      ))}
+
+      {loose.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="band-heading">
+            {groups.length > 0 ? 'まとまりに入っていない' : 'タスク'}
+            <span className="count">{loose.length}</span>
+          </h2>
+          <div className="card-list">
+            {loose.map((t) => (
+              <TaskCard key={t.id} task={t} labels={labels} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {closed > 0 && (
         <Link
@@ -143,6 +161,23 @@ async function ProjectTasks({ projectId }: { projectId: string }) {
           終わったもの {closed} 件を含めて見る
         </Link>
       )}
-    </section>
+    </div>
+  );
+}
+
+function TaskCard({ task, labels }: { task: TaskListItem; labels: Labels }) {
+  const due = dueLabel(task.dueDate, task.status);
+  return (
+    <Link href={`/tasks/${task.key}`} className="card flex items-center gap-3">
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="card-title">{task.title}</span>
+        <span className="stack-meta">
+          <Badge tone={taskStatusTone(task.status)}>{labels[`task.status.${task.status}`]}</Badge>
+          {task.assigneeName && <span>{task.assigneeName}</span>}
+          {due && <span data-late={isOverdue(task.dueDate, task.status) || undefined}>{due}</span>}
+        </span>
+      </span>
+      <span className="chevron" aria-hidden="true" />
+    </Link>
   );
 }

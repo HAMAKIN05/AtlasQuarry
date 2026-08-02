@@ -5,7 +5,7 @@ import { Badge, PageHeader, requestStatusTone, BackLink } from '@/components/app
 import { db } from '@/db/client';
 import { actor as actorTable } from '@/db/schema';
 import { asc, eq } from 'drizzle-orm';
-import { listFeatures, listProducts } from '@/domain/product/service';
+import { listProducts } from '@/domain/product/service';
 import { getRequestById } from '@/domain/request/service';
 import { loadLabels } from '@/domain/setting/labels';
 import { requireActor } from '@/lib/auth/cookies';
@@ -48,17 +48,6 @@ export default async function RequestDetailPage({ params }: Props) {
       .where(eq(actorTable.isActive, true))
       .orderBy(asc(actorTable.name)),
   ]);
-
-  /*
-   * **全プロジェクトの開発項目を渡す。** 変換フォームでプロジェクトを変えられるのに、
-   * 開発項目は要望に紐づくプロジェクトのぶんしか読んでいなかった。
-   * 別プロジェクトに変えたまま、元のプロジェクトの開発項目を選べてしまう。
-   */
-  const featuresByProject = Object.fromEntries(
-    await Promise.all(
-      projects.map(async (p) => [p.id, (await listFeatures(p.id)).map((f) => ({ id: f.id, name: f.name }))] as const),
-    ),
-  );
   const canTriage = can(actor, 'request.triage');
 
   return (
@@ -142,7 +131,6 @@ export default async function RequestDetailPage({ params }: Props) {
               requestId={req.id}
               projects={projects.map((p) => ({ id: p.id, name: p.name }))}
               defaultProjectId={req.productId}
-              featuresByProject={featuresByProject}
               members={members}
             />
             <TriagePanel

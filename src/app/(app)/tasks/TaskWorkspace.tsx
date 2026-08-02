@@ -34,10 +34,15 @@ type Props = {
    * 常に自分で固定すると、担当が付いていない経営者・管理者は毎回空の画面を見ることになる。
    */
   initialAssigneeId: string;
-  /** プロジェクト詳細の開発項目から来たときの絞り込み。`?featureId=` を受ける */
+  /**
+   * 過去に `?featureId=` で来たリンクが残っていても壊れないように受けるだけ。
+   * **開発項目は画面から無くした**ので、絞り込みの UI は出さない。
+   */
   initialFeatureId: string;
   /** 他の画面の「タスクを追加」から来たか。来ていれば追加フォームを開いて始める */
   startAdding: boolean;
+  /** まとまり（親タスク）の中に足すとき */
+  parentTaskId: string | null;
 };
 
 /**
@@ -45,7 +50,7 @@ type Props = {
  *
  * **「検索・分析する画面」ではなく「自分の作業リスト」にした。**
  *
- * 以前はプロジェクト・担当・開発項目・完了表示・表示切替を横一列に並べていた。
+ * 以前はプロジェクト・担当・まとまり・完了表示・表示切替を横一列に並べていた。
  * これは多人数向け SaaS の閲覧画面の作法で、3人のチームがスマホで開くと
  * **タスクを始める前に操作盤を読まされる。**
  *
@@ -94,6 +99,7 @@ export function TaskWorkspace({
   initialAssigneeId,
   initialFeatureId,
   startAdding,
+  parentTaskId,
 }: Props) {
   const router = useRouter();
   const labels = useLabels();
@@ -101,12 +107,7 @@ export function TaskWorkspace({
   const [view, setView] = useState<'list' | 'board'>(initialView);
   // 既定は自分（担当が無い人は全員）。**開いた瞬間に自分の仕事が見えるのが普通**
   const [assigneeId, setAssigneeId] = useState(initialAssigneeId);
-  /*
-   * プロジェクト詳細の開発項目から `?featureId=…` で来る。**受け取っていなかった。**
-   * 「この開発項目のタスクを見る」を押したのに、プロジェクト全体のタスクに着地していた。
-   * 押した結果と着地が食い違うのは、遷移そのものへの不信になる。
-   */
-  const [featureId, setFeatureId] = useState(initialFeatureId);
+  const [featureId] = useState(initialFeatureId);
   const [showClosed, setShowClosed] = useState(false);
   /* 追加フォームの開閉は**ここで持つ。** 見出しの中で開かせない */
   const [adding, setAdding] = useState(startAdding);
@@ -203,6 +204,7 @@ export function TaskWorkspace({
         productId={projectId}
         projectName={project?.name ?? ''}
         open={adding}
+        parentTaskId={parentTaskId}
         onClose={() => setAdding(false)}
         features={features}
         members={members}
@@ -222,7 +224,6 @@ export function TaskWorkspace({
               : assigneeId === currentActorId
                 ? '自分の担当'
                 : (members.find((m) => m.id === assigneeId)?.name ?? '担当者')}
-            {featureId && ` / ${features.find((f) => f.id === featureId)?.name ?? '開発項目'}`}
             {showClosed && ' / 終わったものも表示'}
           </span>
         </summary>
@@ -240,19 +241,7 @@ export function TaskWorkspace({
             </select>
           </label>
 
-          {features.length > 0 && (
-            <label className="flex min-w-0 flex-1 basis-40 flex-col gap-1.5">
-              <span className="text-sm font-semibold text-muted-foreground">開発項目</span>
-              <select value={featureId} onChange={(e) => setFeatureId(e.target.value)}>
-                <option value="">すべて</option>
-                {features.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
+          {/* 開発項目という概念を無くしたので、絞り込みからも外した */}
 
           <label className="inline-flex min-h-11 items-center gap-2 text-sm">
             <input

@@ -17,20 +17,15 @@ export function ConvertForm({
   requestId,
   projects,
   defaultProjectId,
-  featuresByProject,
   members,
 }: {
   requestId: string;
   projects: Option[];
   defaultProjectId: string | null;
-  /** プロジェクトごとの開発項目。**プロジェクトを変えたら選択肢も入れ替える。** */
-  featuresByProject: Record<string, Option[]>;
   members: Option[];
 }) {
   const router = useRouter();
   const [productId, setProductId] = useState(defaultProjectId ?? projects[0]?.id ?? '');
-  const [featureId, setFeatureId] = useState('');
-  const features = featuresByProject[productId] ?? [];
   const [assigneeId, setAssigneeId] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +38,7 @@ export function ConvertForm({
     try {
       const created = await api.post<{ key: string }>(`/requests/${requestId}/convert`, {
         productId,
-        featureId: featureId || null,
+        featureId: null,
         assigneeId: assigneeId || null,
         dueDate: dueDate || null,
       });
@@ -85,11 +80,7 @@ export function ConvertForm({
           <span className="text-sm font-semibold text-muted-foreground">どのプロジェクトのタスクにするか</span>
           <select
             value={productId}
-            onChange={(e) => {
-              setProductId(e.target.value);
-              // 別プロジェクトの開発項目を選んだまま送らせない
-              setFeatureId('');
-            }}
+            onChange={(e) => setProductId(e.target.value)}
             required
           >
             {projects.map((p) => (
@@ -100,19 +91,10 @@ export function ConvertForm({
           </select>
         </label>
 
-        {features.length > 0 && (
-          <label className="flex min-w-0 flex-col gap-1.5">
-            <span className="text-sm font-semibold text-muted-foreground">開発項目（任意）</span>
-            <select value={featureId} onChange={(e) => setFeatureId(e.target.value)}>
-              <option value="">指定しない</option>
-              {features.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
+        {/*
+          **開発項目の選択欄を外した。** 画面から開発項目という概念を無くしたため。
+          まとまりに入れたい場合は、作ったあとタスク詳細から足せる。
+        */}
 
         <label className="flex min-w-0 flex-col gap-1.5">
           {/*

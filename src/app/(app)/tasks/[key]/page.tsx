@@ -9,10 +9,9 @@ import { db } from '@/db/client';
 import { actor as actorTable } from '@/db/schema';
 import { listTaskTimeline } from '@/domain/activity/queries';
 import { listTaskComments } from '@/domain/comment/service';
-import { listFeatures } from '@/domain/product/service';
 import { findRequestByTaskId } from '@/domain/request/service';
 import { loadLabels } from '@/domain/setting/labels';
-import { getTaskByKey } from '@/domain/task/service';
+import { getTaskByKey, listTasks } from '@/domain/task/service';
 import { requireActor } from '@/lib/auth/cookies';
 import type { SessionActor } from '@/lib/auth/session';
 import { can } from '@/lib/auth/rbac';
@@ -115,10 +114,6 @@ export default async function TaskDetailPage({ params }: Props) {
           <dd>{task.reporterName}さん</dd>
         </div>
         <div>
-          <dt>開発項目</dt>
-          <dd>{task.featureName ?? '—'}</dd>
-        </div>
-        <div>
           <dt>期限</dt>
           <dd className={isOverdue(task.dueDate, task.status) ? 'font-bold text-destructive' : undefined}>
             {due ? `${due}（${formatDateFull(task.dueDate)}）` : '—'}
@@ -132,6 +127,15 @@ export default async function TaskDetailPage({ params }: Props) {
           <Link href={`/requests/${fromRequest.id}`}>「{fromRequest.title}」を見る</Link>
         </p>
       )}
+
+      {/*
+        **まとまり（親子）をここで見せる。**
+        開発項目という別概念をやめ、既にある親子関係をそのまま使っている。
+        画面には「親タスク」という技術用語を出さず「まとまり」と呼ぶ。
+      */}
+      <Suspense fallback={<Loading />}>
+        <Relations task={task} />
+      </Suspense>
 
       <section className="surface p-4">
         <h2 className="mb-3 text-base font-bold">内容</h2>
@@ -167,8 +171,7 @@ async function EditorPanel({
   task: Awaited<ReturnType<typeof getTaskByKey>>;
   canDelete: boolean;
 }) {
-  const [features, members] = await Promise.all([
-    listFeatures(task.productId),
+  const [members] = await Promise.all([
     db
       .select({ id: actorTable.id, name: actorTable.name })
       .from(actorTable)
@@ -185,11 +188,9 @@ async function EditorPanel({
         status: task.status,
         priority: task.priority,
         assigneeId: task.assigneeId,
-        featureId: task.featureId,
         startDate: task.startDate,
         dueDate: task.dueDate,
       }}
-      features={features.map((f) => ({ id: f.id, name: f.name }))}
       members={members}
       canDelete={canDelete}
       projectId={task.productId}
@@ -253,6 +254,80 @@ async function HistoryPanel({ taskId }: { taskId: string }) {
             </li>
           ))}
         </ol>
+      )}
+    </section>
+  );
+}
+
+
+/**
+ * まとまり（親子）の表示。
+ *
+ * - このタスクが誰かの子なら、**属しているまとまり**へのリンクを出す
+ * - このタスクが子を持つなら、**まとまりとして中身**を出し、そこから追加できるようにする
+ *
+ * **1階層まで。** 子の下にさらに子は作らせない（追加の導線を出さない）。
+ */
+async function Relations({ task }: { task: { id: string; productId: string; parentTaskId: string | null } }) {
+  const [siblings, labels] = await Promise.all([
+    listTasks({ productId: task.productId }),
+    loadLabels(),
+  ]);
+
+  const parent = task.parentTaskId
+    ? (siblings.find((t) => t.id === task.parentTaskId) ?? null)
+    : null;
+  const children = siblings.filter((t) => t.parentTaskId === task.id);
+
+  if (!parent && children.length === 0) return null;
+
+  return (
+    <section className="flex flex-col gap-2">
+      {parent && (
+        <>
+          <h2 className="band-heading">属しているまとまり</h2>
+          <div className="card-list">
+            <Link href={`/tasks/${parent.key}`} className="card flex items-center gap-3">
+              <span className="card-title min-w-0 flex-1">{parent.title}</span>
+              <span className="chevron" aria-hidden="true" />
+            </Link>
+          </div>
+        </>
+      )}
+
+      {children.length > 0 && (
+        <>
+          <h2 className="band-heading">
+            このまとまりの中身
+            <span className="count">
+              {children.filter((c) => c.status === 'done').length}/{children.length}
+            </span>
+          </h2>
+          <div className="card-list">
+            {children.map((c) => (
+              <Link key={c.id} href={`/tasks/${c.key}`} className="card flex items-center gap-3">
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="card-title">{c.title}</span>
+                  <span className="stack-meta">
+                    <Badge tone={taskStatusTone(c.status)}>{labels[`task.status.${c.status}`]}</Badge>
+                    {c.assigneeName && <span>{c.assigneeName}</span>}
+                  </span>
+                </span>
+                <span className="chevron" aria-hidden="true" />
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* 子の下にさらに子は作らせない */}
+      {!parent && (
+        <Link
+          href={`/tasks?projectId=${task.productId}&new=1&parentTaskId=${task.id}`}
+          className="chip self-start"
+        >
+          ＋ このまとまりにタスクを追加
+        </Link>
       )}
     </section>
   );

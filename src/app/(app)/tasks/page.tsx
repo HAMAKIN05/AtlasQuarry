@@ -17,6 +17,8 @@ type Props = {
     featureId?: string;
     /** 他の画面の「タスクを追加」から来たときに立つ。追加フォームを開いて始める */
     new?: string;
+    /** まとまり（親タスク）の中に足すとき。押した文脈をそのまま引き継ぐ */
+    parentTaskId?: string;
   }>;
 };
 
@@ -89,6 +91,7 @@ export default async function TasksPage({ searchParams }: Props) {
         initialAssigneeId={params.featureId ? '' : hasOwnTasks ? actor.id : ''}
         initialFeatureId={params.featureId ?? ''}
         startAdding={params.new === '1'}
+        parentTaskId={params.parentTaskId ?? null}
       />
     </div>
   );

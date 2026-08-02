@@ -16,7 +16,6 @@ type EditableTask = {
   status: TaskStatus;
   priority: TaskPriority;
   assigneeId: string | null;
-  featureId: string | null;
   startDate: string | null;
   dueDate: string | null;
 };
@@ -26,13 +25,11 @@ const PRIORITIES: TaskPriority[] = ['urgent', 'high', 'normal', 'low'];
 /** タスクの編集。本文はプレーン Markdown（機能定義書 §7）。 */
 export function TaskEditor({
   task,
-  features,
   members,
   canDelete,
   projectId,
 }: {
   task: EditableTask;
-  features: Option[];
   members: Option[];
   canDelete: boolean;
   projectId: string;
@@ -60,7 +57,6 @@ export function TaskEditor({
         bodyMd: form.bodyMd ?? '',
         priority: form.priority,
         assigneeId: form.assigneeId,
-        featureId: form.featureId,
         startDate: form.startDate,
         dueDate: form.dueDate,
       });
@@ -162,20 +158,10 @@ export function TaskEditor({
           </select>
         </label>
 
-        <label className="flex min-w-0 flex-col gap-1.5">
-          <span className="text-sm font-semibold text-muted-foreground">開発項目</span>
-          <select
-            value={form.featureId ?? ''}
-            onChange={(e) => setForm({ ...form, featureId: e.target.value || null })}
-          >
-            <option value="">指定しない</option>
-            {features.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        {/*
+          **開発項目の選択欄を外した。** 画面から開発項目という概念を無くしたため。
+          まとまりへの所属は親子（`parent_task_id`）で表し、タスク詳細の上部で見せる。
+        */}
 
         <label className="flex min-w-0 flex-col gap-1.5">
           <span className="text-sm font-semibold text-muted-foreground">開始日</span>
