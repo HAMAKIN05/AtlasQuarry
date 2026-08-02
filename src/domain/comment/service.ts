@@ -3,6 +3,7 @@ import { and, asc, eq } from 'drizzle-orm';
 import { db, type Transaction } from '@/db/client';
 import { actor, comment, task } from '@/db/schema';
 import { recordActivity } from '@/domain/activity/recorder';
+import { notify } from '@/domain/notification/service';
 import { assertCan, can } from '@/lib/auth/rbac';
 import { ForbiddenError, NotFoundError, ValidationError } from '@/lib/errors';
 import type { ActorContext } from '@/domain/actor-context';
@@ -69,6 +70,53 @@ export async function createTaskComment(
       userAgent: actorCtx.userAgent,
     });
 
+    /*
+     * **メンションと、関わっている人への通知。**
+     * 「@名前」で名前を呼ばれた人と、そのタスクの担当・作成者に届ける。
+     * 自分の書き込みで自分には通知しない。
+     */
+    const [t] = await tx
+      .select({ key: task.key, title: task.title, assigneeId: task.assigneeId, reporterId: task.reporterId })
+      .from(task)
+      .where(eq(task.id, taskId))
+      .limit(1);
+
+    if (t) {
+      const url = `/tasks/${t.key}`;
+      const preview = body.length > 80 ? `${body.slice(0, 80)}…` : body;
+
+      const mentioned = await resolveMentions(tx, body);
+      for (const actorId of mentioned) {
+        await notify(tx, {
+          event: 'comment.mentioned',
+          actorId,
+          exceptActorId: actorCtx.id,
+          title: `${actorCtx.name}さんがあなたを呼んでいます`,
+          body: `${t.title}\n${preview}`,
+          url,
+          targetType: 'task',
+          targetId: taskId,
+        });
+      }
+
+      // 呼ばれた人には二重に送らない
+      const others = [t.assigneeId, t.reporterId].filter(
+        (id): id is string => !!id && !mentioned.includes(id),
+      );
+      for (const actorId of new Set(others)) {
+        await notify(tx, {
+          event: 'comment.created',
+          actorId,
+          exceptActorId: actorCtx.id,
+          title: 'コメントが付きました',
+          body: `${t.title}\n${preview}`,
+          url,
+          targetType: 'task',
+          targetId: taskId,
+        });
+      }
+    }
+
     return {
       id: created!.id,
       bodyMd: created!.bodyMd,
@@ -77,6 +125,30 @@ export async function createTaskComment(
       createdAt: created!.createdAt,
     };
   });
+}
+
+/**
+ * 本文から「@名前」を拾って、実在するメンバーの id に変える（F-05 メンション）。
+ *
+ * **表示名で書かせる。** 3人なので、ID やハンドルを覚えさせる意味がない。
+ * 前方一致ではなく完全一致にする（「@田中」で「田中太郎」と「田中花子」の両方を
+ * 拾うと、呼んでいない人に届く）。
+ */
+async function resolveMentions(tx: Transaction, body: string): Promise<string[]> {
+  const names = [...body.matchAll(/@([^\s@、。]+)/g)].map((m) => m[1]!);
+  if (names.length === 0) return [];
+
+  const members = await tx
+    .select({ id: actor.id, name: actor.name })
+    .from(actor)
+    .where(eq(actor.isActive, true));
+
+  const hit = new Set<string>();
+  for (const name of names) {
+    const found = members.find((m) => m.name === name);
+    if (found) hit.add(found.id);
+  }
+  return [...hit];
 }
 
 /** 投稿者本人と manager 以上が削除できる（受入基準 5.5）。 */

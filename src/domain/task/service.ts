@@ -4,6 +4,7 @@ import { db, type Transaction } from '@/db/client';
 import { actor, feature, product, task } from '@/db/schema';
 import type { TaskPriority, TaskStatus } from '@/db/schema/enums';
 import { buildDiff, recordActivities, recordActivity } from '@/domain/activity/recorder';
+import { notify } from '@/domain/notification/service';
 import { assertCan, can } from '@/lib/auth/rbac';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '@/lib/errors';
 import { POSITION_STEP, needsRebalance, positionBetween, rebalancedPositions } from '@/lib/position';
@@ -307,6 +308,38 @@ export async function updateTask(actorCtx: ActorContext, id: string, input: Upda
     }
 
     await recordActivities(tx, entries);
+
+    /*
+     * **通知は同じトランザクションで積む。** アプリ内はその場で書き、
+     * 外（メール・Discord）はキューに入れるだけなので、外部の失敗で業務が巻き戻らない。
+     * 自分の操作で自分に通知はしない。
+     */
+    if (input.assigneeId !== undefined && input.assigneeId && input.assigneeId !== before.assigneeId) {
+      await notify(tx, {
+        event: 'task.assigned',
+        actorId: input.assigneeId,
+        exceptActorId: actorCtx.id,
+        title: 'タスクが割り当てられました',
+        body: updated!.title,
+        url: `/tasks/${updated!.key}`,
+        targetType: 'task',
+        targetId: id,
+      });
+    }
+
+    if (statusResult?.status === 'done' && before.reporterId) {
+      await notify(tx, {
+        event: 'task.completed',
+        actorId: before.reporterId,
+        exceptActorId: actorCtx.id,
+        title: 'タスクが完了しました',
+        body: updated!.title,
+        url: `/tasks/${updated!.key}`,
+        targetType: 'task',
+        targetId: id,
+      });
+    }
+
     return updated!;
   });
 }

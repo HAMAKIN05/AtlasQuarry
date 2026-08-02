@@ -24,8 +24,13 @@ export default async function MembersPage() {
 
       <PageHeader
         title="メンバー"
-        description="名前と権限を変えられます。新しい人の追加は、今のところ開発者に依頼してください。"
+        description="招待リンクで新しい人を追加できます。名前と権限もここで変えられます。"
       />
+
+      {/* 招待は「メンバーを増やす」操作なので、この画面の主操作として置く */}
+      <Link href="/settings/members/invite" className="chip self-start">
+        ＋ メンバーを招待
+      </Link>
 
       <ul className="flex flex-col gap-2">
         {members.map((member) => (

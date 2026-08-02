@@ -22,6 +22,8 @@ services:
       STORAGE_LOCAL_PATH: /var/atlasquarry/attachments
       # ログイン画面からの自己登録に要る合言葉。空なら自己登録は常に失敗する（＝無効）
       REGISTRATION_CODE: ${REGISTRATION_CODE}
+      # 通知の配送を cron から叩くための鍵
+      CRON_KEY: ${CRON_KEY}
     volumes:
       - atlasquarry-attachments:/var/atlasquarry/attachments
     depends_on:

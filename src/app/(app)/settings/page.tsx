@@ -28,7 +28,7 @@ export default async function SettingsPage() {
     {
       href: '/settings/members',
       title: 'メンバー',
-      desc: '名前と権限の変更、利用停止',
+      desc: '招待、名前と権限の変更、利用停止',
       show: isManager,
     },
     {
@@ -36,6 +36,18 @@ export default async function SettingsPage() {
       title: 'プロジェクト',
       desc: '名前や状態の変更、削除',
       show: can(actor, 'product.update'),
+    },
+    {
+      href: '/settings/integrations',
+      title: '外部連携',
+      desc: 'Discord への通知、メールの送信設定',
+      show: can(actor, 'integration.manage'),
+    },
+    {
+      href: '/settings/notifications',
+      title: 'お知らせの受け取り',
+      desc: 'どの出来事を、どこで受け取るか',
+      show: true,
     },
     {
       href: '/settings/labels',

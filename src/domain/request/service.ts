@@ -4,6 +4,7 @@ import { db, type Transaction } from '@/db/client';
 import { actor, product, request, task } from '@/db/schema';
 import type { RequestStatus } from '@/db/schema/enums';
 import { recordActivity } from '@/domain/activity/recorder';
+import { notify } from '@/domain/notification/service';
 import { assertCan } from '@/lib/auth/rbac';
 import { ConflictError, NotFoundError, ValidationError } from '@/lib/errors';
 import { POSITION_STEP } from '@/lib/position';
@@ -138,6 +139,28 @@ export async function createRequest(actorCtx: ActorContext, input: CreateRequest
       userAgent: actorCtx.userAgent,
     });
 
+    /*
+     * **判断できる人に知らせる。** 出しっぱなしで気づかれないのが要望の最大の失敗。
+     * 出した本人には送らない。
+     */
+    const deciders = await tx
+      .select({ id: actor.id })
+      .from(actor)
+      .where(and(eq(actor.isActive, true), inArray(actor.role, ['owner', 'manager'])));
+
+    for (const d of deciders) {
+      await notify(tx, {
+        event: 'request.created',
+        actorId: d.id,
+        exceptActorId: actorCtx.id,
+        title: '要望が出されました',
+        body: `${actorCtx.name}さんから: ${input.title}`,
+        url: `/requests/${created!.id}`,
+        targetType: 'request',
+        targetId: created!.id,
+      });
+    }
+
     return created!;
   });
 }
@@ -197,6 +220,20 @@ export async function triageRequest(actorCtx: ActorContext, id: string, input: T
       ip: actorCtx.ip,
       userAgent: actorCtx.userAgent,
     });
+
+    // **判断がついたら、出した人に返す。** 出して終わりにしない
+    if (decided) {
+      await notify(tx, {
+        event: 'request.decided',
+        actorId: before.reporterId,
+        exceptActorId: actorCtx.id,
+        title: input.status === 'rejected' ? '要望は見送りになりました' : '要望が採用されました',
+        body: input.status === 'rejected' ? `${before.title}\n理由: ${reason ?? ''}` : before.title,
+        url: `/requests/${id}`,
+        targetType: 'request',
+        targetId: id,
+      });
+    }
 
     return updated!;
   });

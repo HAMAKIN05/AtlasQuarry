@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { LabelsProvider } from '@/components/LabelsProvider';
+import { countUnread } from '@/domain/notification/service';
 import { countRequestsByStatus } from '@/domain/request/service';
 import { loadLabels } from '@/domain/setting/labels';
 import { currentActor } from '@/lib/auth/cookies';
@@ -19,7 +20,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const actor = await currentActor();
   if (!actor) redirect('/login');
 
-  const [labels, counts] = await Promise.all([loadLabels(), countRequestsByStatus()]);
+  const [labels, counts, unread] = await Promise.all([
+    loadLabels(),
+    countRequestsByStatus(),
+    countUnread(actor.id),
+  ]);
 
   // 判断待ちの要望はナビに数字で出す。放置されていることが一目で分かるように
   const pendingRequests = can(actor, 'request.triage')
@@ -51,6 +56,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <AppNav
           actor={{ id: actor.id, name: actor.name, role: actor.role }}
           pendingRequests={pendingRequests}
+          unreadNotifications={unread}
         />
         {/* どの画面からでも1件を捕まえられるように、追加は常に手前に置く */}
         <AddButton canCreateTask={can(actor, 'task.create')} />

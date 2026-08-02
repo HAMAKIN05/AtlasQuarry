@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  BellIcon,
   CalendarCheckIcon,
   CalendarRangeIcon,
   ChevronDownIcon,
@@ -54,9 +55,10 @@ const MOBILE_ITEMS = ITEMS.filter((item) => item.href !== '/settings');
 type Props = {
   actor: { id: string; name: string; role: ActorRole };
   pendingRequests: number;
+  unreadNotifications: number;
 };
 
-export function AppNav({ actor, pendingRequests }: Props) {
+export function AppNav({ actor, pendingRequests, unreadNotifications }: Props) {
   const pathname = usePathname();
   const isCurrent = (href: string, exact: boolean) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
@@ -79,7 +81,22 @@ export function AppNav({ actor, pendingRequests }: Props) {
         <Link href="/" className="flex min-h-11 min-w-0 shrink items-center truncate font-bold tracking-tight">
           AtlasQuarry
         </Link>
-        <Account actor={actor} />
+        <span className="flex shrink-0 items-center gap-1">
+          {/* **お知らせは上部に置く。** 下部タブは日々の場所で、通知は届いたときだけ見る */}
+          <Link
+            href="/notifications"
+            aria-label={unreadNotifications > 0 ? `お知らせ ${unreadNotifications}件` : 'お知らせ'}
+            className="relative grid size-11 place-items-center rounded-full"
+          >
+            <BellIcon className="size-[22px] text-muted-foreground" aria-hidden="true" />
+            {unreadNotifications > 0 && (
+              <span className="absolute top-1.5 right-1.5 grid min-w-4 place-items-center rounded-full bg-destructive px-1 text-[10px] font-bold text-white">
+                {unreadNotifications}
+              </span>
+            )}
+          </Link>
+          <Account actor={actor} />
+        </span>
       </header>
 
       {/* PC：左のサイドバー */}
