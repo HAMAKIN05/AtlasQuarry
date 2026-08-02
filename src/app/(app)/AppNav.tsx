@@ -7,6 +7,7 @@ import {
   ChevronDownIcon,
   FolderKanbanIcon,
   MessageSquarePlusIcon,
+  SearchIcon,
   SettingsIcon,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -83,6 +84,14 @@ export function AppNav({ actor, pendingRequests, unreadNotifications }: Props) {
         </Link>
         <span className="flex shrink-0 items-center gap-1">
           {/* **お知らせは上部に置く。** 下部タブは日々の場所で、通知は届いたときだけ見る */}
+          {/* 探すは上部に置く。下部タブは日々の居場所で、検索は必要になったときだけ */}
+          <Link
+            href="/search"
+            aria-label="探す"
+            className="grid size-11 place-items-center rounded-full"
+          >
+            <SearchIcon className="size-[22px] text-muted-foreground" aria-hidden="true" />
+          </Link>
           <Link
             href="/notifications"
             aria-label={unreadNotifications > 0 ? `お知らせ ${unreadNotifications}件` : 'お知らせ'}

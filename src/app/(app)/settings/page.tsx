@@ -44,6 +44,12 @@ export default async function SettingsPage() {
       show: can(actor, 'integration.manage'),
     },
     {
+      href: '/settings/api-keys',
+      title: 'AIエージェントの鍵',
+      desc: 'Claude Code などから読み書きするための鍵（MCP）',
+      show: can(actor, 'integration.manage'),
+    },
+    {
       href: '/settings/notifications',
       title: 'お知らせの受け取り',
       desc: 'どの出来事を、どこで受け取るか',
