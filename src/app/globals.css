@@ -181,12 +181,17 @@
 
   /*
    * 素の input / select / textarea。
-   * 面より一段沈ませて、入力欄であることを明度で示す。
+   *
+   * **文字は 16px を下回らせない。**
+   * iOS Safari は、フォーカスした入力欄の文字が 16px 未満だと**自動でページを拡大する。**
+   * 拡大されると横位置もずれるので、入力を始めた瞬間に画面が飛んだように見える
+   * （実機で「入力画面にフォーカスすると若干拡大されて横ずれする」と指摘された）。
+   * 本文の基準は 15px のままでよいが、**入力欄だけは 16px 以上**にする。
    */
   input:not([type='checkbox']):not([type='radio']):not([type='file']),
   select,
   textarea {
-    @apply min-h-12 w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-[0.94rem];
+    @apply min-h-12 w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-base;
     @apply placeholder:text-subtle;
     @apply transition-colors focus-visible:border-primary-line;
     @apply disabled:cursor-not-allowed disabled:opacity-50;
@@ -194,6 +199,19 @@
 
   textarea {
     @apply min-h-24 resize-y leading-relaxed;
+  }
+
+  /*
+   * **保険。** 個別のクラスで文字を小さくしても、指で触る端末では 16px を下回らせない。
+   * 下回った瞬間に iOS がページを拡大して横位置までずれる。
+   * ここで押さえておけば、あとから小さい文字を当てても事故にならない。
+   */
+  @media (pointer: coarse) {
+    input:not([type='checkbox']):not([type='radio']):not([type='file']),
+    select,
+    textarea {
+      font-size: max(16px, 1em);
+    }
   }
 
   input[type='checkbox'],

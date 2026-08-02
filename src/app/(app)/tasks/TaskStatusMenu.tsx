@@ -63,7 +63,12 @@ export function TaskStatusMenu({
         disabled={busy}
         value={current}
         onChange={(event) => change(event.target.value as TaskStatus)}
-        className="!min-h-9 !w-auto shrink-0 !border-0 !bg-raised !px-2 !py-1 !text-xs !text-muted-foreground"
+        /*
+          **文字を 16px 未満にしない。** 小さくすると iOS がフォーカス時に
+          ページを拡大してしまう。見た目を詰めたいときは、字を小さくするのではなく
+          余白と高さで詰める。
+        */
+        className="!w-auto shrink-0 !border-0 !bg-raised !px-2.5 !py-1 !text-muted-foreground"
       >
         {BOARD_COLUMNS.map((value) => (
           <option key={value} value={value}>
