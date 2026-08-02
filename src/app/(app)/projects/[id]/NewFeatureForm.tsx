@@ -43,10 +43,15 @@ export function NewFeatureForm({ productId }: { productId: string }) {
     }
   }
 
+  /*
+   * **トグルとフォームを同じ場所に置いても、ここは全幅の列にあるので崩れない。**
+   * ただし押せることが伝わらない素のボタンだったので、丸い札にして揃えた。
+   * （要望・タスク・プロジェクトは、狭い枠で開いて壊れたため専用画面に移してある）
+   */
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)}>
-        開発項目を追加
+      <button type="button" className="chip self-start" onClick={() => setOpen(true)}>
+        ＋ 開発項目を追加
       </button>
     );
   }

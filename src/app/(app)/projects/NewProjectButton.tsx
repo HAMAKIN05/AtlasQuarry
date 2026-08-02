@@ -1,86 +1,17 @@
-'use client';
+import Link from 'next/link';
 
-import { useRouter } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
-
-import { ApiError, api } from '@/lib/api/client';
+import { Button } from '@/components/ui/button';
 
 /**
- * プロジェクトの作成。
+ * プロジェクトを作る画面への導線。
  *
- * キーはタスク番号の頭に付く記号（`PRD-12` の `PRD`）。**利用者にとっては意味が薄い**ので、
- * 名前から自動で候補を作り、必要なら直せる形にしている。
+ * **その場で開くフォームをやめ、専用の画面へ送る。** 見出しの脇の狭い枠に
+ * 入力欄が開いて右へはみ出す作りだった（要望・タスクで直したのと同じ形）。
  */
 export function NewProjectButton() {
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError(null);
-    setSubmitting(true);
-    try {
-      const created = await api.post<{ id: string }>('/products', {
-        name,
-        description: null,
-      });
-      setName('');
-      setOpen(false);
-      router.push(`/projects/${created.id}`);
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : '作成できませんでした');
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  if (!open) {
-    return (
-      <button type="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setOpen(true)}>
-        プロジェクトを作る
-      </button>
-    );
-  }
-
   return (
-    <form className="flex flex-col gap-4 surface p-4" onSubmit={handleSubmit} noValidate>
-      <h2 className="text-base font-bold">プロジェクトを作る</h2>
-
-      {error && (
-        <p className="rounded-md bg-destructive-soft px-3 py-2 text-sm text-destructive" role="alert">
-          {error}
-        </p>
-      )}
-
-      <label className="flex min-w-0 flex-col gap-1.5">
-        <span className="text-sm font-semibold text-muted-foreground">名前</span>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          maxLength={100}
-          required
-          autoFocus
-          placeholder="例：日報自動化"
-        />
-      </label>
-
-      {/*
-        **記号（タスク番号の頭）は訊かない。** 決める理由も基準も利用者には無い。
-        サーバーで採番する（`P1` `P2` …）。画面にも出さない。
-      */}
-
-      <div className="flex flex-wrap items-center gap-2">
-        <button type="submit" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" disabled={submitting}>
-          {submitting ? '作成中…' : '作る'}
-        </button>
-        <button type="button" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-primary-soft disabled:opacity-50" onClick={() => setOpen(false)}>
-          やめる
-        </button>
-      </div>
-    </form>
+    <Button asChild>
+      <Link href="/projects/new">プロジェクトを作る</Link>
+    </Button>
   );
 }
