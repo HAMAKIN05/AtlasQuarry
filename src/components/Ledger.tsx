@@ -38,9 +38,15 @@ export function Band({
   );
 }
 
-/** 行をまとめる白いカード。 */
+/**
+ * 行を積む場所。
+ *
+ * **1枚のカードにまとめるのをやめた。** 薄い線で仕切ると「表」に見えて、
+ * 1件ずつが独立している感じが出ない、という指摘への対応。
+ * いまは1件＝1カードで、間隔を空けて積む。
+ */
 export function Stack({ children }: { children: ReactNode }) {
-  return <ul className="stack">{children}</ul>;
+  return <ul className="card-list">{children}</ul>;
 }
 
 /**
@@ -64,10 +70,10 @@ export function Row({
   trailing?: ReactNode;
 }) {
   return (
-    <li className="stack-row">
+    <li className="card flex items-center gap-3">
       {lead && <span className="shrink-0">{lead}</span>}
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <Link href={href} className="stack-title hover:underline">
+      <span className="flex min-w-0 flex-1 flex-col gap-1">
+        <Link href={href} className="card-title hover:underline">
           {title}
         </Link>
         {meta && <span className="stack-meta">{meta}</span>}

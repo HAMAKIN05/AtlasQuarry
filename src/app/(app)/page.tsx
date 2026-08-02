@@ -53,7 +53,7 @@ export default async function HomePage() {
       */}
       <Link
         href="/requests/new"
-        className="row-link -my-1 rounded-md border border-dashed border-border-strong px-3 text-sm text-muted-foreground hover:text-foreground"
+        className="flex min-h-14 items-center gap-2 rounded-2xl border border-dashed border-border-strong px-4 text-sm font-semibold text-muted-foreground transition-colors hover:border-primary-line hover:text-foreground"
       >
         <PlusIcon className="size-4 shrink-0" aria-hidden="true" />
         こうなったら楽になる、を書く
@@ -310,42 +310,35 @@ function MilestoneGroup({
   late?: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-1">
-      <h3 className="text-xs font-semibold text-subtle">{label}</h3>
-      <Stack>
+    <div className="flex flex-col gap-2">
+      <h3 className="px-1 text-[0.82rem] font-bold text-muted-foreground">{label}</h3>
+      {/* **1件ずつ独立したカードにする。** 表に見せない */}
+      <div className="card-list">
         {tasks.map((task) => (
-          <li key={task.id}>
-            <Link href={`/tasks/${task.key}`} className="row-link">
-              <span
-                className={
-                  late
-                    ? 'tabular w-16 shrink-0 text-xs font-bold text-destructive'
-                    : 'tabular w-16 shrink-0 text-xs text-muted-foreground'
-                }
-              >
-                {formatDate(task.dueDate)}
+          <Link key={task.id} href={`/tasks/${task.key}`} className="card flex items-center gap-3">
+            <span
+              className={
+                late
+                  ? 'tabular w-16 shrink-0 text-sm font-bold text-destructive'
+                  : 'tabular w-16 shrink-0 text-sm font-semibold text-muted-foreground'
+              }
+            >
+              {formatDate(task.dueDate)}
+            </span>
+            <span className="min-w-0 flex-1 text-[1rem] leading-snug font-semibold">
+              {task.title}
+            </span>
+            {task.assigneeName && (
+              <span className="min-w-0 max-w-24 truncate text-xs text-muted-foreground">
+                {task.assigneeName}
               </span>
-              <span className="min-w-0 flex-1 basis-40">{task.title}</span>
-              {task.assigneeName && (
-                /*
-                 * 右端に置くものは**縮められるようにする。** `shrink-0` だと
-                 * 実機の書体がこちらより数px広いだけで押し出されて切られる。
-                 */
-                <span className="min-w-0 max-w-28 truncate text-xs text-muted-foreground">
-                  {task.assigneeName}
-                </span>
-              )}
-            </Link>
-          </li>
+            )}
+          </Link>
         ))}
-      </Stack>
+      </div>
     </div>
   );
 }
-
-/* ------------------------------------------------------------------ *
- * プロジェクト
- * ------------------------------------------------------------------ */
 
 async function ProjectOverview() {
   const projects = await listProducts();
@@ -357,45 +350,49 @@ async function ProjectOverview() {
           <h2>プロジェクト</h2>
         </div>
         {projects.length > 0 && (
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/projects">
-              すべて見る
-              <ArrowRightIcon />
-            </Link>
-          </Button>
+          <Link
+            href="/projects"
+            className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-primary"
+          >
+            すべて見る
+            <ArrowRightIcon className="size-4" aria-hidden="true" />
+          </Link>
         )}
       </div>
+
       {projects.length === 0 ? (
         <EmptyState
           title="プロジェクトがまだありません"
           description="内製化する対象ごとに作ります。たとえば「日報自動化」「SNS分析」のような単位です。"
-          actionLabel="プロジェクトを作る"
+          actionLabel="プロジェクトを見る"
           actionHref="/projects"
         />
       ) : (
-        <Stack>
-          {projects.map((project) => (
-            <li key={project.id}>
-              <Link
-                href={`/projects/${project.id}`}
-                className="flex min-h-12 flex-col gap-1 border-b border-border px-1 py-2.5 last:border-b-0 hover:bg-raised sm:flex-row sm:items-center sm:gap-5"
-              >
-                <span className="font-semibold sm:w-1/3">{project.name}</span>
-                <Progress
-                  className="w-full sm:flex-1"
-                  done={project.progress.doneTasks}
-                  total={project.progress.totalTasks}
-                />
-              </Link>
-            </li>
+        /*
+         * **1件ずつ独立したカードにする。**
+         * まとめて1枚にして薄い線で仕切っていたが、それだと「表」に見えて
+         * 1件ずつが独立している感じが出なかった、という指摘への対応。
+         */
+        <div className="card-list">
+          {projects.map((p) => (
+            <Link key={p.id} href={`/projects/${p.id}`} className="card">
+              <span className="card-title block">{p.name}</span>
+              <Progress
+                className="mt-3"
+                done={p.progress.doneTasks}
+                total={p.progress.totalTasks}
+              />
+              <span className="stack-meta mt-2">
+                {p.nextDueDate ? `次の期限 ${formatDate(p.nextDueDate)}` : '期限なし'}
+              </span>
+            </Link>
           ))}
-        </Stack>
+        </div>
       )}
     </section>
   );
 }
 
-/** 期限が近い順。期限の無いものは後ろ。 */
 async function openTasksOf(actorId: string): Promise<TaskListItem[]> {
   const tasks = await listTasks({
     assigneeId: actorId,

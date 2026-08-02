@@ -67,25 +67,35 @@ export function Progress({
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
+      {/*
+        **細い灰色の線をやめた。** 1.5px の灰色は「置いただけ」に見えて安っぽい。
+        太さを持たせ、進んだぶんに色を入れる。数字は右に小さく添えるのではなく、
+        パーセントだけを大きめに出して、内訳は補助にする。
+      */}
       <div
-        className="h-1.5 flex-1 overflow-hidden rounded-full bg-raised"
+        className="h-2.5 flex-1 overflow-hidden rounded-full bg-raised"
         role="progressbar"
         aria-valuenow={percent}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label="進捗"
       >
-        {/*
-          進捗は**紫にしない。** 紫は「押せる／いまここ／自分が止めている判断」の3つに限る。
-          進捗バーは眺める情報で、操作でも注意喚起でもない。
-        */}
         <div
-          className="h-full bg-muted-foreground transition-[width]"
+          className="h-full rounded-full bg-primary transition-[width]"
           style={{ width: `${percent}%` }}
         />
       </div>
-      <span className="tabular shrink-0 text-xs font-semibold text-muted-foreground">
-        {total === 0 ? 'タスクなし' : `${percent}%（${done}/${total}）`}
+      <span className="tabular shrink-0 text-sm font-bold">
+        {total === 0 ? (
+          <span className="text-sm font-semibold text-subtle">タスクなし</span>
+        ) : (
+          <>
+            {percent}
+            <span className="text-xs font-semibold text-muted-foreground">
+              % · {done}/{total}
+            </span>
+          </>
+        )}
       </span>
     </div>
   );

@@ -57,7 +57,12 @@ export function AppNav({ actor, pendingRequests }: Props) {
   return (
     <>
       {/* スマホ：上部のバー */}
-      <header className="order-1 flex shrink-0 items-center justify-between gap-2 bg-background px-4 py-2 lg:hidden">
+      {/*
+        **境目を引く。** 本文だけが内側でスクロールするので、線が無いと
+        文字がバーの下でいきなり切られたように見える（実機で「上が切れてる」と
+        指摘されたのがこれ。切れているのではなく、境目が見えていなかった）。
+      */}
+      <header className="order-1 z-10 flex shrink-0 items-center justify-between gap-2 border-b border-border bg-surface px-4 py-2 shadow-[0_2px_8px_oklch(0.26_0.02_160/0.05)] lg:hidden">
         {/* 右側（氏名＝設定への入口）を先に立てるので、題字は縮んでよい */}
         <Link href="/" className="flex min-h-11 min-w-0 shrink items-center truncate font-bold tracking-tight">
           AtlasQuarry

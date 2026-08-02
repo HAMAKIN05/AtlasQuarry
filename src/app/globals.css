@@ -25,10 +25,10 @@
   --radius: 1rem;
 
   /* 下地は白ではなく、ごくわずかに色を持たせる。白いカードが浮く */
-  --background: oklch(0.975 0.006 160);
+  --background: oklch(0.955 0.008 160);
   --surface: oklch(1 0 0);
-  --surface-raised: oklch(0.968 0.008 160);
-  --surface-hover: oklch(0.955 0.01 160);
+  --surface-raised: oklch(0.93 0.01 160);
+  --surface-hover: oklch(0.975 0.006 160);
 
   --foreground: oklch(0.26 0.02 160);
   --muted-foreground: oklch(0.52 0.018 160);
@@ -56,8 +56,8 @@
    * 影。**輪郭線の代わり。** 2段重ねて、接地の1pxと広がりの1枚を作る。
    * 濃くすると途端に古く見えるので、薄いまま広げる。
    */
-  --shadow-card: 0 1px 2px oklch(0.26 0.02 160 / 0.05), 0 6px 20px oklch(0.26 0.02 160 / 0.06);
-  --shadow-lift: 0 2px 4px oklch(0.26 0.02 160 / 0.06), 0 12px 32px oklch(0.26 0.02 160 / 0.1);
+  --shadow-card: 0 1px 2px oklch(0.26 0.02 160 / 0.07), 0 8px 24px oklch(0.26 0.02 160 / 0.08);
+  --shadow-lift: 0 2px 6px oklch(0.26 0.02 160 / 0.08), 0 16px 40px oklch(0.26 0.02 160 / 0.14);
 
   --ring: var(--primary);
 }
@@ -298,23 +298,33 @@
    * 行をまとめた白いカード。**1件ずつ独立したカードにしない。**
    * カードが増えるほど影と角が散らかる。まとまりを1枚にして、中を細い線で仕切る。
    */
-  .stack {
-    @apply overflow-hidden rounded-2xl bg-surface;
-    box-shadow: var(--shadow-card);
-  }
-  .stack-row {
-    @apply flex min-h-16 items-center gap-3 px-4 py-3 transition-colors;
-    @apply border-b border-border last:border-b-0 hover:bg-hover;
-  }
-  .stack-title {
-    @apply text-[0.98rem] leading-snug font-semibold;
-  }
   .stack-meta {
     font-variant-numeric: tabular-nums;
     @apply flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[0.78rem] text-muted-foreground;
   }
   .stack-meta [data-late='true'] {
     @apply font-bold text-destructive;
+  }
+
+  /*
+   * 1件ぶんのカード。**プロジェクトや課題は、まとめずに1件ずつ切り離す。**
+   * まとめて1枚にしていたが、区切りが薄い線1本だけだと「表」に見えて、
+   * 1件ずつが独立している感じが出なかった。
+   */
+  .card {
+    @apply block rounded-2xl bg-surface p-4 transition-shadow;
+    box-shadow: var(--shadow-card);
+  }
+  .card:hover {
+    box-shadow: var(--shadow-lift);
+  }
+  .card-title {
+    @apply text-[1.05rem] leading-snug font-bold;
+  }
+
+  /* カードを縦に積む間隔。**詰めない。** 詰めると表に戻る */
+  .card-list {
+    @apply flex flex-col gap-2.5;
   }
 
   /*
