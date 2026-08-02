@@ -116,10 +116,12 @@ export type CreateDocumentInput = {
   type: DocumentType;
   title: string;
   meetingDate?: string | null;
+  /** 作った時点で中身がある場合（MCP からのドラフト投入。F-26）。 */
+  bodyMd?: string;
 };
 
 export async function createDocument(actorCtx: ActorContext, input: CreateDocumentInput) {
-  assertCan(actorCtx, 'document.edit');
+  assertCan(actorCtx, 'document.create');
 
   if (input.title.trim().length === 0) {
     throw new ValidationError('題名を入力してください');
@@ -152,6 +154,7 @@ export async function createDocument(actorCtx: ActorContext, input: CreateDocume
         parentId,
         type: input.type,
         title: input.title.trim(),
+        ...(input.bodyMd ? { bodyMd: input.bodyMd } : {}),
         // 議事録以外に開催日を持たせない（DB の CHECK と同じ条件を入口でも弾く）
         meetingDate: input.type === 'minutes' ? (input.meetingDate ?? null) : null,
         position: last ? last.position + POSITION_STEP : POSITION_STEP,

@@ -20,6 +20,7 @@ export function IntegrationForm({
 }) {
   const [state, setState] = useState(initial);
   const [webhookUrl, setWebhookUrl] = useState('');
+  const [publicKey, setPublicKey] = useState('');
   const [smtp, setSmtp] = useState({ host: '', port: '587', user: '', pass: '', from: '' });
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
@@ -34,6 +35,7 @@ export function IntegrationForm({
       setDone(`${label}を設定しました`);
       setState((s) => ({ ...s, [body.provider as string]: true }));
       setWebhookUrl('');
+      setPublicKey('');
       setSmtp({ host: '', port: '587', user: '', pass: '', from: '' });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '保存できませんでした');
@@ -73,7 +75,7 @@ export function IntegrationForm({
           className="flex flex-col gap-4"
           onSubmit={(e: FormEvent) => {
             e.preventDefault();
-            void save({ provider: 'discord', webhookUrl }, 'Discord 通知');
+            void save({ provider: 'discord', webhookUrl, publicKey }, 'Discord 通知');
           }}
         >
           <Field
@@ -90,6 +92,29 @@ export function IntegrationForm({
               required
             />
           </Field>
+
+          <Field
+            label="公開鍵（省略できます）"
+            htmlFor="discord-key"
+            hint="Discord で /要望 /決定 のコマンドを使うときだけ必要です。Discord Developer Portal のアプリ設定 → General Information → Public Key。"
+          >
+            <Input
+              id="discord-key"
+              value={publicKey}
+              onChange={(e) => setPublicKey(e.target.value.trim().toLowerCase())}
+              placeholder="64桁の英数字"
+              autoComplete="off"
+            />
+          </Field>
+
+          {publicKey.length > 0 && (
+            <p className="text-sm text-muted-foreground">
+              Discord 側の Interactions Endpoint URL には、この画面のアドレスの
+              <code className="mx-1">/api/discord/interactions</code>
+              を入れてください。
+            </p>
+          )}
+
           <div className="flex flex-wrap gap-2">
             <Button type="submit" disabled={busy || webhookUrl.length === 0}>
               {state.discord ? '入れ替える' : '設定する'}

@@ -33,6 +33,7 @@ export type Action =
   | 'comment.create'
   | 'comment.delete'
   // ドキュメント（F-11 / F-23、v0.3）
+  | 'document.create'
   | 'document.edit'
   | 'minutes.confirm'
   // その他
@@ -89,6 +90,12 @@ const ROLE_TABLE: Record<Action, readonly ActorRole[]> = {
   'comment.create': ALL_ROLES,
   'comment.delete': MANAGEMENT,
 
+  /*
+   * **AI は資料を「作る」ことだけできる**（F-26 の議事録ドラフト）。
+   * 既存の資料を書き換えさせない。書き換えを許すと、人が直した内容を
+   * 次の投入で黙って上書きできてしまう。
+   */
+  'document.create': [...CORE_MEMBERS, 'agent'],
   'document.edit': CORE_MEMBERS,
   'minutes.confirm': CORE_MEMBERS,
 

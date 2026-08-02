@@ -31,6 +31,16 @@ const discordSchema = z.object({
   webhookUrl: z.string().trim().url().startsWith('https://discord.com/api/webhooks/', {
     message: 'Discord の Webhook URL を入れてください',
   }),
+  /**
+   * スラッシュコマンド（F-22c / F-24）の署名検証に使う公開鍵。
+   * **無くても通知は動く**ので任意。入れて初めてコマンドが使えるようになる。
+   */
+  publicKey: z
+    .string()
+    .trim()
+    .regex(/^[0-9a-f]{64}$/, '公開鍵は64桁の16進数です')
+    .optional()
+    .or(z.literal('')),
 });
 
 const bodySchema = z.discriminatedUnion('provider', [smtpSchema, discordSchema]);

@@ -3,12 +3,16 @@ import { Suspense } from 'react';
 
 import { GanttChart } from '@/components/GanttChart';
 import { MobileSchedule } from '@/components/MobileSchedule';
+import { MonthCalendar } from '@/components/MonthCalendar';
 import { EmptyState, Loading } from '@/components/app-ui';
+import { currentMonth, monthEvents } from '@/domain/calendar/query';
 import { getScheduleData } from '@/domain/gantt/query';
 import { requireActor } from '@/lib/auth/cookies';
 import { cn } from '@/lib/cn';
 
-type Props = { searchParams: Promise<{ projectId?: string }> };
+type Props = {
+  searchParams: Promise<{ projectId?: string; view?: string; month?: string; day?: string }>;
+};
 
 export const metadata = { title: '予定 | AtlasQuarry' };
 
@@ -24,16 +28,84 @@ export const metadata = { title: '予定 | AtlasQuarry' };
  */
 export default async function SchedulePage({ searchParams }: Props) {
   await requireActor();
-  const { projectId } = await searchParams;
+  const { projectId, view, month, day } = await searchParams;
+
+  /*
+   * **カレンダーはタブを増やさず、予定の中の見方にする。**
+   * ガントは「いつからいつまで」を、カレンダーは「その日までに何を終わらせるか」を見る。
+   * 同じ「予定」の別の見方なので、同じ場所に置く。
+   */
+  const mode = view === 'calendar' ? 'calendar' : 'gantt';
 
   return (
     <div className="flex flex-col gap-5">
       <h1 className="large-title">予定</h1>
 
-      <Suspense fallback={<Loading label="予定を読み込んでいます" />}>
-        <ScheduleBody selected={projectId ?? null} />
-      </Suspense>
+      <nav className="-mt-2 flex gap-2" aria-label="見方">
+        <Link
+          href={projectId ? `/schedule?projectId=${projectId}` : '/schedule'}
+          className="chip"
+          aria-current={mode === 'gantt' ? 'page' : undefined}
+        >
+          工程
+        </Link>
+        <Link
+          href={calendarHref({ projectId: projectId ?? null, month: month ?? null, day: null })}
+          className="chip"
+          aria-current={mode === 'calendar' ? 'page' : undefined}
+        >
+          カレンダー
+        </Link>
+      </nav>
+
+      {mode === 'calendar' ? (
+        <Suspense fallback={<Loading label="カレンダーを組み立てています" />}>
+          <CalendarBody
+            projectId={projectId ?? null}
+            month={month ?? currentMonth()}
+            day={day ?? null}
+          />
+        </Suspense>
+      ) : (
+        <Suspense fallback={<Loading label="予定を読み込んでいます" />}>
+          <ScheduleBody selected={projectId ?? null} />
+        </Suspense>
+      )}
     </div>
+  );
+}
+
+function calendarHref(params: {
+  projectId: string | null;
+  month: string | null;
+  day: string | null;
+}): string {
+  const query = new URLSearchParams({ view: 'calendar' });
+  if (params.projectId) query.set('projectId', params.projectId);
+  if (params.month) query.set('month', params.month);
+  if (params.day) query.set('day', params.day);
+  return `/schedule?${query.toString()}`;
+}
+
+async function CalendarBody({
+  projectId,
+  month,
+  day,
+}: {
+  projectId: string | null;
+  month: string;
+  day: string | null;
+}) {
+  const events = await monthEvents(month, projectId);
+
+  return (
+    <MonthCalendar
+      month={month}
+      events={events}
+      today={new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10)}
+      selected={day}
+      hrefFor={(p) => calendarHref({ projectId, month: p.month, day: p.day })}
+    />
   );
 }
 

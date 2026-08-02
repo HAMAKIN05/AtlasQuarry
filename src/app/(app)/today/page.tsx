@@ -11,7 +11,10 @@ import { listTasks, type TaskListItem } from '@/domain/task/service';
 import { requireActor } from '@/lib/auth/cookies';
 import { can } from '@/lib/auth/rbac';
 import { formatDate, formatRelative } from '@/lib/format';
+import { cn } from '@/lib/cn';
+import type { FeedRange, FeedTarget } from '@/domain/activity/feed';
 
+import { ActivityView } from './ActivityView';
 import { TaskStatusMenu } from '../tasks/TaskStatusMenu';
 
 export const metadata = { title: '今日 | AtlasQuarry' };
@@ -33,16 +36,59 @@ export const metadata = { title: '今日 | AtlasQuarry' };
  * 未来の期限・期限なしは出さない。**時刻も工数も無い**以上、それらを
  * 「次に進めるもの」として推すのは根拠が無い。棚卸しはタスク画面の仕事。
  */
-export default async function TodayPage() {
+export default async function TodayPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string; range?: string; target?: string; day?: string }>;
+}) {
   const actor = await requireActor();
   const canTriage = can(actor, 'request.triage');
+  const q = await searchParams;
+
+  /*
+   * **活動はタブを増やさず、「今日」の中の見方にする。**
+   * 下部タブは プロジェクト / 今日 / 予定 / 要望 の4本から増やさない。
+   * 活動は毎日見るものではないので、5本目を占める理由がない。
+   */
+  const view = q.view === 'activity' ? 'activity' : 'today';
 
   return (
     <div className="flex flex-col gap-7">
       <h1 className="large-title">今日</h1>
 
+      <nav className="-mx-1 -mt-3 flex gap-2 overflow-x-auto px-1 py-1" aria-label="見方">
+        <Link href="/today" className={cn('chip')} aria-current={view === 'today' ? 'page' : undefined}>
+          今日の対応
+        </Link>
+        <Link
+          href="/today?view=activity"
+          className={cn('chip')}
+          aria-current={view === 'activity' ? 'page' : undefined}
+        >
+          活動
+        </Link>
+      </nav>
+
+      {view === 'activity' ? (
+        <Suspense fallback={<Loading label="活動を集めています" />}>
+          <ActivityView
+            range={(q.range as FeedRange) ?? 'week'}
+            target={(q.target as FeedTarget) ?? 'all'}
+            day={q.day ?? null}
+          />
+        </Suspense>
+      ) : (
+        <TodayView actorId={actor.id} canTriage={canTriage} />
+      )}
+    </div>
+  );
+}
+
+function TodayView({ actorId, canTriage }: { actorId: string; canTriage: boolean }) {
+  return (
+    <>
       <Suspense fallback={<Loading label="今日の対応を探しています" />}>
-        <TodayTasks actorId={actor.id} />
+        <TodayTasks actorId={actorId} />
       </Suspense>
 
       {canTriage && (
@@ -58,7 +104,7 @@ export default async function TodayPage() {
       <Suspense fallback={<Loading />}>
         <ActiveProjects />
       </Suspense>
-    </div>
+    </>
   );
 }
 

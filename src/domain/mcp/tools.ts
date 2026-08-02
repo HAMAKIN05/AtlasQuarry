@@ -4,10 +4,11 @@ import { z } from 'zod';
 import { db } from '@/db/client';
 import { task } from '@/db/schema';
 import { createTaskComment } from '@/domain/comment/service';
-import { getDocument, listDocuments } from '@/domain/document/service';
+import { createDocument, getDocument, listDocuments } from '@/domain/document/service';
 import { listProducts } from '@/domain/product/service';
 import { search } from '@/domain/search/service';
 import { getTaskByKey, listTasks, updateTask } from '@/domain/task/service';
+import { endAgentWork, startAgentWork } from '@/domain/worklog/service';
 import { NotFoundError, ValidationError } from '@/lib/errors';
 
 import { assertProductAllowed, assertWritable, toActorContext, type McpAuth } from './auth';
@@ -88,6 +89,36 @@ export const TOOLS = [
     description: 'タスクにコメントを書く。作業の経緯や気づいたことを残す用。',
     write: true,
     schema: z.object({ key: z.string().min(1), body: z.string().min(1).max(4000) }),
+  },
+  {
+    name: 'start_work',
+    description:
+      '作業を始めたことを記録する。key を渡すとそのタスクの作業時間として集計される。' +
+      '開いたままの記録があれば閉じてから始める。',
+    write: true,
+    schema: z.object({ key: z.string().min(1).optional() }),
+  },
+  {
+    name: 'end_work',
+    description:
+      '作業を終えたことを記録する。start_work からの経過時間が、そのタスクのAI実行時間になる。' +
+      'summary に何をしたかを1〜2行で書く。',
+    write: true,
+    schema: z.object({ summary: z.string().max(2000).optional() }),
+  },
+  {
+    name: 'create_document',
+    description:
+      '資料の下書きを作る（F-26）。議事録のドラフトはこれで入れる。' +
+      'type は spec / knowledge / minutes。**既存の資料は上書きできない**（新規だけ）。',
+    write: true,
+    schema: z.object({
+      projectId: z.string().uuid(),
+      title: z.string().min(1).max(200),
+      bodyMd: z.string().min(1).max(100_000),
+      type: z.enum(['spec', 'knowledge', 'minutes']),
+      meetingDate: z.string().optional(),
+    }),
   },
 ] as const;
 
@@ -247,6 +278,47 @@ export async function callTool(
 
       const created = await createTaskComment(ctx, found.id, body);
       return textResult({ commentId: created.id });
+    }
+
+    case 'start_work': {
+      const key = input.key as string | undefined;
+      let taskId: string | null = null;
+      if (key) {
+        const found = await getTaskByKey(key);
+        assertProductAllowed(auth, found.productId);
+        taskId = found.id;
+      }
+      const started = await startAgentWork(auth.actor.id, taskId);
+      return textResult({ sessionId: started.sessionId, task: key ?? null });
+    }
+
+    case 'end_work': {
+      const ended = await endAgentWork(auth.actor.id, (input.summary as string | undefined) ?? null);
+      return textResult({ minutes: ended.minutes });
+    }
+
+    case 'create_document': {
+      const projectId = input.projectId as string;
+      assertProductAllowed(auth, projectId);
+
+      /*
+       * **AI が作ったものと分かるようにする。** 題名に「下書き」を付け、
+       * 確定はしない。人が読んで直してから正式な資料になる（機能定義書 §9.1）。
+       */
+      const title = (input.title as string).includes('下書き')
+        ? (input.title as string)
+        : `${input.title as string}（下書き）`;
+
+      const created = await createDocument(ctx, {
+        productId: projectId,
+        parentId: null,
+        type: input.type as never,
+        title,
+        bodyMd: input.bodyMd as string,
+        meetingDate: (input.meetingDate as string | undefined) ?? null,
+      });
+
+      return textResult({ id: created.id, title, url: `/docs/${created.id}` });
     }
 
     default:

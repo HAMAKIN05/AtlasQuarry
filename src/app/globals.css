@@ -448,6 +448,65 @@
     @apply bg-primary text-primary-foreground;
   }
 
+  /*
+   * 直近14日の活動（F-16）。7列×2段。**横スクロールさせない**――
+   * スマホで横に流れる表は、端が見えているのか切れているのか分からない。
+   */
+  .rhythm-cell {
+    @apply flex aspect-square items-center justify-center rounded-[8px];
+    @apply text-muted-foreground;
+    background: var(--surface-raised);
+  }
+  .rhythm-cell[data-level='1'] {
+    background: color-mix(in srgb, var(--primary) 22%, var(--surface-raised));
+  }
+  .rhythm-cell[data-level='2'] {
+    background: color-mix(in srgb, var(--primary) 45%, var(--surface-raised));
+  }
+  .rhythm-cell[data-level='3'] {
+    background: color-mix(in srgb, var(--primary) 70%, var(--surface-raised));
+    @apply text-primary-foreground;
+  }
+  .rhythm-cell[data-level='4'] {
+    background: var(--primary);
+    @apply text-primary-foreground;
+  }
+  /* 選んだ日は色ではなく輪郭で示す。濃淡そのものが情報なので上書きしない */
+  .rhythm-cell-on {
+    box-shadow: 0 0 0 2px var(--foreground);
+  }
+
+  /*
+   * 月表示のマス（F-15）。**題名を入れない。**
+   * スマホの1マスは40px前後で、名前を入れても読めない。件数だけ出して、
+   * 読める形は下の一覧に任せる。
+   */
+  .cal-cell {
+    @apply relative flex aspect-square flex-col items-center justify-center rounded-[8px];
+    @apply text-foreground;
+  }
+  .cal-cell:active {
+    background: var(--pressed);
+  }
+  .cal-cell-out {
+    @apply text-subtle;
+  }
+  .cal-cell-today {
+    @apply font-bold text-primary;
+  }
+  .cal-cell-on {
+    background: var(--primary-soft);
+    box-shadow: inset 0 0 0 1.5px var(--primary);
+  }
+  .cal-count {
+    @apply mt-0.5 min-w-4 rounded-full px-1 text-[10px] leading-4 font-bold;
+    @apply bg-primary text-primary-foreground;
+  }
+  /* 期限を過ぎた未完了があるマスだけ赤にする。**色は状態ではなく遅れに使う** */
+  .cal-count-late {
+    @apply bg-destructive text-white;
+  }
+
   /* 空状態も面を増やさず、コンテキストの末尾として短く置く。 */
   .empty-inline {
     @apply rounded-2xl bg-raised px-4 py-4 text-sm text-muted-foreground;

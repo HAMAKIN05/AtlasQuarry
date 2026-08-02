@@ -9,6 +9,7 @@ import { getProductById } from '@/domain/product/service';
 import { loadLabels } from '@/domain/setting/labels';
 import { DOCUMENT_TYPE_LABELS, listDocuments, type DocumentListItem } from '@/domain/document/service';
 import { groupTasks } from '@/domain/task/grouping';
+import { effortSummary, formatMinutes } from '@/domain/worklog/service';
 import { listTasks, type TaskListItem } from '@/domain/task/service';
 import { requireActor } from '@/lib/auth/cookies';
 import { can } from '@/lib/auth/rbac';
@@ -41,6 +42,8 @@ const VIEWS = [
   { key: 'schedule', label: '予定' },
   /* **資料はタブを増やさず、プロジェクトの中の見方にする**（下部タブは4本のまま） */
   { key: 'docs', label: '資料' },
+  /* 工数は案件単位でだけ見せる。**全社横断の集計画面は作らない**（査定に使われる） */
+  { key: 'effort', label: '工数' },
 ] as const;
 
 /**
@@ -101,6 +104,16 @@ export default async function ProjectHomePage({ params, searchParams }: Props) {
           <ProjectDocs projectId={project.id} canEdit={canEditDocs} />
         </Suspense>
       )}
+
+      {current === 'effort' && (
+        <Suspense fallback={<Loading />}>
+          <Effort
+            projectId={project.id}
+            /* 開発者には自分の分だけ返す。**他人の工数を見せない** */
+            actorId={can(actor, 'worklog.viewAll') ? null : actor.id}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
@@ -145,6 +158,105 @@ async function Overview({ projectId }: { projectId: string }) {
       ) : (
         <GroupedTaskList tasks={open} labels={labels} />
       )}
+
+      {/*
+        書き出し（F-19 / F-21）。**画面の下に置く。**
+        毎日押すものではないので、上に置くと主な操作の邪魔になる。
+      */}
+      <div className="flex flex-wrap gap-2">
+        <a href={`/api/v1/projects/${projectId}/export?format=md`} className="chip">
+          文書にまとめて保存
+        </a>
+        <a href={`/api/v1/projects/${projectId}/export?format=csv`} className="chip">
+          Excel用に保存
+        </a>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * 工数（F-17）。**完了したタスクだけ**を比べる。
+ *
+ * 進行中のタスクは実績が増え続けるので、見積りと比べても
+ * 「まだ足りていない」以上のことが分からない。
+ *
+ * **入っていないものを数で出す。** 未入力を 0 分として集計すると
+ * 「早く終わった」ように見え、見積り値で埋めると差分が常に 0 になる。
+ */
+async function Effort({ projectId, actorId }: { projectId: string; actorId: string | null }) {
+  const summary = await effortSummary(projectId, { actorId });
+
+  if (summary.rows.length === 0) {
+    return (
+      <EmptyState
+        title="完了したタスクがまだありません"
+        description="タスクを完了にするときに作業時間を入れると、見積りとの差がここに出ます。"
+      />
+    );
+  }
+
+  const diff = summary.comparable.actual - summary.comparable.estimate;
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="grid grid-cols-3 gap-2">
+        <div className="card">
+          <span className="text-[13px] text-muted-foreground">見積り</span>
+          <span className="mt-1 block text-[17px] font-bold">
+            {formatMinutes(summary.comparable.estimate)}
+          </span>
+        </div>
+        <div className="card">
+          <span className="text-[13px] text-muted-foreground">実績</span>
+          <span className="mt-1 block text-[17px] font-bold">
+            {formatMinutes(summary.comparable.actual)}
+          </span>
+        </div>
+        <div className="card">
+          <span className="text-[13px] text-muted-foreground">差</span>
+          <span
+            className={cn('mt-1 block text-[17px] font-bold', diff > 0 && 'text-destructive')}
+          >
+            {diff === 0 ? '—' : `${diff > 0 ? '+' : '-'}${formatMinutes(Math.abs(diff))}`}
+          </span>
+        </div>
+      </div>
+
+      <p className="px-1 text-[13px] text-muted-foreground">
+        比べられるのは、見積りと実績が両方あるタスク {summary.comparable.count}件です。
+        {summary.missingActual > 0 && ` 実績が入っていないものが ${summary.missingActual}件。`}
+        {summary.missingEstimate > 0 && ` 見積りが無いものが ${summary.missingEstimate}件。`}
+        {summary.comparable.count < 5 && ' 件数が少ないので、傾向の判断には足りません。'}
+      </p>
+
+      {summary.agentMinutes > 0 && (
+        <p className="px-1 text-[13px] text-muted-foreground">
+          このほかに AI の実行時間が {formatMinutes(summary.agentMinutes)} あります。
+          <strong>上の比較には入れていません。</strong>
+        </p>
+      )}
+
+      <section className="flex flex-col gap-2">
+        <h2 className="band-heading">
+          完了したタスク<span className="count">{summary.rows.length}</span>
+        </h2>
+        <div className="card-list">
+          {summary.rows.map((row) => (
+            <Link key={row.taskId} href={`/tasks/${row.key}`} className="card block">
+              <span className="block text-[15px] break-words">{row.title}</span>
+              <span className="stack-meta mt-1">
+                <span>{row.assigneeName ? `${row.assigneeName}さん` : '担当なし'}</span>
+                <span>
+                  見積 {row.estimateMinutes ? formatMinutes(row.estimateMinutes) : '—'}
+                </span>
+                <span>実績 {row.humanMinutes ? formatMinutes(row.humanMinutes) : '未記録'}</span>
+                {row.agentMinutes > 0 && <span>AI {formatMinutes(row.agentMinutes)}</span>}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

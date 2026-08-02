@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import { Attachments } from '@/components/Attachments';
 import { Badge, BackLink, Loading, PageHeader } from '@/components/app-ui';
 import { listAttachments } from '@/domain/attachment/service';
+import { candidateLines, listPendingDecisions } from '@/domain/document/minutes';
 import { DOCUMENT_TYPE_LABELS, getDocument, listRevisions } from '@/domain/document/service';
 import { requireActor } from '@/lib/auth/cookies';
 import { can } from '@/lib/auth/rbac';
@@ -12,6 +13,8 @@ import { NotFoundError } from '@/lib/errors';
 import { formatDate, formatDateTime } from '@/lib/format';
 import { renderMarkdown } from '@/lib/markdown';
 
+import { DecisionInbox } from './DecisionInbox';
+import { LinesToTasks } from './LinesToTasks';
 import { MinutesActions } from './MinutesActions';
 
 export const metadata = { title: '資料 | AtlasQuarry' };
@@ -70,6 +73,16 @@ export default async function DocumentPage({ params }: { params: Promise<{ id: s
         )}
       </section>
 
+      {doc.type === 'minutes' && !doc.isConfirmed && can(actor, 'document.edit') && (
+        <Suspense fallback={<Loading />}>
+          <Decisions documentId={doc.id} />
+        </Suspense>
+      )}
+
+      {doc.type === 'minutes' && doc.productId && can(actor, 'task.create') && (
+        <LinesToTasks documentId={doc.id} lines={candidateLines(doc.bodyMd)} />
+      )}
+
       <Suspense fallback={<Loading />}>
         <FilesPanel documentId={doc.id} canEdit={editable} />
       </Suspense>
@@ -79,6 +92,12 @@ export default async function DocumentPage({ params }: { params: Promise<{ id: s
       </Suspense>
     </div>
   );
+}
+
+/** Discord から溜まった決定事項。**未取り込みが無ければ何も出さない。** */
+async function Decisions({ documentId }: { documentId: string }) {
+  const items = await listPendingDecisions();
+  return <DecisionInbox documentId={documentId} items={items} />;
 }
 
 async function FilesPanel({ documentId, canEdit }: { documentId: string; canEdit: boolean }) {

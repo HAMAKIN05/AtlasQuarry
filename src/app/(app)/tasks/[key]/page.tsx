@@ -8,6 +8,7 @@ import { Badge, Loading, PageHeader, priorityTone, taskStatusTone } from '@/comp
 import { db } from '@/db/client';
 import { actor as actorTable } from '@/db/schema';
 import { listTaskTimeline } from '@/domain/activity/queries';
+import { listWorkLogs } from '@/domain/worklog/service';
 import { listTaskComments } from '@/domain/comment/service';
 import { findRequestByTaskId } from '@/domain/request/service';
 import { loadLabels } from '@/domain/setting/labels';
@@ -24,6 +25,7 @@ import { Attachments } from '@/components/Attachments';
 import { listAttachments } from '@/domain/attachment/service';
 
 import { TaskStatusMenu } from '../TaskStatusMenu';
+import { WorkLogPanel } from './WorkLogPanel';
 
 import { CommentForm } from './CommentForm';
 import { DeleteCommentButton } from './DeleteCommentButton';
@@ -166,6 +168,12 @@ export default async function TaskDetailPage({ params }: Props) {
       {editable && (
         <Suspense fallback={<Loading />}>
           <EditorPanel task={task} canDelete={can(actor, 'task.delete')} />
+        </Suspense>
+      )}
+
+      {editable && (
+        <Suspense fallback={<Loading />}>
+          <WorkLogs taskId={task.id} taskKey={task.key} isDone={task.status === 'done'} me={actor.name} />
         </Suspense>
       )}
 
@@ -353,6 +361,35 @@ async function Relations({ task }: { task: { id: string; productId: string; pare
   );
 }
 
+
+async function WorkLogs({
+  taskId,
+  taskKey,
+  isDone,
+  me,
+}: {
+  taskId: string;
+  taskKey: string;
+  isDone: boolean;
+  me: string;
+}) {
+  const logs = await listWorkLogs(taskId);
+  return (
+    <WorkLogPanel
+      taskKey={taskKey}
+      isDone={isDone}
+      myActorName={me}
+      logs={logs.map((l) => ({
+        id: l.id,
+        actorName: l.actorName,
+        minutes: l.minutes,
+        workDate: l.workDate,
+        note: l.note,
+        source: l.source,
+      }))}
+    />
+  );
+}
 
 async function AttachmentsPanel({ taskId, canEdit }: { taskId: string; canEdit: boolean }) {
   const files = await listAttachments('task', taskId);
