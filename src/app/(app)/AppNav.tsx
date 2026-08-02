@@ -57,7 +57,7 @@ export function AppNav({ actor, pendingRequests }: Props) {
   return (
     <>
       {/* スマホ：上部のバー */}
-      <header className="sticky top-0 z-30 flex items-center justify-between gap-2 bg-background/80 px-4 py-2 backdrop-blur-md lg:hidden">
+      <header className="order-1 flex shrink-0 items-center justify-between gap-2 bg-background px-4 py-2 lg:hidden">
         {/* 右側（氏名＝設定への入口）を先に立てるので、題字は縮んでよい */}
         <Link href="/" className="flex min-h-11 min-w-0 shrink items-center truncate font-bold tracking-tight">
           AtlasQuarry
@@ -109,16 +109,17 @@ export function AppNav({ actor, pendingRequests }: Props) {
 
       {/* スマホ：下部のタブ。片手で持って親指が届く位置 */}
       {/*
-        **半透明をやめて不透明にする。** 下に文字が透けると「固定されていない／
-        切れている」ように見える。
+        **`position: fixed` をやめた。** 外枠が画面の高さに固定され、本文だけが
+        内側でスクロールするので、このタブは普通に一番下に置くだけで動かない。
+        慣性スクロール中に一瞬切れる、という指摘への対応（`(app)/layout.tsx` を参照）。
 
         下余白は `max()` で受ける。実機の `env(safe-area-inset-bottom)` は、
         Safari のツールバーが出ている間は **0px**、隠れるとホームインジケータぶんの
-        値になる。素で使うと片方の状態でしか合わないので、下限を持たせる。
+        値になる。素で使うと片方の状態でしか合わない。
       */}
       <nav
         aria-label="メインメニュー"
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 bg-background pb-[max(env(safe-area-inset-bottom),0.375rem)] shadow-[0_-1px_0_var(--border)] lg:hidden"
+        className="order-3 grid shrink-0 grid-cols-4 bg-background pb-[max(env(safe-area-inset-bottom),0.375rem)] shadow-[0_-1px_0_var(--border)] lg:hidden"
       >
         {MOBILE_ITEMS.map(({ href, label, Icon, exact }) => {
           const current = isCurrent(href, exact);

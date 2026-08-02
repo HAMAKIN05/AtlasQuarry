@@ -17,18 +17,20 @@ export function ConvertForm({
   requestId,
   projects,
   defaultProjectId,
-  features,
+  featuresByProject,
   members,
 }: {
   requestId: string;
   projects: Option[];
   defaultProjectId: string | null;
-  features: Option[];
+  /** プロジェクトごとの開発項目。**プロジェクトを変えたら選択肢も入れ替える。** */
+  featuresByProject: Record<string, Option[]>;
   members: Option[];
 }) {
   const router = useRouter();
   const [productId, setProductId] = useState(defaultProjectId ?? projects[0]?.id ?? '');
   const [featureId, setFeatureId] = useState('');
+  const features = featuresByProject[productId] ?? [];
   const [assigneeId, setAssigneeId] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +58,7 @@ export function ConvertForm({
   if (projects.length === 0) {
     return (
       <section className="surface p-4">
-        <h2 className="mb-3 text-base font-bold">タスクにする</h2>
+        <h2 className="mb-3 text-base font-bold">この要望をタスクにして依頼する</h2>
         <p className="mb-3 text-sm text-muted-foreground">
           先にプロジェクトを作ってください。タスクはどれかのプロジェクトに属します。
         </p>
@@ -66,8 +68,11 @@ export function ConvertForm({
 
   return (
     <section className="surface p-4">
-      <h2 className="mb-3 text-base font-bold">タスクにする</h2>
-      <p className="mb-3 text-sm text-muted-foreground">要望の内容がそのままタスクになります。担当と期限はあとから変えられます。</p>
+      <h2 className="mb-3 text-base font-bold">この要望をタスクにして依頼する</h2>
+      <p className="mb-3 text-sm text-muted-foreground">
+        要望の題名と補足がそのままタスクになります。ここで決めるのは、
+        <b>どのプロジェクトの誰にいつまでで頼むか</b>だけです。期限はあとから変えられます。
+      </p>
 
       <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
         {error && (
@@ -78,7 +83,15 @@ export function ConvertForm({
 
         <label className="flex min-w-0 flex-col gap-1.5">
           <span className="text-sm font-semibold text-muted-foreground">どのプロジェクトのタスクにするか</span>
-          <select value={productId} onChange={(e) => setProductId(e.target.value)} required>
+          <select
+            value={productId}
+            onChange={(e) => {
+              setProductId(e.target.value);
+              // 別プロジェクトの開発項目を選んだまま送らせない
+              setFeatureId('');
+            }}
+            required
+          >
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
@@ -102,9 +115,13 @@ export function ConvertForm({
         )}
 
         <label className="flex min-w-0 flex-col gap-1.5">
-          <span className="text-sm font-semibold text-muted-foreground">担当（任意）</span>
-          <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}>
-            <option value="">まだ決めない</option>
+          {/*
+            **担当は必須。** 「依頼する」と言いながら相手が決まっていないと、
+            誰も動かさないタスクが増えるだけ。3人しかいないので必ず決められる。
+          */}
+          <span className="text-sm font-semibold text-muted-foreground">誰に依頼するか</span>
+          <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)} required>
+            <option value="">選んでください</option>
             {members.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name}
@@ -119,8 +136,8 @@ export function ConvertForm({
         </label>
 
         <div className="flex flex-wrap items-center gap-2">
-          <button type="submit" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" disabled={busy}>
-            {busy ? '作成中…' : 'タスクを作る'}
+          <button type="submit" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" disabled={busy || !assigneeId}>
+            {busy ? '依頼しています…' : 'タスクにして依頼する'}
           </button>
         </div>
       </form>

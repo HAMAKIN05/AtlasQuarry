@@ -166,8 +166,15 @@ export async function triageRequest(actorCtx: ActorContext, id: string, input: T
   return db.transaction(async (tx) => {
     const before = await loadRequest(tx, id);
 
-    // 判断が付いた時点で決定者と日時を記録する。受付中へ戻したら消す
-    const decided = input.status !== 'received';
+    /*
+     * 決定者と日時は**判断が確定したときだけ**記録する。受付中へ戻したら消す。
+     *
+     * 以前は `received` 以外すべてを「判断済み」として扱っていたが、
+     * `reviewing`（検討中）は「見たが、まだ決めていない」という印であって
+     * 決定ではない。ここで決定者を刻むと、誰も決めていないのに決めた人が
+     * 記録され、履歴が嘘になる。
+     */
+    const decided = input.status === 'accepted' || input.status === 'rejected';
 
     const [updated] = await tx
       .update(request)

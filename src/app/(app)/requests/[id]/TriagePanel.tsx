@@ -49,7 +49,7 @@ export function TriagePanel({
 
   return (
     <section className="surface p-4">
-      <h2 className="mb-3 text-base font-bold">この要望をどうしますか</h2>
+      <h2 className="mb-3 text-base font-bold">いま決められないとき</h2>
 
       {error && (
         <p className="rounded-md bg-destructive-soft px-3 py-2 text-sm text-destructive" role="alert">
@@ -98,16 +98,12 @@ export function TriagePanel({
               {labels['request.status.reviewing']}にする
             </button>
           )}
-          {status !== 'accepted' && (
-            <button
-              type="button"
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90"
-              disabled={busy}
-              onClick={() => decide('accepted')}
-            >
-              着手する
-            </button>
-          )}
+          {/*
+            **「着手する」は無くした。**
+            採用しただけでタスクが無い状態を作れてしまい、「着手する」の文字から
+            期待される『開発が始まる』と実際が食い違っていた。要望が accepted に
+            なるのは、上の「タスクにして依頼する」でタスクが決まったときだけ。
+          */}
           <button type="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none border border-destructive bg-surface text-destructive hover:bg-destructive-soft" disabled={busy} onClick={() => setRejecting(true)}>
             見送る
           </button>
@@ -115,7 +111,8 @@ export function TriagePanel({
       )}
 
       <p className="mb-3 text-sm text-muted-foreground">
-        「着手する」にすると、この下でタスクに変換できるようになります。
+        すぐに依頼しない場合だけ使います。{labels['request.status.reviewing']}は
+        「見たが、まだ決めていない」という印です。
       </p>
     </section>
   );

@@ -49,7 +49,16 @@ export default async function RequestDetailPage({ params }: Props) {
       .orderBy(asc(actorTable.name)),
   ]);
 
-  const features = req.productId ? await listFeatures(req.productId) : [];
+  /*
+   * **全プロジェクトの開発項目を渡す。** 変換フォームでプロジェクトを変えられるのに、
+   * 開発項目は要望に紐づくプロジェクトのぶんしか読んでいなかった。
+   * 別プロジェクトに変えたまま、元のプロジェクトの開発項目を選べてしまう。
+   */
+  const featuresByProject = Object.fromEntries(
+    await Promise.all(
+      projects.map(async (p) => [p.id, (await listFeatures(p.id)).map((f) => ({ id: f.id, name: f.name }))] as const),
+    ),
+  );
   const canTriage = can(actor, 'request.triage');
 
   return (
@@ -116,23 +125,32 @@ export default async function RequestDetailPage({ params }: Props) {
           </p>
         </section>
       ) : (
-        canTriage && (
+        canTriage &&
+        req.status !== 'rejected' && (
           <>
+            {/*
+              **判断とタスク化を1つの操作にまとめた。**
+              以前は「着手する」で採用 → 画面が更新されてから下の「タスクを作る」を
+              探す、という二段階だった。「着手する」は「今から開発を始める」に読めるのに
+              実際は採用しただけで、そこで手が止まる。ここが一番の断絶だった。
+
+              **採用だけしてタスクを作らない経路は無くす。** 残すと、文言を変えただけで
+              同じ問題が復活する。要望が accepted になるのは、対応するタスクが
+              決まったときだけ。
+            */}
+            <ConvertForm
+              requestId={req.id}
+              projects={projects.map((p) => ({ id: p.id, name: p.name }))}
+              defaultProjectId={req.productId}
+              featuresByProject={featuresByProject}
+              members={members}
+            />
             <TriagePanel
               requestId={req.id}
               status={req.status}
               rejectReason={req.rejectReason}
               labels={labels}
             />
-            {req.status === 'accepted' && (
-              <ConvertForm
-                requestId={req.id}
-                projects={projects.map((p) => ({ id: p.id, name: p.name }))}
-                defaultProjectId={req.productId}
-                features={features.map((f) => ({ id: f.id, name: f.name }))}
-                members={members}
-              />
-            )}
           </>
         )
       )}
