@@ -47,8 +47,9 @@ export function AppNav({ actor, pendingRequests }: Props) {
   return (
     <>
       {/* スマホ：上部のバー */}
-      <header className="sticky top-0 z-30 flex items-center justify-between gap-3 bg-background/80 px-4 py-2 backdrop-blur-md lg:hidden">
-        <Link href="/" className="flex min-h-11 items-center font-bold tracking-tight">
+      <header className="sticky top-0 z-30 flex items-center justify-between gap-2 bg-background/80 px-4 py-2 backdrop-blur-md lg:hidden">
+        {/* 右側（名前・役割・ログアウト）を先に立てるので、題字は縮んでよい */}
+        <Link href="/" className="flex min-h-11 min-w-0 shrink items-center truncate font-bold tracking-tight">
           AtlasQuarry
         </Link>
         <Account actor={actor} />

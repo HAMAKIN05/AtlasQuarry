@@ -32,8 +32,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           actor={{ id: actor.id, name: actor.name, role: actor.role }}
           pendingRequests={pendingRequests}
         />
-        {/* スマホは下部タブのぶん余白を空ける。lg 以上ではタブが無い */}
-        <main className="px-4 pt-4 pb-24 lg:px-6 lg:py-8">
+        {/*
+          スマホは下部タブのぶん余白を空ける。lg 以上ではタブが無い。
+          **セーフエリアぶんを足す。** iPhone では下部タブ自体が
+          `env(safe-area-inset-bottom)` だけ高くなるので、固定値のままだと
+          一番下の行がタブに隠れる。
+        */}
+        <main className="px-4 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom))] lg:px-6 lg:py-8 lg:pb-8">
           <div className="mx-auto w-full max-w-5xl">{children}</div>
         </main>
       </div>

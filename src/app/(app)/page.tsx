@@ -10,7 +10,7 @@ import { listRequests } from '@/domain/request/service';
 import { listTasks, type TaskListItem } from '@/domain/task/service';
 import { requireActor } from '@/lib/auth/cookies';
 import { can } from '@/lib/auth/rbac';
-import { formatDate, isOverdue } from '@/lib/format';
+import { formatDate, formatRelative, isOverdue } from '@/lib/format';
 
 export const metadata = { title: 'ホーム | AtlasQuarry' };
 
@@ -120,7 +120,14 @@ async function DecisionsFirst({ actorId }: { actorId: string }) {
             </Link>
             <p className="focus-meta">
               <span>{request.reporterName}さんから</span>
-              <span>やるかどうかを決める</span>
+              {/*
+                要望に期限は無い（テーブルに持っていない。勝手に足さない）。
+                判断待ちの列で効くのは締切より**どれだけ待たせているか**なので、
+                起票からの経過を出す。1週間を超えたら急ぐものとして色を付ける。
+              */}
+              <span data-late={waitingTooLong(request.createdAt)}>
+                {formatRelative(request.createdAt)}から待っています
+              </span>
             </p>
             <div className="mt-1 flex flex-wrap gap-2">
               <Button asChild size="sm">
@@ -130,8 +137,31 @@ async function DecisionsFirst({ actorId }: { actorId: string }) {
           </li>
         ))}
       </ul>
+
+      {/*
+        **判断待ちで埋まっても、自分の担当タスクが見えなくなるようにしない。**
+        管理者もタスクを持つ。判断だけを出すと、ホームが「決める人の画面」に寄りすぎて
+        自分の作業が見えなくなる、という指摘への対応。
+      */}
+      {myTasks.length > 0 && (
+        <div className="mt-4 flex flex-col gap-1">
+          <h2 className="text-xs font-semibold text-subtle">あなたの担当</h2>
+          <ul>
+            {myTasks.slice(0, 3).map((task) => (
+              <TaskFocusRow key={task.id} task={task} />
+            ))}
+          </ul>
+        </div>
+      )}
     </FocusSection>
   );
+}
+
+/** 判断待ちが1週間を超えたら急ぐものとして扱う。 */
+function waitingTooLong(createdAt: Date | string | null): boolean {
+  if (!createdAt) return false;
+  const at = typeof createdAt === 'string' ? new Date(createdAt) : createdAt;
+  return Date.now() - at.getTime() > 7 * 24 * 60 * 60 * 1000;
 }
 
 /** 開発者向け。**期限を過ぎたもの → 期限が近いもの**の順に、最大5件。 */
@@ -318,7 +348,13 @@ function MilestoneGroup({
               </span>
               <span className="min-w-0 flex-1 basis-40">{task.title}</span>
               {task.assigneeName && (
-                <span className="shrink-0 text-xs text-muted-foreground">{task.assigneeName}</span>
+                /*
+                 * 右端に置くものは**縮められるようにする。** `shrink-0` だと
+                 * 実機の書体がこちらより数px広いだけで押し出されて切られる。
+                 */
+                <span className="min-w-0 max-w-28 truncate text-xs text-muted-foreground">
+                  {task.assigneeName}
+                </span>
               )}
             </Link>
           </li>

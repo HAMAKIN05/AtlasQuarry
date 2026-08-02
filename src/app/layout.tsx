@@ -11,10 +11,15 @@ export const metadata: Metadata = {
 /**
  * モバイルファースト（CLAUDE.md UI規約）。
  * ズームを禁止しないのは、拡大できないと読めない利用者を締め出すため。
+ *
+ * **`viewportFit: 'cover'` が要る。** これが無いと `env(safe-area-inset-bottom)` が
+ * 常に 0 になり、下部タブに書いてある `pb-[env(safe-area-inset-bottom)]` が
+ * 何もしない。iPhone 実機で**下部タブが Safari のツールバーに半分隠れていた**のがこれ。
  */
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

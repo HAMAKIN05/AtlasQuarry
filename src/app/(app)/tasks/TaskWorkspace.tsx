@@ -9,7 +9,6 @@ import { TaskCheck } from '@/components/TaskCheck';
 import { useLabels } from '@/components/LabelsProvider';
 import { EmptyState } from '@/components/app-ui';
 import type { TaskListItem } from '@/domain/task/service';
-import { cn } from '@/lib/cn';
 import { dueLabel, isOverdue } from '@/lib/format';
 
 import { KanbanBoard } from './KanbanBoard';
@@ -108,34 +107,30 @@ export function TaskWorkspace({
         </div>
 
         <div className="flex items-center gap-2">
-          <div
-            className="inline-flex rounded-md border border-border bg-raised p-0.5"
-            role="group"
-            aria-label="表示の切り替え"
+          {/*
+            **一覧とかんばんを同格の主操作として並べない。**
+            紫のセグメントで2つ並べると「まずどちらで見るか決めろ」という画面になる。
+            この画面の主操作はタスクを追加すること・進めることで、表示形式の選択ではない。
+            かんばんは残す（消したときに指摘されている）が、**いま出ていない方へ行く
+            控えめな1本のボタン**にする。
+          */}
+          <button
+            type="button"
+            onClick={() => setView(view === 'list' ? 'board' : 'list')}
+            className="inline-flex min-h-11 items-center gap-1.5 px-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
-            {(
-              [
-                { key: 'list', label: '一覧', Icon: ListIcon },
-                { key: 'board', label: 'かんばん', Icon: ColumnsIcon },
-              ] as const
-            ).map(({ key, label, Icon }) => (
-              <button
-                key={key}
-                type="button"
-                aria-pressed={view === key}
-                onClick={() => setView(key)}
-                className={cn(
-                  'inline-flex min-h-10 items-center gap-1.5 rounded-md px-3 text-sm transition-colors',
-                  view === key
-                    ? 'bg-primary font-semibold text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground',
-                )}
-              >
-                <Icon className="size-4" aria-hidden="true" />
-                {label}
-              </button>
-            ))}
-          </div>
+            {view === 'list' ? (
+              <>
+                <ColumnsIcon className="size-4" aria-hidden="true" />
+                かんばんで見る
+              </>
+            ) : (
+              <>
+                <ListIcon className="size-4" aria-hidden="true" />
+                一覧で見る
+              </>
+            )}
+          </button>
 
           <NewTaskForm
             productId={projectId}

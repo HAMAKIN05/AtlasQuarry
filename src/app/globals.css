@@ -100,13 +100,29 @@
 }
 
 @layer base {
+  /*
+   * **横のはみ出しは `html` 側で止める。**
+   *
+   * `body` にだけ `overflow-x: hidden` を置いていたが、iOS Safari はそれでは
+   * 止まらない。溢れた子要素があるとレイアウトビューポート自体を広げてしまい、
+   * 結果として**全ての行の右側の余白が消えて文字が切られた**（実機で
+   * 「ログアウト」「日程を調整する」「担当者名」が右端で切れていた）。
+   * Chrome では 320〜430px のどの幅でも再現せず、実機だけで出る。
+   *
+   * `clip` は `hidden` と違ってスクロール可能な箱を作らないので、
+   * 中の `position: sticky` を殺さない。
+   */
   html {
     -webkit-text-size-adjust: 100%;
+    max-width: 100%;
+    overflow-x: clip;
   }
 
   body {
     /* 情報量を出すため基準を 15px にする。16px だと1画面に入る量が減って間延びする */
-    @apply overflow-x-hidden bg-background font-sans text-[0.94rem] text-foreground antialiased;
+    @apply bg-background font-sans text-[0.94rem] text-foreground antialiased;
+    max-width: 100%;
+    overflow-x: clip;
     line-height: 1.6;
     /*
      * 以前は全画面に紫の radial-gradient を敷いていた。**外した。**
