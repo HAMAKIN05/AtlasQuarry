@@ -18,9 +18,12 @@ export default async function ProjectsPage() {
 
   return (
     <div className="flex flex-col gap-8">
+      {/*
+        説明文を外した。**初見向けの案内を、毎日開く画面に常設しない。**
+        何のための画面かは、プロジェクトが1つも無いときの空状態で説明すれば足りる。
+      */}
       <PageHeader
         title="プロジェクト"
-        description="内製化する対象ごとのまとまりです。たとえば「日報自動化」「SNS分析」のような単位で作ります。"
         action={can(actor, 'product.create') ? <NewProjectButton /> : undefined}
       />
 
@@ -48,27 +51,32 @@ async function ProjectList({ canCreate }: { canCreate: boolean }) {
   }
 
   return (
-    <section className="content-section" aria-label="プロジェクト一覧">
-      <div className="section-heading">
-        <div><h2>プロジェクト <span className="tabular text-primary">{projects.length}</span></h2></div>
-      </div>
-    <ul>
+    /*
+     * 1行に名前・状態・説明・進捗・次の期限を全部詰めていた。**減らした。**
+     * 常時出すのは名前と「次の期限」だけ。説明は詳細画面にあり、状態バッジは
+     * 動いていないプロジェクト（active 以外）にだけ出す。全部が active のとき
+     * 全行に同じバッジが並ぶのは、情報が無いのに場所だけ取る。
+     */
+    <ul aria-label="プロジェクト一覧">
       {projects.map((p) => (
         <li key={p.id}>
-          <Link href={`/projects/${p.id}`} className="flex min-h-14 flex-col gap-2 border-b border-border px-1 py-3 hover:bg-raised sm:grid sm:grid-cols-[minmax(12rem,0.9fr)_minmax(12rem,1fr)_auto] sm:items-center sm:gap-5">
+          <Link
+            href={`/projects/${p.id}`}
+            className="flex min-h-14 flex-col gap-1.5 border-b border-border px-1 py-3 last:border-b-0 hover:bg-raised sm:grid sm:grid-cols-[minmax(12rem,1fr)_minmax(10rem,1fr)_auto] sm:items-center sm:gap-5"
+          >
             <span className="flex items-center gap-2">
-              <span className="flex-1 text-base font-bold">{p.name}</span>
-              <Badge tone={p.status === 'active' ? 'progress' : 'neutral'}>
-                {PROJECT_STATUS_LABELS[p.status]}
-              </Badge>
+              <span className="min-w-0 flex-1 text-base font-bold">{p.name}</span>
+              {p.status !== 'active' && (
+                <Badge tone="neutral">{PROJECT_STATUS_LABELS[p.status]}</Badge>
+              )}
             </span>
-            {p.description && <span className="text-sm text-muted-foreground sm:col-start-1">{p.description}</span>}
             <Progress done={p.progress.doneTasks} total={p.progress.totalTasks} />
-            {p.nextDueDate && <span className="tabular text-xs text-muted-foreground">次の期限 {formatDate(p.nextDueDate)}</span>}
+            <span className="tabular text-xs text-muted-foreground">
+              {p.nextDueDate ? `次の期限 ${formatDate(p.nextDueDate)}` : '期限なし'}
+            </span>
           </Link>
         </li>
       ))}
     </ul>
-    </section>
   );
 }

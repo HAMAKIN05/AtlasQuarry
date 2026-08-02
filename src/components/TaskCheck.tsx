@@ -65,7 +65,14 @@ export function TaskCheck({
       aria-pressed={done}
       aria-label={done ? `${title} を未完了に戻す` : `${title} を完了にする`}
       className={cn(
-        'grid size-6 shrink-0 place-items-center rounded-full transition-colors',
+        /*
+         * 丸は 24px のままにして、**当たり判定だけ 44px に広げる**（`before` で外側へ 10px）。
+         * 実測したら 24x24 で、スマホの親指では隣の行のリンクを踏む大きさだった。
+         * 丸自体を 44px にすると行の高さが変わって密度の設計が崩れるので、見た目は変えない。
+         * 行そのものがリンクなので、`z-10` を付けて広げた領域を前に出す。
+         */
+        'relative z-10 grid size-6 shrink-0 place-items-center rounded-full transition-colors',
+        "before:absolute before:-inset-[10px] before:content-['']",
         done
           ? 'bg-success text-background'
           : 'text-transparent shadow-[inset_0_0_0_1.5px_var(--border-strong)] hover:text-muted-foreground hover:shadow-[inset_0_0_0_1.5px_var(--success)]',

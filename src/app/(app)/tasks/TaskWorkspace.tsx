@@ -5,16 +5,16 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
-import { Badge, EmptyState, PageHeader, priorityTone, taskStatusTone } from '@/components/app-ui';
+import { TaskCheck } from '@/components/TaskCheck';
 import { useLabels } from '@/components/LabelsProvider';
+import { EmptyState } from '@/components/app-ui';
 import type { TaskListItem } from '@/domain/task/service';
 import { cn } from '@/lib/cn';
 import { dueLabel, isOverdue } from '@/lib/format';
 
-import { TaskCheck } from '@/components/TaskCheck';
-
 import { KanbanBoard } from './KanbanBoard';
 import { NewTaskForm } from './NewTaskForm';
+import { TaskStatusMenu } from './TaskStatusMenu';
 
 type Option = { id: string; name: string };
 
@@ -25,12 +25,27 @@ type Props = {
   initialView: 'list' | 'board';
   features: Option[];
   members: Option[];
+  /** ログインしている本人。「自分」を示すのに使う */
+  currentActorId: string;
+  /**
+   * 開いたときの担当の絞り込み。
+   * サーバー側で「自分の担当が1件でもあるか」を見て決める。**無い人には全員を渡す。**
+   * 常に自分で固定すると、担当が付いていない経営者・管理者は毎回空の画面を見ることになる。
+   */
+  initialAssigneeId: string;
 };
 
 /**
- * タスク画面。一覧とかんばんの切り替え、絞り込み、追加をまとめて持つ。
+ * タスク画面。
  *
- * タスクの実体は1つなので state もここで持ち、どちらの表示でも同じものを見せる。
+ * **「検索・分析する画面」ではなく「自分の作業リスト」にした。**
+ *
+ * 以前はプロジェクト・担当・開発項目・完了表示・表示切替を横一列に並べていた。
+ * これは多人数向け SaaS の閲覧画面の作法で、3人のチームがスマホで開くと
+ * **タスクを始める前に操作盤を読まされる。**
+ *
+ * いまは既定が「自分の担当」。それ以外の絞り込みは畳んであり、必要な人だけ開く。
+ * かんばんは残す（一度消えたときに「かんばんが無い」と指摘された。使われている）。
  */
 export function TaskWorkspace({
   projects,
@@ -39,12 +54,15 @@ export function TaskWorkspace({
   initialView,
   features,
   members,
+  currentActorId,
+  initialAssigneeId,
 }: Props) {
   const router = useRouter();
   const labels = useLabels();
   const [tasks, setTasks] = useState(initialTasks);
   const [view, setView] = useState<'list' | 'board'>(initialView);
-  const [assigneeId, setAssigneeId] = useState('');
+  // 既定は自分（担当が無い人は全員）。**開いた瞬間に自分の仕事が見えるのが普通**
+  const [assigneeId, setAssigneeId] = useState(initialAssigneeId);
   const [featureId, setFeatureId] = useState('');
   const [showClosed, setShowClosed] = useState(false);
 
@@ -60,27 +78,24 @@ export function TaskWorkspace({
   );
 
   const project = projects.find((p) => p.id === projectId);
+  const filtered = assigneeId !== '' || featureId !== '' || showClosed;
+
+  function replaceTask(id: string, patch: Partial<TaskListItem>) {
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+  }
 
   return (
     <>
-      {/* 既定は一覧表示。「ドラッグして」とだけ書くと、開いた画面と説明が食い違う */}
-      <PageHeader
-        title="タスク"
-        description="やること一覧です。かんばんに切り替えると、ドラッグで状態を変えられます。"
-        action={
-          <NewTaskForm
-            productId={projectId}
-            features={features}
-            members={members}
-            onCreated={(task) => setTasks((prev) => [...prev, task])}
-          />
-        }
-      />
-
-      <div className="flex flex-wrap items-end gap-x-4 gap-y-3 border-y border-border py-3">
-        <label className="flex min-w-0 flex-1 basis-40 flex-col gap-1.5">
-          <span className="text-sm font-semibold text-muted-foreground">プロジェクト</span>
+      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">タスク</h1>
+          {/*
+            プロジェクトの切替だけは常に出す。タスクは必ずどれかに属していて、
+            いまどれを見ているかが分からないと一覧の意味が変わってしまう。
+          */}
           <select
+            aria-label="プロジェクト"
+            className="!min-h-11 !w-auto !border-0 !bg-transparent !px-1 text-base font-semibold"
             value={projectId}
             onChange={(e) => router.push(`/tasks?projectId=${e.target.value}&view=${view}`)}
           >
@@ -90,76 +105,102 @@ export function TaskWorkspace({
               </option>
             ))}
           </select>
-        </label>
+        </div>
 
-        <label className="flex min-w-0 flex-1 basis-40 flex-col gap-1.5">
-          <span className="text-sm font-semibold text-muted-foreground">担当</span>
-          <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}>
-            <option value="">全員</option>
-            {members.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
+        <div className="flex items-center gap-2">
+          <div
+            className="inline-flex rounded-md border border-border bg-raised p-0.5"
+            role="group"
+            aria-label="表示の切り替え"
+          >
+            {(
+              [
+                { key: 'list', label: '一覧', Icon: ListIcon },
+                { key: 'board', label: 'かんばん', Icon: ColumnsIcon },
+              ] as const
+            ).map(({ key, label, Icon }) => (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={view === key}
+                onClick={() => setView(key)}
+                className={cn(
+                  'inline-flex min-h-10 items-center gap-1.5 rounded-md px-3 text-sm transition-colors',
+                  view === key
+                    ? 'bg-primary font-semibold text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                <Icon className="size-4" aria-hidden="true" />
+                {label}
+              </button>
             ))}
-          </select>
-        </label>
+          </div>
 
-        {features.length > 0 && (
+          <NewTaskForm
+            productId={projectId}
+            features={features}
+            members={members}
+            onCreated={(task) => setTasks((prev) => [...prev, task])}
+          />
+        </div>
+      </header>
+
+      {/*
+        絞り込みは畳んでおく。**開いた人の8割は自分の担当だけを見たい。**
+        開いているかどうかが分かるよう、絞り込み中は要約を summary に出す。
+      */}
+      <details className="border-y border-border">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-sm text-muted-foreground select-none">
+          <span className="font-semibold">絞り込み</span>
+          <span>
+            {assigneeId === ''
+              ? '全員'
+              : assigneeId === currentActorId
+                ? '自分の担当'
+                : (members.find((m) => m.id === assigneeId)?.name ?? '担当者')}
+            {featureId && ` / ${features.find((f) => f.id === featureId)?.name ?? '開発項目'}`}
+            {showClosed && ' / 終わったものも表示'}
+          </span>
+        </summary>
+
+        <div className="flex flex-wrap items-end gap-x-4 gap-y-3 pb-3">
           <label className="flex min-w-0 flex-1 basis-40 flex-col gap-1.5">
-            <span className="text-sm font-semibold text-muted-foreground">開発項目</span>
-            <select value={featureId} onChange={(e) => setFeatureId(e.target.value)}>
-              <option value="">すべて</option>
-              {features.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.name}
+            <span className="text-sm font-semibold text-muted-foreground">担当</span>
+            <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}>
+              <option value="">全員</option>
+              {members.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.id === currentActorId ? `${m.name}（自分）` : m.name}
                 </option>
               ))}
             </select>
           </label>
-        )}
 
-        <label className="inline-flex min-h-11 items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={showClosed}
-            onChange={(e) => setShowClosed(e.target.checked)}
-          />
-          終わったものも表示
-        </label>
+          {features.length > 0 && (
+            <label className="flex min-w-0 flex-1 basis-40 flex-col gap-1.5">
+              <span className="text-sm font-semibold text-muted-foreground">開発項目</span>
+              <select value={featureId} onChange={(e) => setFeatureId(e.target.value)}>
+                <option value="">すべて</option>
+                {features.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
 
-        {/*
-          切替が見えないと、かんばんの存在に気づけない（実際に「かんばんが無い」と言われた）。
-          選択中を塗りで示し、アイコンを添えて何の切替かを一目で分かるようにする。
-        */}
-        <div
-          className="ml-auto inline-flex border border-border bg-raised p-0.5"
-          role="group"
-          aria-label="表示の切り替え"
-        >
-          {(
-            [
-              { key: 'list', label: '一覧', Icon: ListIcon },
-              { key: 'board', label: 'かんばん', Icon: ColumnsIcon },
-            ] as const
-          ).map(({ key, label, Icon }) => (
-            <button
-              key={key}
-              type="button"
-              aria-pressed={view === key}
-              onClick={() => setView(key)}
-              className={cn(
-                'inline-flex min-h-10 items-center gap-1.5 rounded-md px-3 text-sm transition-colors',
-                view === key
-                  ? 'bg-primary font-semibold text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              <Icon className="size-4" aria-hidden="true" />
-              {label}
-            </button>
-          ))}
+          <label className="inline-flex min-h-11 items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={showClosed}
+              onChange={(e) => setShowClosed(e.target.checked)}
+            />
+            終わったものも表示
+          </label>
         </div>
-      </div>
+      </details>
 
       {visible.length === 0 ? (
         <EmptyState
@@ -167,7 +208,9 @@ export function TaskWorkspace({
           description={
             tasks.length === 0
               ? `${project?.name ?? 'このプロジェクト'}の最初のタスクを追加するか、要望から作れます。`
-              : '絞り込みを外すと表示されます。'
+              : filtered
+                ? '絞り込みを開いて条件を外すと表示されます。'
+                : '絞り込みを外すと表示されます。'
           }
           actionLabel={tasks.length === 0 ? '要望を見る' : undefined}
           actionHref={tasks.length === 0 ? '/requests' : undefined}
@@ -175,46 +218,65 @@ export function TaskWorkspace({
       ) : view === 'board' ? (
         <KanbanBoard tasks={visible} allTasks={tasks} onTasksChange={setTasks} />
       ) : (
-        <section className="content-section" aria-label="タスク一覧">
-          <div className="section-heading">
-            <div><h2>表示中 <span className="tabular text-primary">{visible.length}</span></h2></div>
-          </div>
-        <ul>
+        <ul aria-label="タスク一覧">
           {visible.map((t) => {
             const due = dueLabel(t.dueDate, t.status);
+            const late = isOverdue(t.dueDate, t.status);
+
             return (
               <li key={t.id}>
-                <Link href={`/tasks/${t.key}`} className="row-link">
+                <div className="row-link">
                   <TaskCheck
                     taskId={t.id}
                     status={t.status}
                     title={t.title}
-                    onDone={(next) =>
-                      setTasks((prev) =>
-                        prev.map((x) => (x.id === t.id ? { ...x, status: next } : x)),
-                      )
-                    }
+                    onDone={(next) => replaceTask(t.id, { status: next })}
                   />
-                  <span className="tabular shrink-0 text-xs text-muted-foreground">{t.key}</span>
-                  <span className="min-w-0 flex-1 basis-40 font-semibold">{t.title}</span>
-                  <Badge tone={taskStatusTone(t.status)}>{labels[`task.status.${t.status}`]}</Badge>
-                  {t.priority !== 'normal' && (
-                    <Badge tone={priorityTone(t.priority)}>
-                      {labels[`task.priority.${t.priority}`]}
-                    </Badge>
+
+                  {/*
+                    **行に出すのはタイトル・期限・相手だけ。**
+                    タスクキー、通常の優先度、状態バッジは詳細へ退避した。
+                    日本語のスマホ画面では、小さなバッジが増えるほど情報が多いのではなく
+                    読みにくく見える。
+                  */}
+                  <Link href={`/tasks/${t.key}`} className="min-w-0 flex-1 basis-40 hover:underline">
+                    {t.title}
+                  </Link>
+
+                  {t.priority === 'urgent' && (
+                    <span className="shrink-0 text-xs font-bold text-destructive">
+                      {labels['task.priority.urgent']}
+                    </span>
                   )}
-                  {t.assigneeName && <span className="text-xs text-muted-foreground">{t.assigneeName}</span>}
+                  {assigneeId === '' && t.assigneeName && (
+                    <span className="shrink-0 text-xs text-muted-foreground">{t.assigneeName}</span>
+                  )}
                   {due && (
-                    <span className={isOverdue(t.dueDate, t.status) ? 'tabular shrink-0 text-xs font-bold text-destructive' : 'tabular shrink-0 text-xs text-muted-foreground'}>
+                    <span
+                      className={
+                        late
+                          ? 'tabular shrink-0 text-xs font-bold text-destructive'
+                          : 'tabular shrink-0 text-xs text-muted-foreground'
+                      }
+                    >
                       {due}
                     </span>
                   )}
-                </Link>
+
+                  {/*
+                    状態を変えるのに、かんばんへ切り替えて長押しドラッグ、を必須にしない。
+                    一覧からも明示的に選べるようにする（ドラッグは覚えないと使えない）。
+                  */}
+                  <TaskStatusMenu
+                    taskId={t.id}
+                    status={t.status}
+                    onChanged={(next) => replaceTask(t.id, { status: next })}
+                  />
+                </div>
               </li>
             );
           })}
         </ul>
-        </section>
       )}
     </>
   );

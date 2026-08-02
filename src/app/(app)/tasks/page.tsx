@@ -22,7 +22,7 @@ export const metadata = { title: 'タスク | AtlasQuarry' };
  * 画面を分けると「どっちを見ればいいのか」という迷いが増える。
  */
 export default async function TasksPage({ searchParams }: Props) {
-  await requireActor();
+  const actor = await requireActor();
   const params = await searchParams;
 
   const projects = await db
@@ -55,6 +55,16 @@ export default async function TasksPage({ searchParams }: Props) {
       .orderBy(asc(actorTable.name)),
   ]);
 
+  /*
+   * 既定の絞り込み。**「自分の担当」で開くが、自分の担当が1件も無いなら全員で開く。**
+   * 担当は開発者に寄っているので、経営者・管理者が開くと毎回空の画面になってしまう。
+   * 開いた瞬間に何も無いのは、絞り込みが賢いのではなく壊れて見える。
+   */
+  const hasOwnTasks = tasks.some(
+    (task) =>
+      task.assigneeId === actor.id && task.status !== 'done' && task.status !== 'cancelled',
+  );
+
   return (
     <div className="flex flex-col gap-5">
       <TaskWorkspace
@@ -64,6 +74,8 @@ export default async function TasksPage({ searchParams }: Props) {
         initialView={params.view === 'board' ? 'board' : 'list'}
         features={features.map((f) => ({ id: f.id, name: f.name }))}
         members={members}
+        currentActorId={actor.id}
+        initialAssigneeId={hasOwnTasks ? actor.id : ''}
       />
     </div>
   );

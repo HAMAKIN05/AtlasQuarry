@@ -75,7 +75,14 @@ export function Progress({
         aria-valuemax={100}
         aria-label="進捗"
       >
-        <div className="h-full bg-primary transition-[width]" style={{ width: `${percent}%` }} />
+        {/*
+          進捗は**紫にしない。** 紫は「押せる／いまここ／自分が止めている判断」の3つに限る。
+          進捗バーは眺める情報で、操作でも注意喚起でもない。
+        */}
+        <div
+          className="h-full bg-muted-foreground transition-[width]"
+          style={{ width: `${percent}%` }}
+        />
       </div>
       <span className="tabular shrink-0 text-xs font-semibold text-muted-foreground">
         {total === 0 ? 'タスクなし' : `${percent}%（${done}/${total}）`}

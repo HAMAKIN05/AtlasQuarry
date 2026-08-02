@@ -4,15 +4,19 @@
 /*
  * AtlasQuarry のテーマ。
  *
- * 方向は Linear / Raycast 系のダーク。**黒ではなく、青みを残した濃いグラファイト**を土台にし、
- * 面の明度差で階層を作る。枠線は「無いと分からない場所」にだけ、極端に低いコントラストで置く。
- * 枠を全部に引くと平坦で安っぽくなる（初版がそうだった）。
+ * **「Linear / Raycast 風」をやめた。** 以前はそう書いて実装していたが、
+ * 青みグラファイト・極細罫線・面の段差・紫の発光は、近年の開発者向け SaaS の定番セットで、
+ * 内容と無関係な「それらしさ」でしかなかった。指摘された「AI感」の正体がこれ。
  *
- * 立体感は影ではなく **上端 1px のハイライト**で出す。暗い面に白を 5% 乗せるだけで、
- * 面が持ち上がって見える。影を濃くするより軽く、密度を上げても重くならない。
+ * いまの方向は **3人が毎日使う内製の道具としての静けさ**。
+ * 質感の演出（全画面のグラデーション、面の上端ハイライト、浮いた影）は全部外した。
+ * 面は明度差だけで分ける。
  *
- * アクセントはバイオレット1色。主操作・現在地・進捗・フォーカスにだけ使い、
- * それ以外は無彩色で通す。色が付いている＝意味がある、を保つ。
+ * **色が付いている＝意味がある。** バイオレットは3つの用途に限る。
+ *   1. 押せるもの（主ボタン・リンク）
+ *   2. いまいる場所（ナビの現在地、選択中）
+ *   3. 自分が止めている判断
+ * 進捗バーや装飾には使わない。状態色は**実際に急ぐもの**（期限超過）に絞る。
  */
 
 :root {
@@ -104,13 +108,10 @@
     /* 情報量を出すため基準を 15px にする。16px だと1画面に入る量が減って間延びする */
     @apply overflow-x-hidden bg-background font-sans text-[0.94rem] text-foreground antialiased;
     line-height: 1.6;
-    /* 上端にごく淡い光を置いて、画面全体が平らな板に見えないようにする */
-    background-image: radial-gradient(
-      120% 65% at 50% -10%,
-      oklch(0.62 0.19 285 / 0.09),
-      transparent 60%
-    );
-    background-attachment: fixed;
+    /*
+     * 以前は全画面に紫の radial-gradient を敷いていた。**外した。**
+     * 中身と関係のない発光で、業務の道具に必要なものではなかった。
+     */
   }
 
   ::selection {
@@ -186,14 +187,12 @@
 
 @layer components {
   /*
-   * 面。枠ではなく明度差と上端のハイライトで持ち上げる。
-   * ここを1か所にしておくと、質感の調整が全画面に一度で効く。
+   * 面。**明度差だけで分ける。**
+   * 以前は上端 1px のハイライトと影で持ち上げていたが、外した。
+   * 紙も金属も模していない画面で「浮いている」表現をすると、その質感だけが目に残る。
    */
   .surface {
-    @apply rounded-lg bg-surface;
-    box-shadow:
-      inset 0 1px 0 oklch(1 0 0 / 0.045),
-      0 1px 2px oklch(0 0 0 / 0.3);
+    @apply rounded-md bg-surface;
   }
 
   /* 一覧の1行。枠を引かず、hover で面を持ち上げる */
@@ -213,31 +212,29 @@
     @apply text-lg font-bold tracking-tight;
   }
   /*
-   * 要約帯のラベル。**英語の飾りは置かない。**
-   * 日本語しか使わないツールに意味のない英語のキャッチを載せると、
-   * 情報が増えないまま「それっぽさ」だけが出る（指摘された「AI感」の正体のひとつ）。
+   * ホーム最上部「いま動かすこと」。
+   *
+   * **以前はここに3つの指標（自分のタスク／全体の進み／判断待ち）を並べていた。やめた。**
+   * 見た目は整うが、読んだあと何をすればいいかが分からない。「全体の進み 0%」は
+   * 報告用の数字で、3人のチームでは誰の行動にもつながらない。
+   *
+   * 代わりに**具体的な用件を数件だけ**置く。1行につき、何をするか・相手・期限・その場の操作。
+   * ホームを「毎日読む画面」ではなく「毎日1件進める画面」にする。
    */
-  .summary-label {
-    @apply text-xs font-semibold text-subtle;
+  .focus-row {
+    @apply flex min-h-16 flex-col gap-1 border-b border-border py-3 last:border-b-0;
   }
-
-  /* ホームの数値帯。カードの集合ではなく、現在地を一息で読むための一枚の帯。 */
-  .summary-strip {
-    @apply grid overflow-hidden border-y border-border sm:grid-cols-3;
+  .focus-title {
+    @apply text-base leading-snug font-bold;
   }
-  .summary-metric {
-    @apply flex min-h-26 flex-col justify-between border-b border-border px-4 py-3.5 last:border-b-0 sm:border-r sm:border-b-0 sm:last:border-r-0;
-  }
-  .summary-metric[data-tone='danger'] {
-    @apply bg-destructive-soft;
-  }
-  .summary-metric[data-tone='accent'] {
-    @apply bg-primary-soft;
-  }
-  .summary-number {
-    /* .tabular は同じレイヤーの自前クラスなので @apply できない。素の宣言で書く */
+  /* 用件のわき（相手・期限・種別）。本文より一段落として、先にタイトルを読ませる */
+  .focus-meta {
     font-variant-numeric: tabular-nums;
-    @apply text-3xl leading-none font-bold tracking-[-0.06em] sm:text-4xl;
+    @apply flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground;
+  }
+  /* 期限を過ぎているものだけ色を持たせる。急ぐものが一目で分かるのが目的 */
+  .focus-meta [data-late='true'] {
+    @apply font-bold text-destructive;
   }
 
   /* 空状態も面を増やさず、コンテキストの末尾として短く置く。 */
