@@ -123,7 +123,7 @@ async function GanttPanel({ projectId }: { projectId: string }) {
         スマホは「現在地 → 縦タイムライン → 2週間のミニガント」の3段にする
         （オーナーから渡された整理のとおり）。PC は従来どおり全期間のガント。
       */}
-      <MobileSchedule rows={rows} />
+      <MobileSchedule rows={rows} projectId={projectId} />
       <div className="hidden lg:block">
         <GanttChart rows={rows} />
       </div>

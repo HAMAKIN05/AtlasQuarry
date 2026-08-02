@@ -23,6 +23,10 @@ export type GanttRow = {
   startDate: string | null;
   dueDate: string | null;
   status: TaskStatus | null;
+  /** タスクが属する開発項目。開発項目行と、どこにも属さないタスクでは null。 */
+  featureId: string | null;
+  /** 担当者名。**スマホの縦タイムラインで「誰の予定か」を出すのに要る。** */
+  assigneeName: string | null;
   /** 開発項目の進捗。タスク行では null。 */
   progress: { done: number; total: number } | null;
   /** タスク詳細への遷移先。開発項目は null。 */
@@ -52,6 +56,8 @@ export async function getGanttData(productId: string): Promise<GanttData> {
       startDate: feature.progress.startDate,
       dueDate: feature.progress.dueDate,
       status: null,
+      featureId: null,
+      assigneeName: null,
       progress: { done: feature.progress.doneTasks, total: feature.progress.totalTasks },
       href: null,
     });
@@ -72,6 +78,8 @@ export async function getGanttData(productId: string): Promise<GanttData> {
       startDate: minOf(loose.map((t) => t.startDate)),
       dueDate: maxOf(loose.map((t) => t.dueDate)),
       status: null,
+      featureId: null,
+      assigneeName: null,
       progress: {
         done: loose.filter((t) => t.status === 'done').length,
         total: loose.length,
@@ -94,6 +102,8 @@ function taskRow(task: {
   startDate: string | null;
   dueDate: string | null;
   status: TaskStatus;
+  featureId: string | null;
+  assigneeName: string | null;
 }): GanttRow {
   return {
     kind: 'task',
@@ -103,6 +113,8 @@ function taskRow(task: {
     startDate: task.startDate,
     dueDate: task.dueDate,
     status: task.status,
+    featureId: task.featureId,
+    assigneeName: task.assigneeName,
     progress: null,
     href: `/tasks/${task.key}`,
   };

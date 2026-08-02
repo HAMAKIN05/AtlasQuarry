@@ -4,6 +4,8 @@ import { PageHeader } from '@/components/app-ui';
 import { requireActor } from '@/lib/auth/cookies';
 import { can } from '@/lib/auth/rbac';
 
+import { LogoutButton } from './LogoutButton';
+
 export const metadata = { title: '設定 | AtlasQuarry' };
 
 /**
@@ -57,6 +59,8 @@ export default async function SettingsPage() {
           </li>
         ))}
       </ul>
+
+      <LogoutButton />
     </div>
   );
 }

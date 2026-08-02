@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  ChevronDownIcon,
   FolderKanbanIcon,
   HomeIcon,
   ListChecksIcon,
@@ -34,6 +35,15 @@ const ITEMS = [
   { href: '/settings', label: '設定', Icon: SettingsIcon, exact: false },
 ] as const;
 
+/**
+ * スマホの下部タブからは**設定を外す。**
+ *
+ * 毎日の仕事は「把握する・要望を出す／判断する・進める・案件を眺める」の4つで、
+ * 設定はその流れに入っていない。日常の導線に混ぜると、5つのうちどれが仕事用なのかを
+ * 毎回選ばせることになる。設定へは上部の氏名から入る。
+ */
+const MOBILE_ITEMS = ITEMS.filter((item) => item.href !== '/settings');
+
 type Props = {
   actor: { id: string; name: string; role: ActorRole };
   pendingRequests: number;
@@ -48,7 +58,7 @@ export function AppNav({ actor, pendingRequests }: Props) {
     <>
       {/* スマホ：上部のバー */}
       <header className="sticky top-0 z-30 flex items-center justify-between gap-2 bg-background/80 px-4 py-2 backdrop-blur-md lg:hidden">
-        {/* 右側（名前・役割・ログアウト）を先に立てるので、題字は縮んでよい */}
+        {/* 右側（氏名＝設定への入口）を先に立てるので、題字は縮んでよい */}
         <Link href="/" className="flex min-h-11 min-w-0 shrink items-center truncate font-bold tracking-tight">
           AtlasQuarry
         </Link>
@@ -100,15 +110,17 @@ export function AppNav({ actor, pendingRequests }: Props) {
       {/* スマホ：下部のタブ。片手で持って親指が届く位置 */}
       {/*
         **半透明をやめて不透明にする。** 下に文字が透けると「固定されていない／
-        切れている」ように見える。実機で下が切れていると言われた画面がこれ。
-        セーフエリアぶんの下余白は `layout.tsx` の viewport で
-        `viewport-fit=cover` を入れて初めて効く。
+        切れている」ように見える。
+
+        下余白は `max()` で受ける。実機の `env(safe-area-inset-bottom)` は、
+        Safari のツールバーが出ている間は **0px**、隠れるとホームインジケータぶんの
+        値になる。素で使うと片方の状態でしか合わないので、下限を持たせる。
       */}
       <nav
         aria-label="メインメニュー"
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 bg-background pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_0_var(--border)] lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 bg-background pb-[max(env(safe-area-inset-bottom),0.375rem)] shadow-[0_-1px_0_var(--border)] lg:hidden"
       >
-        {ITEMS.map(({ href, label, Icon, exact }) => {
+        {MOBILE_ITEMS.map(({ href, label, Icon, exact }) => {
           const current = isCurrent(href, exact);
           return (
             <Link
@@ -148,6 +160,25 @@ function Account({
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+
+  /*
+   * スマホの上部は**氏名そのものを設定への入口**にする。
+   * アイコンだけだと何が起きるか分からず、文字だけだと押せることが伝わらないので、
+   * 氏名＋下向き矢印を 44px 以上の1つの押し先にまとめる。
+   * ログアウトはここから外し、設定画面の最下部へ移した（誤タップ防止）。
+   */
+  if (!stacked) {
+    return (
+      <Link
+        href="/settings"
+        aria-label={`${actor.name}の設定`}
+        className="flex min-h-11 min-w-0 shrink items-center gap-1 rounded-md px-2 text-sm hover:bg-hover"
+      >
+        <span className="min-w-0 truncate font-semibold">{actor.name}</span>
+        <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+      </Link>
+    );
+  }
 
   return (
     <div className={cn('flex min-w-0 items-center gap-2 text-sm', stacked && 'flex-wrap')}>

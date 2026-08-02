@@ -49,33 +49,53 @@ function diffDays(from: Date, to: Date): number {
 
 const OPEN_STATUSES = new Set(['backlog', 'todo', 'in_progress', 'review']);
 
-export function MobileSchedule({ rows }: { rows: GanttRow[] }) {
+export function MobileSchedule({ rows, projectId }: { rows: GanttRow[]; projectId: string }) {
   const today = useMemo(() => ymd(new Date()), []);
 
   const tasks = useMemo(() => rows.filter((r) => r.kind === 'task'), [rows]);
   const features = useMemo(() => rows.filter((r) => r.kind === 'feature'), [rows]);
 
+  /*
+   * **数字は行動につながるものだけにする。**
+   *
+   * 「次の作業」を出していたが、将来期限のタスクを全部数えるだけで、50件あれば
+   * 50 と出る。何をすればいいかが分からない数字は、報告用の指標と同じで置く意味がない。
+   * 代わりに「未割当」を出す。担当が決まっていないタスクは**誰も動かさない**ので、
+   * 3人のチームで放置に直結する。
+   */
   const stats = useMemo(() => {
     const open = tasks.filter((t) => t.status && OPEN_STATUSES.has(t.status));
-    const late = open.filter((t) => t.dueDate !== null && t.dueDate < today);
-    const now = open.filter((t) => t.dueDate === today || t.startDate === today);
-    const next = open.filter((t) => t.dueDate !== null && t.dueDate > today);
-    return { late: late.length, today: now.length, next: next.length };
+    return {
+      late: open.filter((t) => t.dueDate !== null && t.dueDate < today).length,
+      today: open.filter((t) => t.dueDate === today || t.startDate === today).length,
+      unassigned: open.filter((t) => !t.assigneeName).length,
+    };
   }, [tasks, today]);
 
-  /** いま進んでいる開発項目。無ければ進捗が一番進んでいるもの。 */
+  /**
+   * いま進んでいるもの。
+   *
+   * **`in_progress` のタスクを持つ開発項目**を優先する。以前は「進捗を持つ最初の
+   * 開発項目」を拾っていたので、0% の項目や誰も触っていない項目が「進行中」として
+   * 出ることがあった。実際に手が動いているものを出さないと嘘になる。
+   */
   const current = useMemo(() => {
+    const active = new Set(
+      tasks.filter((t) => t.status === 'in_progress').map((t) => t.featureId ?? ''),
+    );
     const withProgress = features.filter((f) => f.progress && f.progress.total > 0);
     if (withProgress.length === 0) return null;
-    const started = withProgress.filter((f) => f.progress!.done > 0 && f.progress!.done < f.progress!.total);
-    const pick = started[0] ?? withProgress[0]!;
+    const pick =
+      withProgress.find((f) => active.has(f.id)) ??
+      withProgress.find((f) => f.progress!.done > 0 && f.progress!.done < f.progress!.total);
+    if (!pick) return null;
     const { done, total } = pick.progress!;
     return { label: pick.label, percent: Math.round((done / total) * 100), done, total };
-  }, [features]);
+  }, [features, tasks]);
 
   return (
     <div className="flex flex-col gap-5 lg:hidden">
-      <CurrentPosition stats={stats} current={current} />
+      <CurrentPosition stats={stats} current={current} projectId={projectId} />
       <VerticalTimeline rows={rows} today={today} />
       <MiniGantt rows={rows} today={today} />
     </div>
@@ -89,19 +109,24 @@ export function MobileSchedule({ rows }: { rows: GanttRow[] }) {
 function CurrentPosition({
   stats,
   current,
+  projectId,
 }: {
-  stats: { late: number; today: number; next: number };
+  stats: { late: number; today: number; unassigned: number };
   current: { label: string; percent: number; done: number; total: number } | null;
+  projectId: string;
 }) {
+  /** **数字は押せるようにする。** 見て終わりの数字は行動につながらない。 */
+  const to = `/tasks?projectId=${projectId}`;
+
   return (
     <section aria-label="現在地" className="flex flex-col gap-2">
       <h3 className="text-xs font-semibold text-subtle">現在地</h3>
 
       {/* 件数は3つだけ。**急ぐものにだけ色を持たせる。** */}
       <div className="grid grid-cols-3 gap-2">
-        <Stat label="遅延" value={stats.late} tone={stats.late > 0 ? 'danger' : 'plain'} />
-        <Stat label="今日" value={stats.today} tone="plain" />
-        <Stat label="次の作業" value={stats.next} tone="plain" />
+        <Stat label="遅延" value={stats.late} tone={stats.late > 0 ? 'danger' : 'plain'} href={to} />
+        <Stat label="今日" value={stats.today} tone="plain" href={to} />
+        <Stat label="未割当" value={stats.unassigned} tone="plain" href={to} />
       </div>
 
       {current && (
@@ -123,9 +148,19 @@ function CurrentPosition({
   );
 }
 
-function Stat({ label, value, tone }: { label: string; value: number; tone: 'danger' | 'plain' }) {
+function Stat({
+  label,
+  value,
+  tone,
+  href,
+}: {
+  label: string;
+  value: number;
+  tone: 'danger' | 'plain';
+  href: string;
+}) {
   return (
-    <div className="surface flex flex-col gap-0.5 p-3">
+    <Link href={href} className="surface flex flex-col gap-0.5 p-3 hover:bg-raised">
       <span className="text-xs text-muted-foreground">{label}</span>
       <span
         className={cn(
@@ -136,7 +171,7 @@ function Stat({ label, value, tone }: { label: string; value: number; tone: 'dan
         {value}
         <span className="ml-0.5 text-xs font-semibold text-muted-foreground">件</span>
       </span>
-    </div>
+    </Link>
   );
 }
 
@@ -145,11 +180,25 @@ function Stat({ label, value, tone }: { label: string; value: number; tone: 'dan
  * ------------------------------------------------------------------ */
 
 function VerticalTimeline({ rows, today }: { rows: GanttRow[]; today: string }) {
+  /*
+   * **完了・中止は出さない。** 済んだ作業が予定に混ざると、これから動かすものが
+   * 埋もれる。とくに中止は期限を過ぎたまま残るので、赤い「期限超過」として
+   * 並び続けてしまっていた。
+   *
+   * 同じ日付が並ぶことは普通に起きる（期限をまとめて入れる）。日付だけで並べると
+   * 同じ行が反復して見えるので、**同日内は担当者名で並べ、担当者を必ず出す。**
+   */
   const items = useMemo(() => {
     return rows
       .filter((r) => r.startDate !== null || r.dueDate !== null)
+      .filter((r) => r.kind === 'feature' || (r.status !== 'done' && r.status !== 'cancelled'))
       .map((r) => ({ row: r, at: (r.startDate ?? r.dueDate)! }))
-      .sort((a, b) => a.at.localeCompare(b.at));
+      .sort(
+        (a, b) =>
+          a.at.localeCompare(b.at) ||
+          (a.row.assigneeName ?? '').localeCompare(b.row.assigneeName ?? '') ||
+          a.row.label.localeCompare(b.row.label),
+      );
   }, [rows]);
 
   if (items.length === 0) {
@@ -198,14 +247,20 @@ function VerticalTimeline({ rows, today }: { rows: GanttRow[]; today: string }) 
                 ) : (
                   <p className="truncate text-sm font-bold">{row.label}</p>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  {row.kind === 'feature'
-                    ? '開発項目'
-                    : late
-                      ? '期限を過ぎています'
-                      : started
-                        ? '開始済み'
-                        : '開始予定'}
+                {/* **担当者を必ず出す。** 同じ日付が並ぶと、誰の予定か分からないと選べない */}
+                <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+                  <span data-late={late} className={cn(late && 'font-bold text-destructive')}>
+                    {row.kind === 'feature'
+                      ? '開発項目'
+                      : late
+                        ? '期限を過ぎています'
+                        : started
+                          ? '開始済み'
+                          : '開始予定'}
+                  </span>
+                  <span className="min-w-0 truncate">
+                    {row.kind === 'feature' ? '' : (row.assigneeName ?? '担当が未定')}
+                  </span>
                 </p>
               </div>
             </li>
@@ -228,13 +283,21 @@ function formatMd(value: string): string {
 function MiniGantt({ rows, today }: { rows: GanttRow[]; today: string }) {
   const scroller = useRef<HTMLDivElement>(null);
 
+  /* 縦タイムラインと同じ基準にする。済んだものが帯で残ると窓が埋まる */
   const dated = useMemo(
-    () => rows.filter((r) => r.startDate !== null || r.dueDate !== null),
+    () =>
+      rows
+        .filter((r) => r.startDate !== null || r.dueDate !== null)
+        .filter((r) => r.kind === 'feature' || (r.status !== 'done' && r.status !== 'cancelled')),
     [rows],
   );
 
-  /** 今日を左から3日目に置いた2週間の窓。**必要な範囲だけ横で見る。** */
-  const start = useMemo(() => addDays(parse(today), -3), [today]);
+  /**
+   * 今日を左から3列目に置いた2週間の窓。**必要な範囲だけ横で見る。**
+   * 過去は2日だけ見えれば足り、残りは先を見るために使う。
+   * （遅れているものは上の「遅延」で別に数えているので、ここで振り返る必要はない）
+   */
+  const start = useMemo(() => addDays(parse(today), -2), [today]);
   const days = useMemo(
     () => Array.from({ length: WINDOW_DAYS }, (_, i) => addDays(start, i)),
     [start],
@@ -242,7 +305,7 @@ function MiniGantt({ rows, today }: { rows: GanttRow[]; today: string }) {
 
   const toToday = () => {
     // 今日の列が左端から少し内側に来る位置へ戻す
-    scroller.current?.scrollTo({ left: 3 * CELL_W - 8, behavior: 'smooth' });
+    scroller.current?.scrollTo({ left: 2 * CELL_W - 8, behavior: 'smooth' });
   };
 
   useEffect(toToday, []);
@@ -266,7 +329,7 @@ function MiniGantt({ rows, today }: { rows: GanttRow[]; today: string }) {
         <div style={{ width: LABEL_W + WINDOW_DAYS * CELL_W }}>
           {/* 日付の行 */}
           <div className="flex">
-            <div className="shrink-0 bg-background" style={{ width: LABEL_W }} />
+            <div className="sticky left-0 z-10 shrink-0 bg-background" style={{ width: LABEL_W }} />
             {days.map((d) => {
               const key = ymd(d);
               return (
@@ -295,7 +358,7 @@ function MiniGantt({ rows, today }: { rows: GanttRow[]; today: string }) {
             return (
               <div key={row.id} className="flex items-center border-t border-border/60">
                 <div
-                  className="shrink-0 truncate bg-background py-2 pr-2 text-xs"
+                  className="sticky left-0 z-10 shrink-0 truncate bg-background py-2 pr-2 text-xs"
                   style={{ width: LABEL_W }}
                   title={row.label}
                 >
@@ -305,7 +368,7 @@ function MiniGantt({ rows, today }: { rows: GanttRow[]; today: string }) {
                   {/* 今日の縦線 */}
                   <span
                     className="absolute top-0 bottom-0 w-px bg-primary/50"
-                    style={{ left: 3 * CELL_W + CELL_W / 2 }}
+                    style={{ left: 2 * CELL_W + CELL_W / 2 }}
                     aria-hidden="true"
                   />
                   {visible && (

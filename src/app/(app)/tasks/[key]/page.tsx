@@ -21,6 +21,8 @@ import { dueLabel, formatDateFull, formatDateTime, isOverdue } from '@/lib/forma
 import { ACTIVITY_ACTION_LABELS } from '@/lib/labels';
 import { renderMarkdown } from '@/lib/markdown';
 
+import { TaskStatusMenu } from '../TaskStatusMenu';
+
 import { CommentForm } from './CommentForm';
 import { DeleteCommentButton } from './DeleteCommentButton';
 import { TaskEditor } from './TaskEditor';
@@ -59,13 +61,35 @@ export default async function TaskDetailPage({ params }: Props) {
 
   return (
     <div className="flex flex-col gap-5">
-      <nav className="flex flex-wrap items-center gap-3 text-sm" aria-label="現在の場所">
-        <Link href={`/projects/${task.productId}`}>{task.productKey}</Link>
-        <Link href={`/tasks?projectId=${task.productId}`}>タスク</Link>
+      {/*
+        **戻り先は1本にする。** 以前は「プロジェクト記号」と「タスク」の2つの文字リンクが
+        並んでいて、どちらが戻るのか分からなかった。矢印付きの1本だけを置き、
+        プロジェクトへの導線は下の情報欄から辿らせる。
+        ブラウザの戻るは「直前へ」、この矢印は「この情報の親へ」と役割を分ける。
+      */}
+      <nav aria-label="戻る">
+        <Link
+          href={`/tasks?projectId=${task.productId}`}
+          className="inline-flex min-h-11 items-center text-sm text-muted-foreground hover:text-foreground"
+        >
+          ← タスク一覧
+        </Link>
       </nav>
 
       <PageHeader title={task.title} />
       <p className="-mt-2 tabular text-xs text-muted-foreground">{task.key}</p>
+
+      {/*
+        **状態はここで変える。** 編集フォームは本文・担当・期限をまとめて直すためのもので、
+        「作業中にする」「完了にする」だけのために開かせるには重い。
+        一覧の行と同じ操作をタイトルの直下に置き、状態変更の入口を揃える。
+      */}
+      {editable && (
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">状態</span>
+          <TaskStatusMenu taskId={task.id} status={task.status} />
+        </div>
+      )}
 
       <div className="grid overflow-hidden rounded-lg border bg-surface sm:grid-cols-2">
         <div>

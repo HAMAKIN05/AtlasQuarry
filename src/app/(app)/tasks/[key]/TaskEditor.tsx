@@ -6,7 +6,6 @@ import { useState, type FormEvent } from 'react';
 import type { TaskPriority, TaskStatus } from '@/db/schema/enums';
 import { ApiError, api } from '@/lib/api/client';
 import { useLabels } from '@/components/LabelsProvider';
-import { BOARD_COLUMNS } from '@/lib/labels';
 
 type Option = { id: string; name: string };
 
@@ -22,7 +21,6 @@ type EditableTask = {
   dueDate: string | null;
 };
 
-const ALL_STATUSES: TaskStatus[] = [...BOARD_COLUMNS, 'cancelled'];
 const PRIORITIES: TaskPriority[] = ['urgent', 'high', 'normal', 'low'];
 
 /** タスクの編集。本文はプレーン Markdown（機能定義書 §7）。 */
@@ -53,10 +51,13 @@ export function TaskEditor({
     setSaving(true);
 
     try {
+      /*
+       * **status は送らない。** タイトル直下の「状態」で即時に変えられるようにしたので、
+       * このフォームが開いた時点の古い状態を一緒に送ると、保存のたびに巻き戻る。
+       */
       await api.patch(`/tasks/${task.id}`, {
         title: form.title,
         bodyMd: form.bodyMd ?? '',
-        status: form.status,
         priority: form.priority,
         assigneeId: form.assigneeId,
         featureId: form.featureId,
@@ -125,19 +126,12 @@ export function TaskEditor({
           />
         </label>
 
-        <label className="flex min-w-0 flex-col gap-1.5">
-          <span className="text-sm font-semibold text-muted-foreground">ステータス</span>
-          <select
-            value={form.status}
-            onChange={(e) => setForm({ ...form, status: e.target.value as TaskStatus })}
-          >
-            {ALL_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {labels[`task.status.${status}`]}
-              </option>
-            ))}
-          </select>
-        </label>
+        {/*
+          **状態はここに置かない。** タイトル直下の「状態」に一本化した。
+          両方に置くと、上で状態を変えたあとに古い値を抱えたこのフォームを保存して、
+          **意図せず状態を巻き戻す**。単に迷わせるだけでなく壊れる。
+          このフォームはタイトル・本文・優先度・担当・日付を直すためのもの。
+        */}
 
         <label className="flex min-w-0 flex-col gap-1.5">
           <span className="text-sm font-semibold text-muted-foreground">優先度</span>
