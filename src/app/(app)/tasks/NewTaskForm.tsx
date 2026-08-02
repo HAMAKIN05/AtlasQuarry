@@ -19,7 +19,8 @@ export function NewTaskForm({
   features,
   members,
   onCreated,
-  defaultOpen = false,
+  open,
+  onClose,
 }: {
   productId: string;
   /** 追加直後の行に出す名前。サーバーから返る前の仮表示に使う */
@@ -27,10 +28,15 @@ export function NewTaskForm({
   features: Option[];
   members: Option[];
   onCreated: (task: TaskListItem) => void;
-  /** 他の画面から「タスクを追加」で来たとき、開いた状態で始める */
-  defaultOpen?: boolean;
+  /**
+   * 開いているか。**開閉は親が持つ。**
+   * このフォームが自分で開閉を持ち、見出しの右のボタンと同じ場所に描かれていたため、
+   * 開くと**見出しの脇の細い枠の中にフォームが出て**、右へはみ出していた。
+   * 要望を出す画面で同じ形の不具合を直したのに、こちらに残っていた。
+   */
+  open: boolean;
+  onClose: () => void;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
   const [title, setTitle] = useState('');
   const [featureId, setFeatureId] = useState('');
   const [assigneeId, setAssigneeId] = useState('');
@@ -76,7 +82,7 @@ export function NewTaskForm({
 
       setTitle('');
       setDueDate('');
-      setOpen(false);
+      onClose();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '追加できませんでした');
     } finally {
@@ -84,16 +90,10 @@ export function NewTaskForm({
     }
   }
 
-  if (!open) {
-    return (
-      <button type="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setOpen(true)}>
-        タスクを追加
-      </button>
-    );
-  }
+  if (!open) return null;
 
   return (
-    <form className="flex flex-col gap-4 surface p-4" onSubmit={handleSubmit} noValidate>
+    <form className="surface flex flex-col gap-4 p-4" onSubmit={handleSubmit} noValidate>
       <h2 className="text-base font-bold">タスクを追加</h2>
 
       {error && (
@@ -149,7 +149,7 @@ export function NewTaskForm({
         <button type="submit" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" disabled={submitting}>
           {submitting ? '追加中…' : '追加'}
         </button>
-        <button type="button" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-primary-soft disabled:opacity-50" onClick={() => setOpen(false)}>
+        <button type="button" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-primary-soft disabled:opacity-50" onClick={onClose}>
           やめる
         </button>
       </div>

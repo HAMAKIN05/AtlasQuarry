@@ -108,6 +108,8 @@ export function TaskWorkspace({
    */
   const [featureId, setFeatureId] = useState(initialFeatureId);
   const [showClosed, setShowClosed] = useState(false);
+  /* 追加フォームの開閉は**ここで持つ。** 見出しの中で開かせない */
+  const [adding, setAdding] = useState(startAdding);
 
   const visible = useMemo(
     () =>
@@ -182,16 +184,30 @@ export function TaskWorkspace({
             )}
           </button>
 
-          <NewTaskForm
-            productId={projectId}
-            projectName={project?.name ?? ''}
-            defaultOpen={startAdding}
-            features={features}
-            members={members}
-            onCreated={(task) => setTasks((prev) => [...prev, task])}
-          />
+          <button
+            type="button"
+            onClick={() => setAdding(true)}
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-primary px-4 text-[15px] font-semibold text-primary-foreground"
+          >
+            タスクを追加
+          </button>
         </div>
       </header>
+
+      {/*
+        **フォームは見出しの外に、全幅で出す。**
+        見出しの右のボタンと同じ場所に描いていたため、開くと細い枠の中に
+        入力欄が並んで右へはみ出していた（実機で「なにこれ？意味不明」と言われた）。
+      */}
+      <NewTaskForm
+        productId={projectId}
+        projectName={project?.name ?? ''}
+        open={adding}
+        onClose={() => setAdding(false)}
+        features={features}
+        members={members}
+        onCreated={(task) => setTasks((prev) => [...prev, task])}
+      />
 
       {/*
         絞り込みは畳んでおく。**開いた人の8割は自分の担当だけを見たい。**
