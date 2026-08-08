@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
 import { Attachments } from '@/components/Attachments';
-import { Badge, BackLink, Loading, PageHeader } from '@/components/app-ui';
+import { Badge, BackLink, Loading } from '@/components/app-ui';
 import { listAttachments } from '@/domain/attachment/service';
 import { candidateLines, listPendingDecisions } from '@/domain/document/minutes';
 import { DOCUMENT_TYPE_LABELS, getDocument, listRevisions } from '@/domain/document/service';
@@ -36,35 +36,36 @@ export default async function DocumentPage({ params }: { params: Promise<{ id: s
   const editable = can(actor, 'document.edit') && !doc.isConfirmed;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="document-workspace">
       {doc.productId && <BackLink href={`/projects/${doc.productId}?view=docs`} label="資料" />}
 
-      <PageHeader title={doc.title} />
-
-      <span className="-mt-2 flex flex-wrap items-center gap-2">
-        <Badge tone="neutral">{DOCUMENT_TYPE_LABELS[doc.type]}</Badge>
-        {doc.type === 'minutes' && doc.meetingDate && (
-          <span className="tabular text-[13px] text-muted-foreground">
-            開催 {formatDate(doc.meetingDate)}
-          </span>
-        )}
-        {doc.type === 'minutes' &&
-          (doc.isConfirmed ? <Badge tone="done">確定</Badge> : <Badge tone="warn">下書き</Badge>)}
-        {doc.lockedByName && <Badge tone="warn">{doc.lockedByName}さんが編集中</Badge>}
-      </span>
-
-      <div className="flex flex-wrap gap-2">
+      <header className="document-cockpit">
+        <div className="document-cockpit-copy">
+          <p className="eyebrow">Knowledge base</p>
+          <h1>{doc.title}</h1>
+          <div className="document-meta">
+            <Badge tone="neutral">{DOCUMENT_TYPE_LABELS[doc.type]}</Badge>
+            {doc.type === 'minutes' && doc.meetingDate && (
+              <span className="tabular">開催 {formatDate(doc.meetingDate)}</span>
+            )}
+            {doc.type === 'minutes' &&
+              (doc.isConfirmed ? <Badge tone="done">確定</Badge> : <Badge tone="warn">下書き</Badge>)}
+            {doc.lockedByName && <Badge tone="warn">{doc.lockedByName}さんが編集中</Badge>}
+          </div>
+        </div>
+        <div className="document-actions">
         {editable && (
-          <Link href={`/docs/${doc.id}/edit`} className="chip">
+          <Link href={`/docs/${doc.id}/edit`} className="primary-action">
             編集する
           </Link>
         )}
         {doc.type === 'minutes' && can(actor, 'minutes.confirm') && (
           <MinutesActions id={doc.id} confirmed={doc.isConfirmed} />
         )}
-      </div>
+        </div>
+      </header>
 
-      <section className="surface p-4">
+      <section className="section-card document-body">
         {bodyHtml ? (
           // renderMarkdown が rehype-sanitize を通しているため、入るのは検査済みのHTMLのみ
           <div className="markdown" dangerouslySetInnerHTML={{ __html: bodyHtml }} />

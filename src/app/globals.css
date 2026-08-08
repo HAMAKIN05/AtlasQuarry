@@ -2194,3 +2194,232 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.schedule-workspace,
+.notification-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.schedule-hero,
+.notification-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 1.1rem;
+  background: linear-gradient(135deg, oklch(0.97 0.025 250), oklch(0.93 0.035 290));
+  padding: 1.5rem;
+}
+
+.schedule-hero h1,
+.notification-hero h1 {
+  margin: 0.4rem 0 0;
+  font-size: clamp(1.5rem, 3vw, 2.35rem);
+  font-weight: 850;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.schedule-hero p:not(.eyebrow),
+.notification-hero p:not(.eyebrow) {
+  max-width: 58ch;
+  margin: 0.7rem 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+
+.schedule-legend-copy {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.85rem;
+  color: var(--muted-foreground);
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.schedule-legend-copy span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.schedule-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+}
+
+.schedule-dot-task { background: var(--primary); }
+.schedule-dot-done { background: var(--success); }
+
+.schedule-mode-switcher {
+  display: flex;
+  align-self: flex-start;
+  gap: 0.25rem;
+  border-radius: 0.8rem;
+  background: var(--surface-raised);
+  padding: 0.25rem;
+}
+
+.schedule-mode-link {
+  display: inline-flex;
+  min-height: 2.35rem;
+  align-items: center;
+  border-radius: 0.65rem;
+  padding: 0.4rem 0.85rem;
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.schedule-mode-link:hover,
+.schedule-mode-link.is-active {
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  color: var(--foreground);
+}
+
+.notification-count {
+  display: inline-flex;
+  min-height: 2.35rem;
+  align-items: center;
+  border-radius: 999px;
+  background: var(--surface);
+  padding: 0.4rem 0.75rem;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.notification-list {
+  overflow: hidden;
+}
+
+.notification-card {
+  display: block;
+  border-top: 1px solid var(--border);
+  padding: 1rem 1.15rem;
+  transition: background 150ms ease;
+}
+
+.notification-card:hover {
+  background: var(--surface-raised);
+}
+
+.notification-title-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.notification-title {
+  min-width: 0;
+  flex: 1;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.notification-body {
+  display: block;
+  margin-top: 0.45rem;
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.notification-meta {
+  display: block;
+  margin-top: 0.6rem;
+  color: var(--subtle-foreground);
+  font-size: 0.7rem;
+}
+
+@media (max-width: 767px) {
+  .schedule-hero,
+  .notification-hero {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 1.15rem;
+  }
+
+  .schedule-legend-copy {
+    align-self: flex-start;
+  }
+
+  .notification-count {
+    align-self: flex-start;
+  }
+}
+
+.document-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.document-cockpit {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 1.1rem;
+  background: var(--surface);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-card);
+}
+
+.document-cockpit-copy {
+  min-width: 0;
+}
+
+.document-cockpit h1 {
+  margin: 0.4rem 0 0;
+  font-size: clamp(1.45rem, 3vw, 2.2rem);
+  font-weight: 850;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.document-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+  color: var(--muted-foreground);
+  font-size: 0.72rem;
+}
+
+.document-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.document-body {
+  padding: 1.35rem;
+}
+
+@media (max-width: 767px) {
+  .document-cockpit {
+    flex-direction: column;
+    padding: 1.15rem;
+  }
+
+  .document-actions {
+    width: 100%;
+  }
+
+  .document-actions > * {
+    flex: 1;
+  }
+}

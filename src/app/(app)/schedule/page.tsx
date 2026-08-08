@@ -38,20 +38,30 @@ export default async function SchedulePage({ searchParams }: Props) {
   const mode = view === 'calendar' ? 'calendar' : 'gantt';
 
   return (
-    <div className="flex flex-col gap-5">
-      <h1 className="large-title">予定</h1>
+    <div className="schedule-workspace">
+      <header className="schedule-hero">
+        <div>
+          <p className="eyebrow">Planning view</p>
+          <h1>予定を見渡す</h1>
+          <p>案件をまたいで、いつ何が動くかを確認します。詳細な作業は案件や自分の仕事から開けます。</p>
+        </div>
+        <div className="schedule-legend-copy">
+          <span><i className="schedule-dot schedule-dot-task" />タスク</span>
+          <span><i className="schedule-dot schedule-dot-done" />完了</span>
+        </div>
+      </header>
 
-      <nav className="-mt-2 flex gap-2" aria-label="見方">
+      <nav className="schedule-mode-switcher" aria-label="予定の見方">
         <Link
           href={projectId ? `/schedule?projectId=${projectId}` : '/schedule'}
-          className="chip"
+          className={cn('schedule-mode-link', mode === 'gantt' && 'is-active')}
           aria-current={mode === 'gantt' ? 'page' : undefined}
         >
           工程
         </Link>
         <Link
           href={calendarHref({ projectId: projectId ?? null, month: month ?? null, day: null })}
-          className="chip"
+          className={cn('schedule-mode-link', mode === 'calendar' && 'is-active')}
           aria-current={mode === 'calendar' ? 'page' : undefined}
         >
           カレンダー

@@ -19,44 +19,59 @@ export default async function NotificationsPage() {
   await markAllRead(actor.id);
 
   return (
-    <div className="flex flex-col gap-5">
-      <h1 className="large-title">お知らせ</h1>
+    <div className="notification-workspace">
+      <header className="notification-hero">
+        <div>
+          <p className="eyebrow">Activity inbox</p>
+          <h1>お知らせ</h1>
+          <p>自分に関係する変化だけをまとめています。開いた時点で確認済みになります。</p>
+        </div>
+        <span className="notification-count">{items.length}件</span>
+      </header>
 
       {items.length === 0 ? (
-        <EmptyState
-          title="お知らせはありません"
-          description="タスクが割り当てられたときや、要望に判断がついたときにここへ届きます。"
-        />
+        <section className="section-card notification-empty-card">
+          <EmptyState
+            title="お知らせはありません"
+            description="タスクが割り当てられたときや、要望に判断がついたときにここへ届きます。"
+          />
+        </section>
       ) : (
-        <div className="card-list">
+        <section className="section-card notification-list">
+          <div className="section-card-header">
+            <div>
+              <p className="section-eyebrow">最近の変化</p>
+              <h2>通知一覧</h2>
+            </div>
+          </div>
           {items.map((n) => {
             const content = (
               <>
-                <span className="flex items-start gap-2">
+                <span className="notification-title-row">
                   {!n.isRead && (
                     <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary" aria-label="未読" />
                   )}
-                  <span className="card-title min-w-0 flex-1">{n.title}</span>
+                  <span className="notification-title">{n.title}</span>
                   {n.url && <span className="chevron" aria-hidden="true" />}
                 </span>
-                <span className="mt-1 block text-[15px] whitespace-pre-wrap text-muted-foreground">
+                <span className="notification-body">
                   {n.body}
                 </span>
-                <span className="stack-meta mt-1.5">{formatRelative(n.createdAt)}</span>
+                <span className="notification-meta">{formatRelative(n.createdAt)}</span>
               </>
             );
 
             return n.url ? (
-              <Link key={n.id} href={n.url} className="card">
+              <Link key={n.id} href={n.url} className="notification-card">
                 {content}
               </Link>
             ) : (
-              <div key={n.id} className="card">
+              <div key={n.id} className="notification-card">
                 {content}
               </div>
             );
           })}
-        </div>
+        </section>
       )}
     </div>
   );
