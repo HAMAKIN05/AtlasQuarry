@@ -43,7 +43,7 @@ export default async function SchedulePage({ searchParams }: Props) {
         <div>
           <p className="eyebrow">Planning view</p>
           <h1>予定を見渡す</h1>
-          <p>案件をまたいで、いつ何が動くかを確認します。詳細な作業は案件や自分の仕事から開けます。</p>
+          <p>プロジェクトをまたいで、いつ何が動くかを確認します。詳細な作業はプロジェクトや自分の仕事から開けます。</p>
         </div>
         <div className="schedule-legend-copy">
           <span><i className="schedule-dot schedule-dot-task" />タスク</span>
@@ -158,7 +158,7 @@ async function ScheduleBody({ selected }: { selected: string | null }) {
         </nav>
       )}
 
-      {/* 選んでいる案件があれば、その全体像へ行ける導線を置く */}
+      {/* 選んでいるプロジェクトがあれば、その全体像へ行ける導線を置く */}
       {selected && (
         <Link href={`/projects/${selected}`} className="chip self-start">
           このプロジェクトを開く

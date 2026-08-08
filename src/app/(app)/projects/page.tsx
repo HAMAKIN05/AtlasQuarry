@@ -10,7 +10,7 @@ import { can } from '@/lib/auth/rbac';
 import { formatDate } from '@/lib/format';
 import { PROJECT_STATUS_LABELS } from '@/lib/labels';
 
-export const metadata = { title: '案件 | AtlasQuarry' };
+export const metadata = { title: 'プロジェクト | AtlasQuarry' };
 
 export default async function ProjectsPage() {
   const actor = await requireActor();
@@ -36,29 +36,29 @@ export default async function ProjectsPage() {
       <header className="workspace-home-header">
         <div>
           <p className="eyebrow">仕事のまとまり</p>
-          <h1 className="large-title">案件</h1>
+          <h1 className="large-title">プロジェクト</h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            案件を選ぶと、タスク・予定・資料・工数をひとつの流れで確認できます。
+            プロジェクトを選ぶと、タスク・予定・資料・工数をひとつの流れで確認できます。
           </p>
         </div>
         {can(actor, 'product.create') && (
           <Button asChild>
-            <Link href="/projects/new">新しい案件を作る</Link>
+            <Link href="/projects/new">新しいプロジェクトを作る</Link>
           </Button>
         )}
       </header>
 
-      <section className="project-overview-strip" aria-label="案件の概要">
-        <OverviewStat label="進行中" value={active.length} detail="いま動いている案件" />
-        <OverviewStat label="未完了タスク" value={summaries.reduce((sum, item) => sum + item.open, 0)} detail="全案件の合計" />
+      <section className="project-overview-strip" aria-label="プロジェクトの概要">
+        <OverviewStat label="進行中" value={active.length} detail="いま動いているプロジェクト" />
+        <OverviewStat label="未完了タスク" value={summaries.reduce((sum, item) => sum + item.open, 0)} detail="全プロジェクトの合計" />
         <OverviewStat label="期限超過" value={summaries.reduce((sum, item) => sum + item.overdue, 0)} detail="先に確認したいもの" danger />
       </section>
 
       {projects.length === 0 ? (
-        <EmptyState title="まだ案件がありません" description="案件をひとつ作ると、チームの仕事をここで整理できます。" actionLabel="最初の案件を作る" actionHref="/projects/new" />
+        <EmptyState title="まだプロジェクトがありません" description="プロジェクトをひとつ作ると、チームの仕事をここで整理できます。" actionLabel="最初のプロジェクトを作る" actionHref="/projects/new" />
       ) : (
         <>
-          <ProjectGroup title="進行中の案件" count={active.length} items={active} />
+          <ProjectGroup title="進行中のプロジェクト" count={active.length} items={active} />
           {archived.length > 0 && <ProjectGroup title="完了・停止中" count={archived.length} items={archived} muted />}
         </>
       )}
@@ -91,7 +91,7 @@ function ProjectGroup({
         </div>
       </header>
       {items.length === 0 ? (
-        <div className="section-empty project-empty">この状態の案件はありません。</div>
+        <div className="section-empty project-empty">この状態のプロジェクトはありません。</div>
       ) : (
         <div className="project-catalog-grid">
           {items.map(({ project, open, overdue, unassigned }) => (

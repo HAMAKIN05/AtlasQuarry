@@ -18,14 +18,14 @@ export default async function NewProjectPage() {
       <BackLink href="/projects" label="プロジェクト一覧" />
       <header className="request-form-hero project-form-hero">
         <p className="eyebrow">New project</p>
-        <h1>案件を作成する</h1>
+        <h1>プロジェクトを作成する</h1>
         <p>チームで進めるまとまりを登録します。番号は自動で付くので、名前と目的だけ入力してください。</p>
       </header>
       <div className="request-form-layout">
         <aside className="request-form-guide">
           <p className="section-eyebrow">作成後にできること</p>
           <h2>仕事の入口を一つにする</h2>
-          <p>案件を作ると、タスク・予定・資料・工数を一つの場所で追えるようになります。</p>
+          <p>プロジェクトを作ると、タスク・予定・資料・工数を一つの場所で追えるようになります。</p>
         </aside>
         <section className="section-card request-form-card">
           <NewProjectForm />

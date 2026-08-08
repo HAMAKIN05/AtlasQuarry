@@ -49,7 +49,7 @@ export default async function RequestsPage({ searchParams }: Props) {
           <h2>判断を止めない</h2>
           <ol className="request-flow-list">
             <li><span>1</span><div><strong>受け取る</strong><small>まずは要望を残す</small></div></li>
-            <li><span>2</span><div><strong>確認する</strong><small>内容と案件を整理する</small></div></li>
+            <li><span>2</span><div><strong>確認する</strong><small>内容とプロジェクトを整理する</small></div></li>
             <li><span>3</span><div><strong>仕事にする</strong><small>採用したらタスクへ変換する</small></div></li>
           </ol>
           <Link href="/requests/new" className="request-guide-link">要望を登録する →</Link>
@@ -124,7 +124,7 @@ async function RequestList({ active }: { active: RequestStatus | 'all' }) {
             <div className="request-inbox-main">
               <span className="request-inbox-title">{request.title}</span>
               <span className="request-inbox-meta">
-                {request.productName ?? '案件未設定'} ・ {request.reporterName} ・ {formatRelative(request.createdAt)}
+                {request.productName ?? 'プロジェクト未設定'} ・ {request.reporterName} ・ {formatRelative(request.createdAt)}
               </span>
             </div>
             <div className="request-inbox-state">

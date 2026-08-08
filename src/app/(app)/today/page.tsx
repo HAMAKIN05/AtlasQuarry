@@ -89,7 +89,7 @@ export default async function TodayPage({
             <EmptyState
               title={filter === 'attention' ? '今日対応するタスクはありません' : '表示できるタスクはありません'}
               description="次の期限を確認するか、新しいタスクを追加できます。"
-              actionLabel="案件を確認する"
+              actionLabel="プロジェクトを確認する"
               actionHref="/projects"
             />
           ) : (
@@ -132,9 +132,9 @@ export default async function TodayPage({
             <span className="next-step-number">?</span>
             <div>
               <p className="section-eyebrow">次に迷ったら</p>
-              <h2>案件からタスクを探す</h2>
-              <p>担当や期限がまだ決まっていない仕事は、案件のタスク一覧から整理できます。</p>
-              <Link href="/projects" className="section-action">案件を見る →</Link>
+              <h2>プロジェクトからタスクを探す</h2>
+              <p>担当や期限がまだ決まっていない仕事は、プロジェクトのタスク一覧から整理できます。</p>
+              <Link href="/projects" className="section-action">プロジェクトを見る →</Link>
             </div>
           </section>
         </aside>

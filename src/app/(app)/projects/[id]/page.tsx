@@ -66,7 +66,7 @@ export default async function ProjectHomePage({ params, searchParams }: Props) {
 
   return (
     <div className="project-workspace">
-      <BackLink href="/projects" label="案件一覧" />
+      <BackLink href="/projects" label="プロジェクト一覧" />
 
       <header className="project-cockpit">
         <div className="project-cockpit-copy">
@@ -75,7 +75,7 @@ export default async function ProjectHomePage({ params, searchParams }: Props) {
             <span className="project-status-label">{PROJECT_STATUS_LABELS[project.status]}</span>
           </div>
           <h1>{project.name}</h1>
-          <p>{project.description ?? 'この案件の状況・仕事・資料をここで確認できます。'}</p>
+          <p>{project.description ?? 'このプロジェクトの状況・仕事・資料をここで確認できます。'}</p>
         </div>
         <div className="project-primary-actions">
           <Link href={`/projects/${project.id}?view=tasks`} className="primary-action">仕事を見る</Link>
@@ -85,7 +85,7 @@ export default async function ProjectHomePage({ params, searchParams }: Props) {
         </div>
       </header>
 
-      <nav className="project-nav" aria-label="この案件の見方">
+      <nav className="project-nav" aria-label="このプロジェクトの見方">
         {VIEWS.map((v) => (
           <Link
             key={v.key}

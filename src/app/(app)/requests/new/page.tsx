@@ -31,7 +31,7 @@ export default async function NewRequestPage() {
         <aside className="request-form-guide">
           <p className="section-eyebrow">入力のコツ</p>
           <h2>まずは1行で十分です</h2>
-          <p>「何ができるようになりたいか」を書いてください。背景や関係する案件は、分かる範囲で後から足せます。</p>
+          <p>「何ができるようになりたいか」を書いてください。背景や関係するプロジェクトは、分かる範囲で後から足せます。</p>
         </aside>
         <section className="section-card request-form-card">
           <NewRequestForm projects={projects.map((p) => ({ id: p.id, name: p.name }))} />

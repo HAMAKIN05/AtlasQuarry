@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { ApiError, api } from '@/lib/api/client';
@@ -23,11 +23,13 @@ export function NewRequestForm({ projects }: { projects: Array<{ id: string; nam
   const [productId, setProductId] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const titleRef = useRef<HTMLInputElement>(null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (title.trim().length === 0) {
       setError('やりたいことを1行だけ書いてください');
+      titleRef.current?.focus();
       return;
     }
     setError(null);
@@ -49,7 +51,7 @@ export function NewRequestForm({ projects }: { projects: Array<{ id: string; nam
   return (
     <form className="flex flex-col gap-6" onSubmit={handleSubmit} noValidate>
       {error && (
-        <p className="rounded-md bg-destructive-soft px-3 py-2 text-sm text-destructive" role="alert">
+        <p id="request-form-error" className="rounded-md bg-destructive-soft px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
@@ -58,15 +60,19 @@ export function NewRequestForm({ projects }: { projects: Array<{ id: string; nam
         {/* **1行目を主役にする。** ここだけ大きく、ほかは補助として一段落とす */}
         <span className="text-base font-bold">何ができるようになりたいですか</span>
         <input
+          ref={titleRef}
+          id="request-title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           maxLength={200}
           required
           autoFocus
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? 'request-form-error request-title-hint' : 'request-title-hint'}
           className="!min-h-14 !text-base"
           placeholder="例：受付の入力を減らしたい"
         />
-        <span className="text-sm leading-relaxed text-muted-foreground">
+        <span id="request-title-hint" className="text-sm leading-relaxed text-muted-foreground">
           思いついた言い方のままで構いません。整える必要はありません。
         </span>
       </label>

@@ -24,11 +24,12 @@ import { ROLE_LABELS } from '@/lib/labels';
 const PRIMARY_ITEMS = [
   { href: '/', label: 'ホーム', caption: '今日の全体像', Icon: HomeIcon, exact: true },
   { href: '/today', label: '自分の仕事', caption: '次にやること', Icon: UserRoundIcon, exact: false },
-  { href: '/projects', label: '案件', caption: '進行中の仕事', Icon: FolderKanbanIcon, exact: false },
+  { href: '/projects', label: 'プロジェクト', caption: '進行中の仕事', Icon: FolderKanbanIcon, exact: false },
   { href: '/requests', label: '要望', caption: '相談・改善の入口', Icon: InboxIcon, exact: false },
 ] as const;
 
 const UTILITY_ITEMS = [
+  { href: '/search', label: '検索', Icon: SearchIcon },
   { href: '/schedule', label: '予定', Icon: CalendarDaysIcon },
   { href: '/notifications', label: 'お知らせ', Icon: BellIcon },
 ] as const;

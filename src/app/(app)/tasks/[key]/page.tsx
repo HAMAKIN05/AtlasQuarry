@@ -85,14 +85,14 @@ export default async function TaskDetailPage({ params }: Props) {
         )}
       </header>
 
-      <section className="task-summary-grid" aria-label="タスクの概要">
+      <dl className="task-summary-grid" aria-label="タスクの概要">
         <div className="task-summary-item"><dt>状態</dt><dd><Badge tone={taskStatusTone(task.status)}>{labels[`task.status.${task.status}`]}</Badge></dd></div>
         <div className="task-summary-item"><dt>優先度</dt><dd><Badge tone={priorityTone(task.priority)}>{labels[`task.priority.${task.priority}`]}</Badge></dd></div>
         <div className="task-summary-item"><dt>担当</dt><dd>{task.assigneeName ? `${task.assigneeName}さん` : '担当未定'}</dd></div>
         <div className="task-summary-item"><dt>登録者</dt><dd>{task.reporterName}さん</dd></div>
-        <div className="task-summary-item"><dt>案件</dt><dd><Link href={`/projects/${task.productId}`} className="text-primary">{task.productName}</Link></dd></div>
+        <div className="task-summary-item"><dt>プロジェクト</dt><dd><Link href={`/projects/${task.productId}`} className="text-primary">{task.productName}</Link></dd></div>
         <div className="task-summary-item"><dt>期限</dt><dd className={isOverdue(task.dueDate, task.status) ? 'font-bold text-destructive' : undefined}>{due ? `${due} ・ ${formatDateFull(task.dueDate)}` : '期限なし'}</dd></div>
-      </section>
+      </dl>
 
       {fromRequest && (
         <Link href={`/requests/${fromRequest.id}`} className="task-origin">

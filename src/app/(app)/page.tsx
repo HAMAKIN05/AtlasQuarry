@@ -80,8 +80,8 @@ export default async function WorkspaceHomePage() {
           {nextTasks.length === 0 ? (
             <EmptyState
               title="今すぐ対応するタスクはありません"
-              description="新しいタスクを追加するか、案件の予定を確認できます。"
-              actionLabel={can(actor, 'task.create') ? 'タスクを追加' : '案件を見る'}
+          description="新しいタスクを追加するか、プロジェクトの予定を確認できます。"
+          actionLabel={can(actor, 'task.create') ? 'タスクを追加' : 'プロジェクトを見る'}
               actionHref={can(actor, 'task.create') ? '/tasks?new=1' : '/projects'}
             />
           ) : (
@@ -141,12 +141,12 @@ export default async function WorkspaceHomePage() {
       <section className="section-card" aria-labelledby="projects-title">
         <SectionHeader
           eyebrow="PROJECTS"
-          title="案件の進み具合"
+          title="プロジェクトの進み具合"
           count={activeProjects.length}
-          action={<Link href="/projects" className="section-action">案件をすべて見る →</Link>}
+          action={<Link href="/projects" className="section-action">プロジェクトをすべて見る →</Link>}
         />
         {activeProjects.length === 0 ? (
-          <EmptyState title="進行中の案件はありません" description="案件を作成すると、タスクと予定をまとめて管理できます。" actionLabel="案件を作る" actionHref="/projects/new" />
+          <EmptyState title="進行中のプロジェクトはありません" description="プロジェクトを作成すると、タスクと予定をまとめて管理できます。" actionLabel="プロジェクトを作る" actionHref="/projects/new" />
         ) : (
           <div className="project-snapshot-grid">
             {activeProjects.slice(0, 4).map((project) => (
