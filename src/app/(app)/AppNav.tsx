@@ -4,28 +4,33 @@ import {
   BellIcon,
   CalendarDaysIcon,
   FolderKanbanIcon,
+  HomeIcon,
   InboxIcon,
-  LayoutDashboardIcon,
   LogOutIcon,
   SearchIcon,
   Settings2Icon,
+  UserRoundIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import type { ActorRole } from '@/db/schema/enums';
 import { api } from '@/lib/api/client';
 import { cn } from '@/lib/cn';
 import { ROLE_LABELS } from '@/lib/labels';
 
-const ITEMS = [
-  { href: '/', label: 'プロジェクト', caption: '全体を俯瞰', Icon: FolderKanbanIcon, exact: true },
-  { href: '/today', label: '今日', caption: '次にやること', Icon: LayoutDashboardIcon, exact: false },
-  { href: '/schedule', label: '予定', caption: '工程と期限', Icon: CalendarDaysIcon, exact: false },
-  { href: '/requests', label: '要望', caption: '改善の入口', Icon: InboxIcon, exact: false },
+const PRIMARY_ITEMS = [
+  { href: '/', label: 'ホーム', caption: '今日の全体像', Icon: HomeIcon, exact: true },
+  { href: '/today', label: '自分の仕事', caption: '次にやること', Icon: UserRoundIcon, exact: false },
+  { href: '/projects', label: '案件', caption: '進行中の仕事', Icon: FolderKanbanIcon, exact: false },
+  { href: '/requests', label: '要望', caption: '相談・改善の入口', Icon: InboxIcon, exact: false },
+] as const;
+
+const UTILITY_ITEMS = [
+  { href: '/schedule', label: '予定', Icon: CalendarDaysIcon },
+  { href: '/notifications', label: 'お知らせ', Icon: BellIcon },
 ] as const;
 
 type Props = {
@@ -36,7 +41,7 @@ type Props = {
 
 export function AppNav({ actor, pendingRequests, unreadNotifications }: Props) {
   const pathname = usePathname();
-  const isCurrent = (href: string, exact: boolean) =>
+  const isCurrent = (href: string, exact = false) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 
   return (
@@ -62,17 +67,17 @@ export function AppNav({ actor, pendingRequests, unreadNotifications }: Props) {
       </header>
 
       <nav aria-label="メインメニュー" className="desktop-sidebar hidden lg:flex">
-        <div className="flex items-center gap-3 px-3">
+        <Link href="/" className="sidebar-brand" aria-label="AtlasQuarry ホーム">
           <span className="brand-symbol brand-symbol-large">AQ</span>
           <span className="flex min-w-0 flex-col">
             <span className="truncate text-[15px] font-bold tracking-tight text-white">AtlasQuarry</span>
-            <span className="text-[11px] text-slate-400">開発ワークスペース</span>
+            <span className="text-[11px] text-slate-400">仕事の流れをひとつに</span>
           </span>
-        </div>
+        </Link>
 
         <div className="sidebar-label">ワークスペース</div>
         <ul className="flex flex-col gap-1">
-          {ITEMS.map(({ href, label, caption, Icon, exact }) => {
+          {PRIMARY_ITEMS.map(({ href, label, caption, Icon, exact }) => {
             const current = isCurrent(href, exact);
             return (
               <li key={href}>
@@ -97,11 +102,35 @@ export function AppNav({ actor, pendingRequests, unreadNotifications }: Props) {
           })}
         </ul>
 
+        <div className="sidebar-label mt-5">関連ビュー</div>
+        <ul className="flex flex-col gap-1">
+          {UTILITY_ITEMS.map(({ href, label, Icon }) => {
+            const current = isCurrent(href);
+            return (
+              <li key={href}>
+                <Link
+                  href={href}
+                  aria-current={current ? 'page' : undefined}
+                  className={cn('sidebar-link sidebar-link-compact', current && 'sidebar-link-current')}
+                >
+                  <Icon className="size-[17px] shrink-0" aria-hidden="true" />
+                  <span className="flex min-w-0 flex-1 items-center gap-2">
+                    <span className="truncate text-[13px] font-semibold">{label}</span>
+                    {href === '/notifications' && unreadNotifications > 0 && (
+                      <span className="sidebar-counter">{unreadNotifications}</span>
+                    )}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+
         <div className="mt-auto flex flex-col gap-3 border-t border-slate-800 pt-4">
-          <Link href="/settings" className={cn('sidebar-link', pathname.startsWith('/settings') && 'sidebar-link-current')}>
-            <Settings2Icon className="size-[18px] shrink-0" aria-hidden="true" />
+          <Link href="/settings" className={cn('sidebar-link sidebar-link-compact', pathname.startsWith('/settings') && 'sidebar-link-current')}>
+            <Settings2Icon className="size-[17px] shrink-0" aria-hidden="true" />
             <span className="flex flex-1 flex-col">
-              <span className="text-[14px] font-semibold">設定</span>
+              <span className="text-[13px] font-semibold">設定</span>
               <span className="text-[11px] text-slate-500">メンバー・連携・表示</span>
             </span>
           </Link>
@@ -110,7 +139,7 @@ export function AppNav({ actor, pendingRequests, unreadNotifications }: Props) {
       </nav>
 
       <nav aria-label="メインメニュー" className="mobile-bottom-nav lg:hidden">
-        {ITEMS.map(({ href, label, Icon, exact }) => {
+        {PRIMARY_ITEMS.map(({ href, label, Icon, exact }) => {
           const current = isCurrent(href, exact);
           return (
             <Link

@@ -1,4 +1,4 @@
-import { BackLink, PageHeader } from '@/components/app-ui';
+import { BackLink } from '@/components/app-ui';
 import { listProducts } from '@/domain/product/service';
 import { requireActor } from '@/lib/auth/cookies';
 
@@ -18,15 +18,25 @@ export default async function NewRequestPage() {
   const projects = await listProducts();
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="request-form-workspace">
       <BackLink href="/requests" label="要望一覧" />
 
-      <PageHeader
-        title="要望を出す"
-        description="「こうなったら仕事が楽になる」を書いてください。実現できるかは、こちらで調べて返します。"
-      />
+      <header className="request-form-hero">
+        <p className="eyebrow">New request</p>
+        <h1>要望を登録する</h1>
+        <p>思いついたまま書けば大丈夫です。受け取ったあと、内容を確認して次の仕事につなげます。</p>
+      </header>
 
-      <NewRequestForm projects={projects.map((p) => ({ id: p.id, name: p.name }))} />
+      <div className="request-form-layout">
+        <aside className="request-form-guide">
+          <p className="section-eyebrow">入力のコツ</p>
+          <h2>まずは1行で十分です</h2>
+          <p>「何ができるようになりたいか」を書いてください。背景や関係する案件は、分かる範囲で後から足せます。</p>
+        </aside>
+        <section className="section-card request-form-card">
+          <NewRequestForm projects={projects.map((p) => ({ id: p.id, name: p.name }))} />
+        </section>
+      </div>
     </div>
   );
 }

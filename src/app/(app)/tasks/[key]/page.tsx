@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 
 import { asc, eq } from 'drizzle-orm';
 
-import { Badge, Loading, PageHeader, priorityTone, taskStatusTone } from '@/components/app-ui';
+import { Badge, Loading, priorityTone, taskStatusTone } from '@/components/app-ui';
 import { db } from '@/db/client';
 import { actor as actorTable } from '@/db/schema';
 import { listTaskTimeline } from '@/domain/activity/queries';
@@ -64,86 +64,42 @@ export default async function TaskDetailPage({ params }: Props) {
   const due = dueLabel(task.dueDate, task.status);
 
   return (
-    <div className="flex flex-col gap-5">
-      {/*
-        **戻り先は1本にする。** 以前は「プロジェクト記号」と「タスク」の2つの文字リンクが
-        並んでいて、どちらが戻るのか分からなかった。矢印付きの1本だけを置き、
-        プロジェクトへの導線は下の情報欄から辿らせる。
-        ブラウザの戻るは「直前へ」、この矢印は「この情報の親へ」と役割を分ける。
-      */}
-      {/*
-        **戻り先はプロジェクト。** 以前は「タスク一覧」に戻していたが、
-        タスクは必ずプロジェクトに属するので、案件の全体像へ戻れる方が役に立つ。
-        いちばん案件の文脈を必要とする画面で、親へ戻れないのは筋が悪かった。
-      */}
-      <nav aria-label="戻る">
-        <Link
-          href={`/projects/${task.productId}`}
-          className="inline-flex min-h-11 items-center text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← {task.productName}
-        </Link>
+    <div className="task-workspace">
+      <nav className="task-breadcrumb" aria-label="現在の場所">
+        <Link href="/today">自分の仕事</Link>
+        <span aria-hidden="true">/</span>
+        <Link href={`/projects/${task.productId}`}>{task.productName}</Link>
       </nav>
 
-      <PageHeader title={task.title} />
-      <p className="-mt-2 tabular text-xs text-muted-foreground">{task.key}</p>
+      <header className="task-cockpit">
+        <div className="task-cockpit-copy">
+          <p className="eyebrow">Task <span className="tabular">{task.key}</span></p>
+          <h1>{task.title}</h1>
+          <p>この仕事の状態・担当・期限を確認し、必要な情報をここに集めます。</p>
+        </div>
+        {editable && (
+          <div className="task-cockpit-actions">
+            <span className="task-action-label">状態を変更</span>
+            <TaskStatusMenu taskId={task.id} status={task.status} />
+          </div>
+        )}
+      </header>
 
-      {/*
-        **状態はここで変える。** 編集フォームは本文・担当・期限をまとめて直すためのもので、
-        「作業中にする」「完了にする」だけのために開かせるには重い。
-        一覧の行と同じ操作をタイトルの直下に置き、状態変更の入口を揃える。
-      */}
-      {editable && (
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">状態</span>
-          <TaskStatusMenu taskId={task.id} status={task.status} />
-        </div>
-      )}
-
-      <div className="grid overflow-hidden rounded-lg border bg-surface sm:grid-cols-2">
-        <div>
-          <dt>状態</dt>
-          <dd>
-            <Badge tone={taskStatusTone(task.status)}>{labels[`task.status.${task.status}`]}</Badge>
-          </dd>
-        </div>
-        <div>
-          <dt>優先度</dt>
-          <dd>
-            <Badge tone={priorityTone(task.priority)}>
-              {labels[`task.priority.${task.priority}`]}
-            </Badge>
-          </dd>
-        </div>
-        <div>
-          <dt>担当</dt>
-          <dd>{task.assigneeName ? `${task.assigneeName}さん` : 'まだ決まっていません'}</dd>
-        </div>
-        <div>
-          <dt>作った人</dt>
-          <dd>{task.reporterName}さん</dd>
-        </div>
-        <div>
-          <dt>プロジェクト</dt>
-          <dd>
-            <Link href={`/projects/${task.productId}`} className="text-primary">
-              {task.productName}
-            </Link>
-          </dd>
-        </div>
-        <div>
-          <dt>期限</dt>
-          <dd className={isOverdue(task.dueDate, task.status) ? 'font-bold text-destructive' : undefined}>
-            {due ? `${due}（${formatDateFull(task.dueDate)}）` : '—'}
-          </dd>
-        </div>
-      </div>
+      <section className="task-summary-grid" aria-label="タスクの概要">
+        <div className="task-summary-item"><dt>状態</dt><dd><Badge tone={taskStatusTone(task.status)}>{labels[`task.status.${task.status}`]}</Badge></dd></div>
+        <div className="task-summary-item"><dt>優先度</dt><dd><Badge tone={priorityTone(task.priority)}>{labels[`task.priority.${task.priority}`]}</Badge></dd></div>
+        <div className="task-summary-item"><dt>担当</dt><dd>{task.assigneeName ? `${task.assigneeName}さん` : '担当未定'}</dd></div>
+        <div className="task-summary-item"><dt>登録者</dt><dd>{task.reporterName}さん</dd></div>
+        <div className="task-summary-item"><dt>案件</dt><dd><Link href={`/projects/${task.productId}`} className="text-primary">{task.productName}</Link></dd></div>
+        <div className="task-summary-item"><dt>期限</dt><dd className={isOverdue(task.dueDate, task.status) ? 'font-bold text-destructive' : undefined}>{due ? `${due} ・ ${formatDateFull(task.dueDate)}` : '期限なし'}</dd></div>
+      </section>
 
       {fromRequest && (
-        <p className="mb-3 text-sm text-muted-foreground">
-          この作業は要望から作られました。
-          <Link href={`/requests/${fromRequest.id}`}>「{fromRequest.title}」を見る</Link>
-        </p>
+        <Link href={`/requests/${fromRequest.id}`} className="task-origin">
+          <span>このタスクのきっかけ</span>
+          <strong>{fromRequest.title}</strong>
+          <span className="chevron" aria-hidden="true" />
+        </Link>
       )}
 
       {/*
