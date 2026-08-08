@@ -52,7 +52,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         縦並びの見た目は `order` で作る。lg 以上は従来どおりページ全体で
         スクロールする（サイドバーは sticky）。
       */}
-      <div className="flex h-dvh flex-col overflow-hidden lg:grid lg:h-auto lg:min-h-dvh lg:grid-cols-[15rem_minmax(0,1fr)] lg:overflow-visible">
+      <div className="app-shell flex h-dvh flex-col overflow-hidden lg:grid lg:h-auto lg:min-h-dvh lg:grid-cols-[17rem_minmax(0,1fr)] lg:overflow-visible">
         <AppNav
           actor={{ id: actor.id, name: actor.name, role: actor.role }}
           pendingRequests={pendingRequests}
@@ -60,8 +60,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         />
         {/* どの画面からでも1件を捕まえられるように、追加は常に手前に置く */}
         <AddButton canCreateTask={can(actor, 'task.create')} />
-        <main className="order-2 min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pt-4 pb-10 lg:order-none lg:overflow-visible lg:px-6 lg:py-8">
-          <div className="mx-auto w-full max-w-5xl">{children}</div>
+        <main className="app-main order-2 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-10 lg:order-none lg:overflow-visible lg:px-10 lg:py-8">
+          <div className="mx-auto w-full max-w-[1440px]">{children}</div>
         </main>
       </div>
     </LabelsProvider>

@@ -111,6 +111,7 @@ async function CalendarBody({
 
 async function ScheduleBody({ selected }: { selected: string | null }) {
   const schedules = await getScheduleData();
+  const today = new Date().toISOString().slice(0, 10);
 
   if (schedules.length === 0) {
     return (
@@ -154,10 +155,10 @@ async function ScheduleBody({ selected }: { selected: string | null }) {
         </Link>
       )}
 
-      <MobileSchedule rows={rows} projectId={selected ?? undefined} />
+      <MobileSchedule rows={rows} projectId={selected ?? undefined} today={today} />
 
       <div className="hidden lg:block">
-        <GanttChart rows={rows} />
+        <GanttChart rows={rows} today={today} />
       </div>
     </>
   );

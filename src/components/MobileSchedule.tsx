@@ -51,14 +51,14 @@ const OPEN_STATUSES = new Set(['backlog', 'todo', 'in_progress', 'review']);
 
 export function MobileSchedule({
   rows,
+  today,
   projectId,
 }: {
   rows: GanttRow[];
+  today: string;
   /** 数字から飛ぶ先を絞るのに使う。全プロジェクトを出すときは省く */
   projectId?: string;
 }) {
-  const today = useMemo(() => ymd(new Date()), []);
-
   const tasks = useMemo(() => rows.filter((r) => r.kind === 'task'), [rows]);
   const features = useMemo(() => rows.filter((r) => r.kind === 'feature'), [rows]);
 

@@ -13,12 +13,15 @@ export default async function LoginPage() {
   if (actor) redirect('/');
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-6 px-4 py-8">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold tracking-tight">AtlasQuarry</h1>
+    <main className="auth-page">
+      <div className="auth-content">
+        <span className="brand-symbol brand-symbol-large">AQ</span>
+        <h1 className="auth-title">AtlasQuarry</h1>
         <p className="mt-1 text-sm text-muted-foreground">社内システム内製化のタスク管理</p>
       </div>
-      <AuthPanel />
+      <div className="auth-panel-shell">
+        <AuthPanel />
+      </div>
     </main>
   );
 }

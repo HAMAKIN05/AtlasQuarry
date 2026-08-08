@@ -263,6 +263,7 @@ async function Effort({ projectId, actorId }: { projectId: string; actorId: stri
 
 async function ProjectSchedule({ projectId }: { projectId: string }) {
   const tasks = await listTasks({ productId: projectId });
+  const today = new Date().toISOString().slice(0, 10);
   const rows = tasks
     .filter((t) => t.startDate !== null || t.dueDate !== null)
     .map((t) => ({
@@ -290,9 +291,9 @@ async function ProjectSchedule({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <MobileSchedule rows={rows} projectId={projectId} />
+      <MobileSchedule rows={rows} projectId={projectId} today={today} />
       <div className="hidden lg:block">
-        <GanttChart rows={rows} />
+        <GanttChart rows={rows} today={today} />
       </div>
     </>
   );

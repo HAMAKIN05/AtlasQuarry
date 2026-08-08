@@ -26,13 +26,6 @@ const DAY_W = { day: 26, week: 7 } as const;
 type Scale = keyof typeof DAY_W;
 
 /** ローカル時刻で YYYY-MM-DD を作る。toISOString だと UTC 基準になって日付がずれる。 */
-function ymd(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
 function parse(value: string): Date {
   const [y, m, d] = value.split('-').map(Number);
   return new Date(y!, m! - 1, d!);
@@ -50,16 +43,17 @@ function diffDays(from: Date, to: Date): number {
 
 export function GanttChart({
   rows,
+  today,
   compact = false,
   defaultScale = 'day',
 }: {
   rows: GanttRow[];
+  today: string;
   compact?: boolean;
   defaultScale?: Scale;
 }) {
   const [scale, setScale] = useState<Scale>(defaultScale);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const today = ymd(new Date());
 
   const range = useMemo(() => {
     const dates: string[] = [today];
@@ -275,11 +269,8 @@ export function GanttChart({
                     height={row.kind === 'feature' ? 14 : 12}
                     rx={3}
                     className={bar.className}
-                  >
-                    <title>
-                      {row.label}（{row.startDate ?? '開始未定'} 〜 {row.dueDate ?? '期限未定'}）
-                    </title>
-                  </rect>
+                    aria-label={`${row.label}（${row.startDate ?? '開始未定'} 〜 ${row.dueDate ?? '期限未定'}）`}
+                  />
                 )}
               </g>
             );
