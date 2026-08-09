@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next';
 
-import { sans } from './fonts';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -30,7 +29,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja" className={sans.variable}>
+    <html lang="ja">
       <body>{children}</body>
     </html>
   );

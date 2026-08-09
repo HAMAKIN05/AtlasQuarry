@@ -7,7 +7,6 @@ import { loadLabels } from '@/domain/setting/labels';
 import { currentActor } from '@/lib/auth/cookies';
 import { can } from '@/lib/auth/rbac';
 
-import { AddButton } from './AddButton';
 import { AppNav } from './AppNav';
 
 /**
@@ -58,8 +57,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           pendingRequests={pendingRequests}
           unreadNotifications={unread}
         />
-        {/* どの画面からでも1件を捕まえられるように、追加は常に手前に置く */}
-        <AddButton canCreateTask={can(actor, 'task.create')} />
         <main className="app-main order-2 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-10 lg:order-none lg:overflow-visible lg:px-10 lg:py-8">
           <div className="mx-auto w-full max-w-[1440px]">{children}</div>
         </main>
