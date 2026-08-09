@@ -4,7 +4,7 @@ import {
   BellIcon,
   CalendarDaysIcon,
   FolderKanbanIcon,
-  HomeIcon,
+  LayoutDashboardIcon,
   InboxIcon,
   LogOutIcon,
   SearchIcon,
@@ -22,10 +22,10 @@ import { cn } from '@/lib/cn';
 import { ROLE_LABELS } from '@/lib/labels';
 
 const PRIMARY_ITEMS = [
-  { href: '/', label: 'ホーム', caption: '今日の全体像', Icon: HomeIcon, exact: true },
-  { href: '/today', label: '自分の仕事', caption: '次にやること', Icon: UserRoundIcon, exact: false },
-  { href: '/projects', label: 'プロジェクト', caption: '進行中の仕事', Icon: FolderKanbanIcon, exact: false },
-  { href: '/requests', label: '要望', caption: '相談・改善の入口', Icon: InboxIcon, exact: false },
+  { href: '/', label: '作業台', caption: '次の一手を決める', Icon: LayoutDashboardIcon, exact: true },
+  { href: '/today', label: '自分の仕事', caption: '担当中のタスク', Icon: UserRoundIcon, exact: false },
+  { href: '/projects', label: 'プロジェクト', caption: '仕事のまとまり', Icon: FolderKanbanIcon, exact: false },
+  { href: '/requests', label: '受信箱', caption: '要望を判断する', Icon: InboxIcon, exact: false },
 ] as const;
 
 const UTILITY_ITEMS = [
@@ -48,7 +48,7 @@ export function AppNav({ actor, pendingRequests, unreadNotifications }: Props) {
   return (
     <>
       <header className="mobile-topbar lg:hidden">
-        <Link href="/" className="brand-mark" aria-label="AtlasQuarry ホーム">
+        <Link href="/" className="brand-mark" aria-label="AtlasQuarry 作業台">
           <span className="brand-symbol">AQ</span>
           <span className="brand-name">AtlasQuarry</span>
         </Link>
@@ -68,7 +68,7 @@ export function AppNav({ actor, pendingRequests, unreadNotifications }: Props) {
       </header>
 
       <nav aria-label="メインメニュー" className="desktop-sidebar hidden lg:flex">
-        <Link href="/" className="sidebar-brand" aria-label="AtlasQuarry ホーム">
+        <Link href="/" className="sidebar-brand" aria-label="AtlasQuarry 作業台">
           <span className="brand-symbol brand-symbol-large">AQ</span>
           <span className="flex min-w-0 flex-col">
             <span className="truncate text-[15px] font-bold tracking-tight text-white">AtlasQuarry</span>

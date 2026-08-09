@@ -1,6 +1,5 @@
 import Link from 'next/link';
 
-import { Dot } from '@/components/Ledger';
 import { Badge, EmptyState, Progress } from '@/components/app-ui';
 import { Button } from '@/components/ui/button';
 import type { TaskPriority, TaskStatus } from '@/db/schema/enums';
@@ -12,7 +11,7 @@ import { can } from '@/lib/auth/rbac';
 import { formatDate, formatRelative } from '@/lib/format';
 import { PROJECT_STATUS_LABELS } from '@/lib/labels';
 
-export const metadata = { title: 'ホーム | AtlasQuarry' };
+export const metadata = { title: '作業台 | AtlasQuarry' };
 
 const OPEN_STATUSES: TaskStatus[] = ['backlog', 'todo', 'in_progress', 'review'];
 const PRIORITY_ORDER: Record<TaskPriority, number> = { urgent: 0, high: 1, normal: 2, low: 3 };
@@ -26,183 +25,160 @@ export default async function WorkspaceHomePage() {
     can(actor, 'request.triage') ? listRequests(['received', 'reviewing']) : Promise.resolve([]),
   ]);
 
-  const nextTasks = [...tasks]
-    .sort((a, b) => compareTasks(a, b, today))
-    .slice(0, 5);
+  const ordered = [...tasks].sort((a, b) => compareTasks(a, b, today));
+  const focusTask = ordered[0] ?? null;
+  const laterTasks = ordered.slice(1, 5);
+  const activeProjects = projects.filter((project) => project.status === 'active' || project.status === 'planning');
   const overdue = tasks.filter((task) => task.dueDate !== null && task.dueDate < today).length;
   const dueToday = tasks.filter((task) => task.dueDate === today).length;
-  const activeProjects = projects.filter((project) => project.status === 'active' || project.status === 'planning');
+  const inProgress = tasks.filter((task) => task.status === 'in_progress').length;
 
   return (
-    <div className="workspace-home flex flex-col gap-7">
-      <header className="workspace-home-header">
+    <div className="command-center">
+      <header className="command-center-header">
         <div>
-          <p className="eyebrow">仕事のハブ</p>
-          <h1 className="large-title">おかえりなさい、{actor.name}さん</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            今日やること、判断が必要なこと、チームの進み具合をここから確認できます。
-          </p>
+          <p className="command-kicker">WORK DESK / {formatDate(today)}</p>
+          <h1>今日の仕事を、ここで動かす</h1>
+          <p>次の一件を開き、判断待ちを片づけ、必要ならプロジェクトへ戻る。入口を一つにまとめています。</p>
         </div>
-        <div className="home-actions">
-          <Button asChild variant="outline">
-            <Link href="/requests/new">要望を出す</Link>
-          </Button>
-          {can(actor, 'task.create') && (
-            <Button asChild>
-              <Link href="/tasks?new=1">タスクを追加</Link>
-            </Button>
-          )}
+        <div className="command-account-line">
+          <span className="command-avatar">{actor.name.slice(0, 1)}</span>
+          <span>{actor.name}さんの作業台</span>
         </div>
       </header>
 
-      <section className="focus-panel" aria-labelledby="focus-title">
-        <div className="focus-panel-copy">
-          <p className="eyebrow text-white/70">次の一手</p>
-          <h2 id="focus-title">まず、自分の仕事を片づける</h2>
-          <p>期限と優先度から、今見るべきタスクを並べています。</p>
-          <Link href="/today" className="focus-panel-link">自分の仕事を開く <span aria-hidden="true">→</span></Link>
-        </div>
-        <div className="focus-metrics" aria-label="自分の仕事の状況">
-          <Metric label="期限超過" value={overdue} tone={overdue > 0 ? 'danger' : 'light'} />
-          <Metric label="今日まで" value={dueToday} tone="light" />
-          <Metric label="未完了" value={tasks.length} tone="light" />
-        </div>
-      </section>
-
-      <div className="workspace-grid">
-        <section className="section-card workspace-grid-main" aria-labelledby="next-tasks-title">
-          <SectionHeader
-            eyebrow="MY WORK"
-            title="次にやること"
-            count={tasks.length}
-            action={<Link href="/today" className="section-action">すべて見る →</Link>}
-          />
-          {nextTasks.length === 0 ? (
-            <EmptyState
-              title="今すぐ対応するタスクはありません"
-          description="新しいタスクを追加するか、プロジェクトの予定を確認できます。"
-          actionLabel={can(actor, 'task.create') ? 'タスクを追加' : 'プロジェクトを見る'}
-              actionHref={can(actor, 'task.create') ? '/tasks?new=1' : '/projects'}
-            />
-          ) : (
-            <div className="focus-list">
-              {nextTasks.map((task, index) => (
-                <Link key={task.id} href={`/tasks/${task.key}`} className="focus-item">
-                  <span className={index === 0 ? 'focus-index focus-index-current' : 'focus-index'}>{index + 1}</span>
-                  <span className="min-w-0 flex-1">
-                    <span className="focus-item-title">{task.title}</span>
-                    <span className="focus-item-meta">
-                      <span>{task.productName}</span>
-                      <span className={task.dueDate !== null && task.dueDate < today ? 'text-destructive' : ''}>
-                        {task.dueDate ? formatDate(task.dueDate) : '期限なし'}
-                      </span>
-                    </span>
-                  </span>
-                  <Badge tone={task.priority === 'urgent' ? 'danger' : task.status === 'in_progress' ? 'progress' : 'neutral'}>
-                    {taskStatusLabel(task.status)}
-                  </Badge>
-                  <span className="chevron" aria-hidden="true" />
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="section-card" aria-labelledby="decisions-title">
-          <SectionHeader
-            eyebrow="INBOX"
-            title="判断待ち"
-            count={requests.length}
-            action={requests.length > 0 ? <Link href="/requests" className="section-action">受け付けを見る →</Link> : undefined}
-          />
-          {requests.length === 0 ? (
-            <div className="section-empty">
-              <span className="section-empty-icon">✓</span>
-              <p>判断が必要な要望はありません。</p>
-              <span>新しい相談はここに届きます。</span>
-            </div>
-          ) : (
-            <div className="decision-list">
-              {requests.slice(0, 3).map((request) => (
-                <Link key={request.id} href={`/requests/${request.id}`} className="decision-item">
-                  <span className="decision-dot" />
-                  <span className="min-w-0 flex-1">
-                    <span className="decision-title">{request.title}</span>
-                    <span className="decision-meta">{request.reporterName}さんから ・ {formatRelative(request.createdAt)}</span>
-                  </span>
-                  <span className="chevron" aria-hidden="true" />
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
-
-      <section className="section-card" aria-labelledby="projects-title">
-        <SectionHeader
-          eyebrow="PROJECTS"
-          title="プロジェクトの進み具合"
-          count={activeProjects.length}
-          action={<Link href="/projects" className="section-action">プロジェクトをすべて見る →</Link>}
-        />
-        {activeProjects.length === 0 ? (
-          <EmptyState title="進行中のプロジェクトはありません" description="プロジェクトを作成すると、タスクと予定をまとめて管理できます。" actionLabel="プロジェクトを作る" actionHref="/projects/new" />
-        ) : (
-          <div className="project-snapshot-grid">
-            {activeProjects.slice(0, 4).map((project) => (
-              <Link key={project.id} href={`/projects/${project.id}`} className="project-snapshot">
-                <span className="flex items-start gap-3">
-                  <Dot seed={project.key} />
-                  <span className="min-w-0 flex-1">
-                    <span className="project-snapshot-title">{project.name}</span>
-                    <span className="project-snapshot-status">{PROJECT_STATUS_LABELS[project.status]}</span>
-                  </span>
-                  <span className="chevron" aria-hidden="true" />
-                </span>
-                <Progress className="mt-5" done={project.progress.doneTasks} total={project.progress.totalTasks} />
-                <span className="project-snapshot-foot">
-                  {project.nextDueDate ? `次の期限 ${formatDate(project.nextDueDate)}` : '期限なし'}
-                </span>
-              </Link>
-            ))}
+      <section className="capture-bar" aria-labelledby="capture-title">
+        <div className="capture-copy">
+          <span className="capture-command-mark">＋</span>
+          <div>
+            <h2 id="capture-title">思いついたら、ここから捕まえる</h2>
+            <p>入力を迷わせないよう、目的ごとに3つだけ用意しています。</p>
           </div>
-        )}
+        </div>
+        <div className="capture-actions">
+          {can(actor, 'task.create') && <Button asChild size="sm"><Link href="/tasks?new=1">タスクを追加</Link></Button>}
+          <Button asChild size="sm" variant="outline"><Link href="/requests/new">要望を出す</Link></Button>
+          {can(actor, 'document.create') && <Button asChild size="sm" variant="ghost"><Link href="/projects">資料を残す</Link></Button>}
+        </div>
       </section>
+
+      <div className="command-board">
+        <main className="command-main-column">
+          <section className="focus-task-card" aria-labelledby="focus-task-title">
+            <div className="focus-task-heading">
+              <div>
+                <p className="command-step">01 / NOW</p>
+                <h2 id="focus-task-title">まず、これを進める</h2>
+              </div>
+              <Link href="/today" className="command-text-link">自分の仕事を見る →</Link>
+            </div>
+            {focusTask ? <FocusTask task={focusTask} today={today} /> : (
+              <EmptyState
+                title="今すぐ進めるタスクはありません"
+                description="新しいタスクを捕まえるか、プロジェクトの予定を確認できます。"
+                actionLabel={can(actor, 'task.create') ? 'タスクを追加' : 'プロジェクトを見る'}
+                actionHref={can(actor, 'task.create') ? '/tasks?new=1' : '/projects'}
+              />
+            )}
+            {laterTasks.length > 0 && (
+              <div className="focus-task-next-list" aria-label="次に続くタスク">
+                {laterTasks.map((task) => <CompactTask key={task.id} task={task} today={today} />)}
+              </div>
+            )}
+          </section>
+
+          <section className="command-projects-card" aria-labelledby="desk-projects-title">
+            <div className="command-section-heading">
+              <div><p className="command-step">03 / CONTEXT</p><h2 id="desk-projects-title">仕事のまとまり</h2></div>
+              <Link href="/projects" className="command-text-link">すべて見る →</Link>
+            </div>
+            {activeProjects.length === 0 ? (
+              <EmptyState title="プロジェクトはまだありません" description="仕事をまとめる場所を先に作ると、タスクと予定を一緒に管理できます。" actionLabel="プロジェクトを作る" actionHref="/projects/new" />
+            ) : (
+              <div className="desk-project-grid">
+                {activeProjects.slice(0, 4).map((project) => (
+                  <Link key={project.id} href={`/projects/${project.id}`} className="desk-project-card">
+                    <span className="desk-project-name">{project.name}</span>
+                    <span className="desk-project-meta">{PROJECT_STATUS_LABELS[project.status]} · {project.progress.doneTasks}/{project.progress.totalTasks}件</span>
+                    <Progress className="mt-4" done={project.progress.doneTasks} total={project.progress.totalTasks} />
+                    <span className="desk-project-due">{project.nextDueDate ? `次の期限 ${formatDate(project.nextDueDate)}` : '期限なし'}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+        </main>
+
+        <aside className="command-side-column">
+          <section className="decision-card" aria-labelledby="decision-title">
+            <div className="command-section-heading">
+              <div><p className="command-step">02 / DECIDE</p><h2 id="decision-title">判断待ち <span>{requests.length}</span></h2></div>
+              <Link href="/requests" className="command-text-link">受信箱 →</Link>
+            </div>
+            {requests.length === 0 ? (
+              <div className="decision-clear"><span>✓</span><p>判断待ちはありません。<small>新しい要望はここに届きます。</small></p></div>
+            ) : (
+              <div className="decision-stack">
+                {requests.slice(0, 5).map((request) => (
+                  <Link key={request.id} href={`/requests/${request.id}`} className="decision-row">
+                    <span className="decision-row-dot" />
+                    <span><strong>{request.title}</strong><small>{request.reporterName}さんから · {formatRelative(request.createdAt)}</small></span>
+                    <span className="chevron" aria-hidden="true" />
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="desk-pulse-card" aria-labelledby="pulse-title">
+            <div className="command-section-heading"><div><p className="command-step">PULSE</p><h2 id="pulse-title">今の負荷</h2></div></div>
+            <div className="desk-pulse-grid">
+              <Pulse label="期限超過" value={overdue} danger={overdue > 0} />
+              <Pulse label="今日まで" value={dueToday} />
+              <Pulse label="作業中" value={inProgress} />
+              <Pulse label="未完了" value={tasks.length} />
+            </div>
+            <Link href="/today" className="desk-pulse-footer">自分の仕事を整理する →</Link>
+          </section>
+        </aside>
+      </div>
     </div>
   );
 }
 
+function FocusTask({ task, today }: { task: TaskListItem; today: string }) {
+  const late = task.dueDate !== null && task.dueDate < today;
+  return (
+    <Link href={`/tasks/${task.key}`} className="focus-task-main">
+      <div className="focus-task-number">1</div>
+      <div className="focus-task-copy">
+        <span className="focus-task-title">{task.title}</span>
+        <span className="focus-task-meta"><span>{task.productName}</span><span className={late ? 'is-late' : ''}>{task.dueDate ? (late ? `期限超過 · ${formatDate(task.dueDate)}` : formatDate(task.dueDate)) : '期限なし'}</span></span>
+      </div>
+      <Badge tone={task.priority === 'urgent' ? 'danger' : task.status === 'in_progress' ? 'progress' : 'neutral'}>{taskStatusLabel(task.status)}</Badge>
+      <span className="focus-task-arrow" aria-hidden="true">開く&nbsp; →</span>
+    </Link>
+  );
+}
+
+function CompactTask({ task, today }: { task: TaskListItem; today: string }) {
+  const late = task.dueDate !== null && task.dueDate < today;
+  return <Link href={`/tasks/${task.key}`} className="focus-task-compact"><span className="compact-check" /><span className="min-w-0 flex-1"><strong>{task.title}</strong><small>{task.productName} · <span className={late ? 'is-late' : ''}>{task.dueDate ? formatDate(task.dueDate) : '期限なし'}</span></small></span><span className="chevron" aria-hidden="true" /></Link>;
+}
+
+function Pulse({ label, value, danger = false }: { label: string; value: number; danger?: boolean }) {
+  return <div className={danger ? 'desk-pulse is-danger' : 'desk-pulse'}><span>{label}</span><strong>{value}</strong></div>;
+}
+
 function compareTasks(a: TaskListItem, b: TaskListItem, today: string) {
-  const overdueA = a.dueDate !== null && a.dueDate < today;
-  const overdueB = b.dueDate !== null && b.dueDate < today;
-  if (overdueA !== overdueB) return overdueA ? -1 : 1;
-  const dueA = a.dueDate ?? '9999-99-99';
-  const dueB = b.dueDate ?? '9999-99-99';
-  if (dueA !== dueB) return dueA.localeCompare(dueB);
+  const lateA = a.dueDate !== null && a.dueDate < today;
+  const lateB = b.dueDate !== null && b.dueDate < today;
+  if (lateA !== lateB) return lateA ? -1 : 1;
+  const date = (a.dueDate ?? '9999-99-99').localeCompare(b.dueDate ?? '9999-99-99');
+  if (date !== 0) return date;
   return PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
 }
 
 function taskStatusLabel(status: TaskStatus) {
   return { backlog: '未着手', todo: '予定', in_progress: '作業中', review: '確認待ち', done: '完了', cancelled: '中止' }[status] ?? status;
-}
-
-function Metric({ label, value, tone }: { label: string; value: number; tone: 'danger' | 'light' }) {
-  return (
-    <div className={tone === 'danger' ? 'focus-metric focus-metric-danger' : 'focus-metric'}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
-}
-
-function SectionHeader({ eyebrow, title, count, action }: { eyebrow: string; title: string; count: number; action?: React.ReactNode }) {
-  return (
-    <header className="section-card-header">
-      <div>
-        <p className="section-eyebrow">{eyebrow}</p>
-        <h2>{title} <span className="section-count">{count}</span></h2>
-      </div>
-      {action}
-    </header>
-  );
 }
