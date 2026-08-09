@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 
 import { Alert, Field } from '@/components/app-ui';
 import { Button } from '@/components/ui/button';
@@ -23,11 +23,13 @@ export function NewProjectForm() {
   const [description, setDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const nameRef = useRef<HTMLInputElement>(null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (name.trim().length === 0) {
       setError('プロジェクトの名前を入れてください');
+      nameRef.current?.focus();
       return;
     }
     setError(null);
@@ -47,7 +49,7 @@ export function NewProjectForm() {
 
   return (
     <form className="flex flex-col gap-6" onSubmit={handleSubmit} noValidate>
-      {error && <Alert tone="error">{error}</Alert>}
+      {error && <div id="project-form-error"><Alert tone="error">{error}</Alert></div>}
 
       <Field
         label="名前"
@@ -55,12 +57,15 @@ export function NewProjectForm() {
         hint="内製化する対象ごとに作ります。「日報自動化」「SNS分析」のような単位です。"
       >
         <Input
+          ref={nameRef}
           id="project-name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={100}
           required
           autoFocus
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? 'project-form-error' : undefined}
           placeholder="例：日報自動化"
         />
       </Field>

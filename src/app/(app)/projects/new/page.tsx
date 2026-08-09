@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-import { BackLink, PageHeader } from '@/components/app-ui';
+import { BackLink } from '@/components/app-ui';
 import { requireActor } from '@/lib/auth/cookies';
 import { can } from '@/lib/auth/rbac';
 
@@ -14,10 +14,23 @@ export default async function NewProjectPage() {
   if (!can(actor, 'product.create')) redirect('/projects');
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="project-form-workspace">
       <BackLink href="/projects" label="プロジェクト一覧" />
-      <PageHeader title="プロジェクトを作る" />
-      <NewProjectForm />
+      <header className="request-form-hero project-form-hero">
+        <p className="eyebrow">New project</p>
+        <h1>プロジェクトを作成する</h1>
+        <p>チームで進めるまとまりを登録します。番号は自動で付くので、名前と目的だけ入力してください。</p>
+      </header>
+      <div className="request-form-layout">
+        <aside className="request-form-guide">
+          <p className="section-eyebrow">作成後にできること</p>
+          <h2>仕事の入口を一つにする</h2>
+          <p>プロジェクトを作ると、タスク・予定・資料・工数を一つの場所で追えるようになります。</p>
+        </aside>
+        <section className="section-card request-form-card">
+          <NewProjectForm />
+        </section>
+      </div>
     </div>
   );
 }
