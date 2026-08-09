@@ -6,7 +6,7 @@ import { setSessionCookie } from '@/lib/auth/cookies';
 import { parseOrThrow, readJson } from '@/lib/validation';
 
 const loginSchema = z.object({
-  email: z.string().trim().min(1, 'メールアドレスを入力してください'),
+  userId: z.string().trim().min(1, 'ユーザーIDを入力してください'),
   password: z.string().min(1, 'パスワードを入力してください'),
   totpCode: z.string().trim().optional().nullable(),
 });

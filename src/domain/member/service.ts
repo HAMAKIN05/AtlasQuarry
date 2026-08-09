@@ -17,6 +17,7 @@ import type { ActorContext } from '@/domain/actor-context';
 export type MemberItem = {
   id: string;
   name: string;
+  userId: string | null;
   email: string | null;
   role: ActorRole;
   type: ActorType;
@@ -29,6 +30,7 @@ export async function listMembers(): Promise<MemberItem[]> {
     .select({
       id: actor.id,
       name: actor.name,
+      userId: actor.userId,
       email: actor.email,
       role: actor.role,
       type: actor.type,
@@ -110,6 +112,7 @@ export async function updateMember(
   return {
     id: updated!.id,
     name: updated!.name,
+    userId: updated!.userId,
     email: updated!.email,
     role: updated!.role,
     type: updated!.type,

@@ -14,12 +14,12 @@ type LoginResponse = { totpRequired: boolean };
 /**
  * ログインフォーム。
  *
- * TOTP は「まずメールとパスワードを送り、必要なら6桁欄を出す」2段構え。
+ * TOTP は「まずユーザーIDとパスワードを送り、必要なら6桁欄を出す」2段構え。
  * 最初からコード欄を常時出すと、未設定の利用者に不要な欄を見せることになる。
  */
 export function LoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [totpCode, setTotpCode] = useState('');
   const [needsTotp, setNeedsTotp] = useState(false);
@@ -33,7 +33,7 @@ export function LoginForm() {
 
     try {
       const result = await api.post<LoginResponse>('/auth/login', {
-        email,
+        userId,
         password,
         totpCode: needsTotp ? totpCode : null,
       });
@@ -59,15 +59,14 @@ export function LoginForm() {
         <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
           {error && <Alert tone="error">{error}</Alert>}
 
-          <Field label="メールアドレス" htmlFor="email">
+          <Field label="ユーザーID" htmlFor="user-id">
             <Input
-              id="email"
-              type="email"
-              name="email"
+              id="user-id"
+              name="userId"
               autoComplete="username"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
               disabled={needsTotp}
             />
           </Field>
@@ -116,7 +115,7 @@ export function LoginForm() {
                 setError(null);
               }}
             >
-              メールアドレスを入力し直す
+              ユーザーIDを入力し直す
             </Button>
           )}
         </form>

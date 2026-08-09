@@ -25,7 +25,7 @@ export default async function ProfileSettingsPage() {
       <div className="grid overflow-hidden rounded-lg border bg-surface sm:grid-cols-2">
         <div>
           <dt>ログインID</dt>
-          <dd>{actor.email ?? '—'}</dd>
+          <dd>{actor.userId ?? '—'}</dd>
         </div>
         <div>
           <dt>権限</dt>

@@ -29,13 +29,13 @@ import { ConflictError, RateLimitError, UnauthorizedError, ValidationError } fro
 /**
  * 認証失敗時に返すメッセージ。
  *
- * メールとパスワードのどちらが誤りかを示さない（受入基準 5.1）。
+ * ユーザーIDとパスワードのどちらが誤りかを示さない（受入基準 5.1）。
  * TOTP 誤りだけは、正しい資格情報を持つ本人にしか到達しないため区別してよい。
  */
-const CREDENTIAL_ERROR_MESSAGE = 'メールアドレスまたはパスワードが正しくありません';
+const CREDENTIAL_ERROR_MESSAGE = 'ユーザーIDまたはパスワードが正しくありません';
 
 export type LoginInput = {
-  email: string;
+  userId: string;
   password: string;
   /** TOTP 設定済みの場合のみ必要。 */
   totpCode?: string | null;
@@ -47,10 +47,10 @@ export type LoginResult =
   | { kind: 'totpRequired' };
 
 export async function login(input: LoginInput, meta: SessionMeta): Promise<LoginResult> {
-  const email = input.email.trim().toLowerCase();
+  const userId = input.userId.trim().toLowerCase();
   const ip = meta.ip ?? null;
 
-  const lock = await checkLoginLock(email, ip);
+  const lock = await checkLoginLock(userId, ip);
   if (lock.locked) {
     throw new RateLimitError(
       'ログイン試行の回数が上限に達しました。しばらく待ってからお試しください',
@@ -66,16 +66,16 @@ export async function login(input: LoginInput, meta: SessionMeta): Promise<Login
       isActive: actor.isActive,
     })
     .from(actor)
-    .where(and(eq(actor.email, email), eq(actor.type, 'human')))
+    .where(and(eq(actor.userId, userId), eq(actor.type, 'human')))
     .limit(1);
 
   const found = rows[0];
 
-  // 存在しないアカウントでも同じだけ時間を使う。応答時間の差でメールの存在有無を漏らさないため
+  // 存在しないアカウントでも同じだけ時間を使う。応答時間の差でユーザーIDの存在有無を漏らさないため
   if (!found || !found.passwordHash || !found.isActive) {
     await fakeVerifyPassword();
     await db.transaction(async (tx) => {
-      await recordLoginAttempt(tx, { email, ip, succeeded: false });
+      await recordLoginAttempt(tx, { identifier: userId, ip, succeeded: false });
     });
     throw new UnauthorizedError(CREDENTIAL_ERROR_MESSAGE);
   }
@@ -83,7 +83,7 @@ export async function login(input: LoginInput, meta: SessionMeta): Promise<Login
   const passwordOk = await verifyPassword(found.passwordHash, input.password);
   if (!passwordOk) {
     await db.transaction(async (tx) => {
-      await recordLoginAttempt(tx, { email, ip, succeeded: false });
+      await recordLoginAttempt(tx, { identifier: userId, ip, succeeded: false });
     });
     throw new UnauthorizedError(CREDENTIAL_ERROR_MESSAGE);
   }
@@ -97,15 +97,15 @@ export async function login(input: LoginInput, meta: SessionMeta): Promise<Login
     const totpOk = await verifyTotp(decryptTotpSecret(found.totpSecret), input.totpCode);
     if (!totpOk) {
       await db.transaction(async (tx) => {
-        await recordLoginAttempt(tx, { email, ip, succeeded: false });
+        await recordLoginAttempt(tx, { identifier: userId, ip, succeeded: false });
       });
       throw new UnauthorizedError('認証コードが正しくありません');
     }
   }
 
   return db.transaction(async (tx) => {
-    await recordLoginAttempt(tx, { email, ip, succeeded: true });
-    await clearLoginAttempts(tx, email);
+    await recordLoginAttempt(tx, { identifier: userId, ip, succeeded: true });
+    await clearLoginAttempts(tx, userId);
     await purgeExpiredSessions(tx);
     const { token } = await createSession(tx, found.id, meta);
     return { kind: 'success', token, actorId: found.id };
@@ -126,7 +126,7 @@ export type TotpSetup = {
  */
 export async function beginTotpSetup(actorId: string): Promise<TotpSetup> {
   const rows = await db
-    .select({ email: actor.email, name: actor.name, totpSecret: actor.totpSecret })
+    .select({ userId: actor.userId, name: actor.name, totpSecret: actor.totpSecret })
     .from(actor)
     .where(eq(actor.id, actorId))
     .limit(1);
@@ -138,7 +138,7 @@ export async function beginTotpSetup(actorId: string): Promise<TotpSetup> {
   }
 
   const secret = createTotpSecret();
-  return { secret, uri: totpUri(secret, found.email ?? found.name) };
+  return { secret, uri: totpUri(secret, found.userId ?? found.name) };
 }
 
 /** 6桁コードを検証し、通ったら暗号化して保存する。 */
@@ -214,46 +214,35 @@ export async function changePassword(
 /**
  * ログイン画面からの自己登録。
  *
- * **誰でも登録できる形にはしない。** このアプリは公開URLで動いており、
- * 素の自己登録は第三者がアカウントを作れることを意味する。
- * `REGISTRATION_CODE`（環境変数）を知っている人だけが登録できる。
- *
- * v0.1 にメール送信が無いため、招待リンク（F-10、v0.2）は作れない。
- * 合言葉方式は、その制約下で**テーブルを増やさずに**入口を絞れる最小の手段。
+ * ログイン画面からユーザーIDとパスワードだけで登録できる。
+ * 公開URLのため、登録試行はIP単位でレート制限する。
  *
  * 決めていること:
  *
  *   - **役割は必ず `manager`（管理者）。** 登録直後からタスク・プロジェクト・要望・
  *     メンバー管理を行える。登録ユーザー間で権限差を作らない
- *   - **登録しても自動ログインしない。** 成功も失敗も同じ文言を返し、
- *     メールアドレスが既に存在するかどうかを外から判別させない
+ *   - **登録しても自動ログインしない。** 登録後はログイン画面へ戻る
  *   - **利用停止済みのアカウントを復活させない。** 停止の解除は設定画面から明示的に行う
- *   - 合言葉・その比較結果はログに出さない
  */
 export type RegisterInput = {
-  name: string;
-  email: string;
+  userId: string;
   password: string;
-  code: string;
 };
 
-/** 登録の試行を数えるための固定キー。ログインの (IP, メール) と混ぜない。 */
-const REGISTER_SCOPE_EMAIL = '__register__';
+/** 登録の試行を数えるための固定キー。ログインの (IP, ユーザーID) と混ぜない。 */
+const REGISTER_SCOPE_IDENTIFIER = '__register__';
 
-/** 成功も失敗も同じ文言。存在の有無を漏らさない。 */
-const REGISTER_DONE_MESSAGE = '登録を受け付けました。ログインしてください';
+const REGISTER_DONE_MESSAGE = '登録しました。ユーザーIDとパスワードでログインしてください';
 
 export async function register(input: RegisterInput, meta: SessionMeta): Promise<{ message: string }> {
-  const expected = process.env.REGISTRATION_CODE;
-  const email = input.email.trim().toLowerCase();
+  const userId = input.userId.trim().toLowerCase();
   const ip = meta.ip ?? null;
 
   /*
-   * **IP 単位で 15分5回まで。** 合言葉の総当たりを防ぐ。
-   * ログインの (IP, メール) ロックとは別のキーにする。混ぜると、登録の試行で
-   * 実在アカウントのログインを締め出せてしまう。
+   * **IP 単位で 15分5回まで。** 大量登録を防ぐ。
+   * ログインの (IP, ユーザーID) ロックとは別のキーにする。
    */
-  const lock = await checkLoginLock(REGISTER_SCOPE_EMAIL, ip);
+  const lock = await checkLoginLock(REGISTER_SCOPE_IDENTIFIER, ip);
   if (lock.locked) {
     throw new RateLimitError(
       '登録の試行回数が上限に達しました。しばらく待ってからお試しください',
@@ -267,30 +256,17 @@ export async function register(input: RegisterInput, meta: SessionMeta): Promise
     });
   }
 
-  const codeOk = expected !== undefined && expected.length > 0 && timingSafeEquals(input.code, expected);
-
-  // 合言葉が違う場合も、既存メールの場合も、**同じ扱い**にする
-  if (!codeOk) {
-    await db.transaction(async (tx) => {
-      await recordLoginAttempt(tx, { email: REGISTER_SCOPE_EMAIL, ip, succeeded: false });
-    });
-    throw new ValidationError('登録できませんでした。入力内容と合言葉を確かめてください', {
-      fields: {},
-    });
-  }
-
   const existing = await db
     .select({ id: actor.id })
     .from(actor)
-    .where(eq(actor.email, email))
+    .where(eq(actor.userId, userId))
     .limit(1);
 
   if (existing.length > 0) {
-    // 存在を知らせない。失敗として数えたうえで、成功と同じ文言を返す
     await db.transaction(async (tx) => {
-      await recordLoginAttempt(tx, { email: REGISTER_SCOPE_EMAIL, ip, succeeded: false });
+      await recordLoginAttempt(tx, { identifier: REGISTER_SCOPE_IDENTIFIER, ip, succeeded: false });
     });
-    return { message: REGISTER_DONE_MESSAGE };
+    throw new ConflictError('このユーザーIDは既に使われています', null, 'USER_ID_TAKEN');
   }
 
   const passwordHash = await hashPassword(input.password);
@@ -300,15 +276,16 @@ export async function register(input: RegisterInput, meta: SessionMeta): Promise
       .insert(actor)
       .values({
         type: 'human',
-        name: input.name.trim(),
-        email,
+        name: userId,
+        userId,
+        email: null,
         role: 'manager',
         passwordHash,
         isActive: true,
       })
       .returning({ id: actor.id, name: actor.name });
 
-    // 書き込みは activity に残す（CLAUDE.md 絶対ルール3）。**合言葉は残さない**
+    // 書き込みは activity に残す（CLAUDE.md 絶対ルール3）。パスワードは残さない
     await recordActivity(tx, {
       actorId: created!.id,
       entityType: 'actor',
@@ -319,16 +296,9 @@ export async function register(input: RegisterInput, meta: SessionMeta): Promise
       userAgent: meta.userAgent,
     });
 
-    await recordLoginAttempt(tx, { email: REGISTER_SCOPE_EMAIL, ip, succeeded: true });
+    await recordLoginAttempt(tx, { identifier: REGISTER_SCOPE_IDENTIFIER, ip, succeeded: true });
   });
 
   return { message: REGISTER_DONE_MESSAGE };
 }
 
-/** 長さの差からも情報を出さない比較。 */
-function timingSafeEquals(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}

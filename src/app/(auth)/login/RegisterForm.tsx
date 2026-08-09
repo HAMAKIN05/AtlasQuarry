@@ -12,17 +12,13 @@ import { PASSWORD_MIN_LENGTH } from '@/lib/auth/policy';
 /**
  * ログイン画面からのアカウント登録。
  *
- * **合言葉を知っている人だけが登録できる。** このアプリは公開URLで動いているので、
- * 素の自己登録にすると第三者がアカウントを作れてしまう。
+ * ユーザーIDとパスワードだけで登録できる。登録試行はIP単位で制限する。
  *
- * 登録しても自動ログインしない。成功も失敗も同じ文言を返すので、
- * 入力したメールアドレスが既に使われているかどうかは画面からは分からない。
+ * 登録しても自動ログインしない。ユーザーIDが重複している場合は、別のIDを選べるように明示する。
  */
 export function RegisterForm({ onDone }: { onDone: () => void }) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
-  const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -33,10 +29,8 @@ export function RegisterForm({ onDone }: { onDone: () => void }) {
     setSubmitting(true);
     try {
       const result = await api.post<{ message: string }>('/auth/register', {
-        name,
-        email,
+        userId,
         password,
-        code,
       });
       setDone(result.message);
     } catch (err) {
@@ -75,27 +69,15 @@ export function RegisterForm({ onDone }: { onDone: () => void }) {
 
           {error && <Alert tone="error">{error}</Alert>}
 
-          <Field label="名前" htmlFor="reg-name">
+          <Field label="ユーザーID" htmlFor="reg-user-id" hint="ログインに使うIDです。空白は使えません。">
             <Input
-              id="reg-name"
-              name="name"
-              autoComplete="name"
-              required
-              autoFocus
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </Field>
-
-          <Field label="メールアドレス" htmlFor="reg-email">
-            <Input
-              id="reg-email"
-              type="email"
-              name="email"
+              id="reg-user-id"
+              name="userId"
               autoComplete="username"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              autoFocus
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
             />
           </Field>
 
@@ -112,21 +94,6 @@ export function RegisterForm({ onDone }: { onDone: () => void }) {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-            />
-          </Field>
-
-          <Field
-            label="合言葉"
-            htmlFor="reg-code"
-            hint="社内で共有されている登録用の合言葉です。分からなければ経営者か上司に聞いてください。"
-          >
-            <Input
-              id="reg-code"
-              name="code"
-              autoComplete="off"
-              required
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
             />
           </Field>
 

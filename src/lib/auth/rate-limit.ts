@@ -6,9 +6,9 @@ import { loginAttempt } from '@/db/schema';
 /**
  * ログイン試行のレート制限（技術仕様書 §2.5）。
  *
- * 5回 / 15分 / IP+メールアドレス。3名規模のため DB カウンタで十分で、Redis は導入しない。
+ * 5回 / 15分 / IP+ユーザーID。3名規模のため DB カウンタで十分で、Redis は導入しない。
  *
- * **カウンタのキーは (IP, メールアドレス) の組。** どちらか片方でも上限に達したらロック、という
+ * **カウンタのキーは (IP, ユーザーID) の組。** どちらか片方でも上限に達したらロック、という
  * 広い解釈にすると、同じ事務所のグローバルIPを共有している3人のうち1人が打ち間違えただけで
  * 全員が締め出される。実際にそれで巻き添えを出した。
  *
@@ -33,15 +33,15 @@ export type LoginLockStatus = {
 /**
  * ロック中かを判定する。
  *
- * 失敗のみを数える。成功した時点で `clearLoginAttempts` が該当メールの記録を消すため、
+ * 失敗のみを数える。成功した時点で `clearLoginAttempts` が該当ユーザーIDの記録を消すため、
  * 「連続失敗5回」と同じ意味になる。
  */
-export async function checkLoginLock(email: string, ip: string | null): Promise<LoginLockStatus> {
-  // (IP, メール) の組で数える。IP が取れない場合はメールだけで見る
+export async function checkLoginLock(identifier: string, ip: string | null): Promise<LoginLockStatus> {
+  // (IP, ユーザーID) の組で数える。IP が取れない場合はユーザーIDだけで見る
   const scope: SQL =
     ip === null
-      ? eq(loginAttempt.email, email)
-      : and(eq(loginAttempt.email, email), sql`${loginAttempt.ip} = ${ip}::inet`)!;
+      ? eq(loginAttempt.identifier, identifier)
+      : and(eq(loginAttempt.identifier, identifier), sql`${loginAttempt.ip} = ${ip}::inet`)!;
 
   const rows = await db
     .select({
@@ -68,20 +68,20 @@ export async function checkLoginLock(email: string, ip: string | null): Promise<
 
 export async function recordLoginAttempt(
   tx: DbOrTx,
-  params: { email: string; ip: string | null; succeeded: boolean },
+  params: { identifier: string; ip: string | null; succeeded: boolean },
 ): Promise<void> {
   await tx.insert(loginAttempt).values({
-    email: params.email,
+    identifier: params.identifier,
     ip: params.ip,
     succeeded: params.succeeded,
   });
 }
 
 /**
- * ログイン成功時に、そのメールの失敗記録を消す。
+ * ログイン成功時に、そのユーザーIDの失敗記録を消す。
  *
  * 消さないと、成功後も窓が閉じるまで過去の失敗が数え続けられてしまう。
  */
-export async function clearLoginAttempts(tx: DbOrTx, email: string): Promise<void> {
-  await tx.delete(loginAttempt).where(eq(loginAttempt.email, email));
+export async function clearLoginAttempts(tx: DbOrTx, identifier: string): Promise<void> {
+  await tx.delete(loginAttempt).where(eq(loginAttempt.identifier, identifier));
 }

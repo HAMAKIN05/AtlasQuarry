@@ -147,7 +147,7 @@ export async function checkInvitation(token: string): Promise<{ valid: boolean; 
 export async function acceptInvitation(input: {
   token: string;
   name: string;
-  email: string;
+  userId: string;
   password: string;
   ip: string | null;
   userAgent: string | null;
@@ -158,7 +158,7 @@ export async function acceptInvitation(input: {
     });
   }
 
-  const email = input.email.trim().toLowerCase();
+  const userId = input.userId.trim().toLowerCase();
   const passwordHash = await hashPassword(input.password);
 
   await db.transaction(async (tx) => {
@@ -184,10 +184,10 @@ export async function acceptInvitation(input: {
     const existing = await tx
       .select({ id: actor.id })
       .from(actor)
-      .where(eq(actor.email, email))
+      .where(eq(actor.userId, userId))
       .limit(1);
     if (existing.length > 0) {
-      throw new ConflictError('このメールアドレスは既に使われています', null, 'EMAIL_TAKEN');
+      throw new ConflictError('このユーザーIDは既に使われています', null, 'USER_ID_TAKEN');
     }
 
     const [created] = await tx
@@ -195,7 +195,8 @@ export async function acceptInvitation(input: {
       .values({
         type: 'human',
         name: input.name.trim(),
-        email,
+        userId,
+        email: null,
         role: inv.role,
         passwordHash,
         isActive: true,

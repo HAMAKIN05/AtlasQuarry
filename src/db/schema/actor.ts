@@ -36,6 +36,7 @@ export const actor = pgTable(
     id: primaryId(),
     type: text('type').$type<ActorType>().notNull(),
     name: text('name').notNull(),
+    userId: text('user_id').unique(),
     email: text('email').unique(),
     role: text('role').$type<ActorRole>().notNull(),
     passwordHash: text('password_hash'),
@@ -50,7 +51,7 @@ export const actor = pgTable(
     check('actor_role_check', inList(t.role, ACTOR_ROLES)),
     check(
       'human_needs_credentials',
-      sql`${t.type} <> 'human' OR (${t.email} IS NOT NULL AND ${t.passwordHash} IS NOT NULL)`,
+      sql`${t.type} <> 'human' OR (${t.userId} IS NOT NULL AND ${t.passwordHash} IS NOT NULL)`,
     ),
   ],
 );
@@ -133,7 +134,7 @@ export const apiKey = pgTable(
 );
 
 /**
- * ログイン試行の記録。技術仕様書 §2.5 のレート制限（5回 / 15分 / IP+メールアドレス）に使う。
+ * ログイン試行の記録。技術仕様書 §2.5 のレート制限（5回 / 15分 / IP+ユーザーID）に使う。
  *
  * 3名規模のためDBカウンタで十分で、Redis は導入しない。
  * 保持期間の管理はせず、判定は常に直近15分の窓で行う（古い行は運用で切り詰める）。
@@ -142,13 +143,13 @@ export const loginAttempt = pgTable(
   'login_attempt',
   {
     id: primaryId(),
-    email: text('email').notNull(),
+    identifier: text('identifier').notNull(),
     ip: inet('ip'),
     succeeded: boolean('succeeded').notNull(),
     createdAt: createdAt(),
   },
   (t) => [
-    index('idx_login_attempt_email').on(t.email, t.createdAt.desc()),
+    index('idx_login_attempt_identifier').on(t.identifier, t.createdAt.desc()),
     index('idx_login_attempt_ip').on(t.ip, t.createdAt.desc()),
   ],
 );

@@ -20,7 +20,7 @@ export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 
 export type SessionActor = Pick<
   Actor,
-  'id' | 'name' | 'email' | 'role' | 'type' | 'avatarUrl' | 'isActive'
+  'id' | 'name' | 'userId' | 'email' | 'role' | 'type' | 'avatarUrl' | 'isActive'
 > & { hasTotp: boolean };
 
 export type SessionMeta = {
@@ -59,6 +59,7 @@ export async function resolveSession(token: string): Promise<SessionActor | null
     .select({
       id: actor.id,
       name: actor.name,
+      userId: actor.userId,
       email: actor.email,
       role: actor.role,
       type: actor.type,

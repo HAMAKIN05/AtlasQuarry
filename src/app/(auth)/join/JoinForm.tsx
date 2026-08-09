@@ -19,7 +19,7 @@ import { PASSWORD_MIN_LENGTH } from '@/lib/auth/policy';
 export function JoinForm({ token, roleLabel }: { token: string; roleLabel: string }) {
   const router = useRouter();
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -29,7 +29,7 @@ export function JoinForm({ token, roleLabel }: { token: string; roleLabel: strin
     setError(null);
     setBusy(true);
     try {
-      await api.post('/invitations/accept', { token, name, email, password });
+      await api.post('/invitations/accept', { token, name, userId, password });
       router.replace('/login?joined=1');
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '登録できませんでした');
@@ -50,8 +50,8 @@ export function JoinForm({ token, roleLabel }: { token: string; roleLabel: strin
           <Field label="名前" htmlFor="join-name">
             <Input id="join-name" value={name} onChange={(e) => setName(e.target.value)} required autoFocus autoComplete="name" />
           </Field>
-          <Field label="メールアドレス" htmlFor="join-email">
-            <Input id="join-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="username" />
+          <Field label="ユーザーID" htmlFor="join-user-id">
+            <Input id="join-user-id" value={userId} onChange={(e) => setUserId(e.target.value)} required autoComplete="username" />
           </Field>
           <Field label="パスワード" htmlFor="join-pass" hint={`${PASSWORD_MIN_LENGTH}文字以上`}>
             <Input id="join-pass" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="new-password" />

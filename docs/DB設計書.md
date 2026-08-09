@@ -57,6 +57,7 @@ CREATE TABLE actor (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   type          text NOT NULL CHECK (type IN ('human','agent')),
   name          text NOT NULL,
+  user_id       text UNIQUE,
   email         text UNIQUE,
   role          text NOT NULL CHECK (role IN ('owner','manager','developer','requester','agent')),
   password_hash text,
@@ -65,7 +66,7 @@ CREATE TABLE actor (
   is_active     boolean NOT NULL DEFAULT true,
   created_at    timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT human_needs_credentials
-    CHECK (type <> 'human' OR (email IS NOT NULL AND password_hash IS NOT NULL))
+    CHECK (type <> 'human' OR (user_id IS NOT NULL AND password_hash IS NOT NULL))
 );
 
 CREATE TABLE actor_external_id (
@@ -101,16 +102,16 @@ CREATE TABLE invitation (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
--- ログイン試行の記録。技術仕様書 §2.5 のレート制限（5回 / 15分 / IP+メールアドレス）に使う。
+-- ログイン試行の記録。技術仕様書 §2.5 のレート制限（5回 / 15分 / IP+ユーザーID）に使う。
 -- 判定は常に直近15分の窓で行う。古い行の切り詰めは運用側で行う。
 CREATE TABLE login_attempt (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  email      text NOT NULL,
+  identifier text NOT NULL,
   ip         inet,
   succeeded  boolean NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX idx_login_attempt_email ON login_attempt(email, created_at DESC);
+CREATE INDEX idx_login_attempt_identifier ON login_attempt(identifier, created_at DESC);
 CREATE INDEX idx_login_attempt_ip    ON login_attempt(ip, created_at DESC);
 
 CREATE TABLE api_key (

@@ -36,6 +36,7 @@ export const PATCH = authed(async ({ request, actor: me }) => {
     .select({
       id: actor.id,
       name: actor.name,
+      userId: actor.userId,
       email: actor.email,
       role: actor.role,
       type: actor.type,

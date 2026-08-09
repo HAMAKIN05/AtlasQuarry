@@ -8,7 +8,7 @@ import { parseOrThrow, readJson } from '@/lib/validation';
 const schema = z.object({
   token: z.string().min(1),
   name: z.string().trim().min(1, '名前を入力してください').max(100),
-  email: z.string().trim().email('メールアドレスの形式が正しくありません'),
+  userId: z.string().trim().min(1, 'ユーザーIDを入力してください').max(100),
   password: z.string().min(PASSWORD_MIN_LENGTH),
 });
 
