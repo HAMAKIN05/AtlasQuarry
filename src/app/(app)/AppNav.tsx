@@ -7,6 +7,7 @@ import {
   LayoutDashboardIcon,
   InboxIcon,
   LogOutIcon,
+  PlusIcon,
   SearchIcon,
   Settings2Icon,
   UserRoundIcon,
@@ -16,6 +17,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
+import { CommandPalette } from '@/components/CommandPalette';
 import type { ActorRole } from '@/db/schema/enums';
 import { api } from '@/lib/api/client';
 import { cn } from '@/lib/cn';
@@ -54,6 +56,9 @@ export function AppNav({ actor, pendingRequests, unreadNotifications }: Props) {
         </Link>
 
         <div className="flex items-center gap-1">
+          <Link href="/tasks?new=1" className="icon-button" aria-label="タスクを追加">
+            <PlusIcon className="size-5" aria-hidden="true" />
+          </Link>
           <Link href="/search" className="icon-button" aria-label="検索">
             <SearchIcon className="size-5" aria-hidden="true" />
           </Link>
@@ -126,6 +131,10 @@ export function AppNav({ actor, pendingRequests, unreadNotifications }: Props) {
             );
           })}
         </ul>
+
+        <div className="mt-3">
+          <CommandPalette />
+        </div>
 
         <div className="mt-auto flex flex-col gap-3 border-t border-slate-800 pt-4">
           <Link href="/settings" className={cn('sidebar-link sidebar-link-compact', pathname.startsWith('/settings') && 'sidebar-link-current')}>

@@ -1,15 +1,15 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
 
-import { Badge, EmptyState, Loading, requestStatusTone } from '@/components/app-ui';
+import { EmptyState, Loading } from '@/components/app-ui';
 import { REQUEST_STATUSES, type RequestStatus } from '@/db/schema/enums';
 import { countRequestsByStatus, listRequests } from '@/domain/request/service';
 import { loadLabels } from '@/domain/setting/labels';
 import { requireActor } from '@/lib/auth/cookies';
-import { formatRelative } from '@/lib/format';
 import { REQUEST_TABS } from '@/lib/labels';
 
 import { NewRequestButton } from './NewRequestButton';
+import { RequestInboxList } from './RequestInboxList';
 
 type Props = { searchParams: Promise<{ status?: string }> };
 
@@ -118,23 +118,7 @@ async function RequestList({ active }: { active: RequestStatus | 'all' }) {
         </div>
         <span className="section-count">{requests.length}件</span>
       </div>
-      <div className="request-inbox-list">
-        {requests.map((request) => (
-          <Link key={request.id} href={`/requests/${request.id}`} className="request-inbox-row">
-            <div className="request-inbox-main">
-              <span className="request-inbox-title">{request.title}</span>
-              <span className="request-inbox-meta">
-                {request.productName ?? 'プロジェクト未設定'} ・ {request.reporterName} ・ {formatRelative(request.createdAt)}
-              </span>
-            </div>
-            <div className="request-inbox-state">
-              <Badge tone={requestStatusTone(request.status)}>{labels[`request.status.${request.status}`]}</Badge>
-              {request.convertedTaskKey && <span className="tabular">{request.convertedTaskKey}</span>}
-            </div>
-            <span className="chevron" aria-hidden="true" />
-          </Link>
-        ))}
-      </div>
+      <RequestInboxList requests={requests} labels={labels} />
     </section>
   );
 }

@@ -2651,6 +2651,323 @@
   }
 }
 
+/* Cross-screen command palette and management-first lists. */
+.command-palette-trigger {
+  display: flex;
+  min-height: 2.75rem;
+  width: 100%;
+  align-items: center;
+  gap: 0.6rem;
+  border: 1px solid rgb(148 163 184 / 0.22);
+  border-radius: 0.75rem;
+  background: rgb(15 23 42 / 0.62);
+  padding: 0.45rem 0.65rem;
+  color: #cbd5e1;
+  font-size: 0.78rem;
+  font-weight: 700;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.command-palette-trigger:hover {
+  border-color: rgb(96 165 250 / 0.5);
+  background: rgb(30 41 59 / 0.9);
+  color: white;
+}
+
+.command-palette-trigger kbd {
+  border: 1px solid rgb(148 163 184 / 0.25);
+  border-radius: 0.35rem;
+  padding: 0.15rem 0.35rem;
+  color: #94a3b8;
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.request-bulk-bar {
+  display: flex;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--primary-soft) 58%, var(--surface));
+  padding: 0.65rem 1.15rem;
+}
+
+.request-select-all {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--foreground);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.request-inbox-row-selectable {
+  align-items: stretch;
+}
+
+.request-inbox-row-selectable > input {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 auto;
+  align-self: center;
+  accent-color: var(--primary);
+}
+
+.request-inbox-row-link {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.request-inbox-row-link:hover .request-inbox-title {
+  color: var(--primary);
+}
+
+.request-clear-selection {
+  min-height: 2.75rem;
+  padding-inline: 0.5rem;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+
+.request-clear-selection:hover {
+  color: var(--foreground);
+}
+
+.project-catalog {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.project-catalog-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.project-catalog-search {
+  min-width: 12rem;
+  flex: 1;
+}
+
+.project-catalog-search input {
+  min-height: 2.75rem;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  background: var(--surface);
+  padding: 0.5rem 0.8rem;
+  font-size: 0.82rem;
+  outline: none;
+}
+
+.project-catalog-search input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.project-scope-tabs {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.2rem;
+  border-radius: 0.75rem;
+  background: var(--surface-raised);
+  padding: 0.2rem;
+}
+
+.project-scope-tabs button {
+  display: inline-flex;
+  min-height: 2.35rem;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 0.55rem;
+  padding: 0.35rem 0.65rem;
+  color: var(--muted-foreground);
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.project-scope-tabs button.is-active {
+  background: var(--surface);
+  color: var(--foreground);
+  box-shadow: 0 1px 3px rgb(15 23 42 / 0.08);
+}
+
+.project-scope-tabs span {
+  color: var(--subtle-foreground);
+  font-size: 0.65rem;
+}
+
+.project-catalog-list {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.project-catalog-head,
+.project-catalog-row {
+  display: grid;
+  grid-template-columns: minmax(14rem, 1.35fr) minmax(10rem, 0.95fr) 5.5rem 6.5rem 1rem;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
+}
+
+.project-catalog-head {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--muted-foreground);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.project-catalog-head span:nth-child(2),
+.project-catalog-head span:nth-child(3),
+.project-catalog-head span:nth-child(4) {
+  text-align: right;
+}
+
+.project-catalog-row {
+  min-height: 4.6rem;
+  border-bottom: 1px solid var(--border);
+  transition: background-color 150ms ease;
+}
+
+.project-catalog-row:last-child {
+  border-bottom: 0;
+}
+
+.project-catalog-row:hover {
+  background: var(--surface-raised);
+}
+
+.project-catalog-identity,
+.project-catalog-progress,
+.project-catalog-open,
+.project-catalog-due {
+  min-width: 0;
+}
+
+.project-catalog-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.project-catalog-identity strong,
+.project-catalog-identity small,
+.project-catalog-open strong,
+.project-catalog-open small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-catalog-identity strong {
+  font-size: 0.84rem;
+  font-weight: 850;
+}
+
+.project-catalog-identity small,
+.project-catalog-open small,
+.project-catalog-due {
+  margin-top: 0.25rem;
+  color: var(--muted-foreground);
+  font-size: 0.68rem;
+}
+
+.project-catalog-progress {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.project-catalog-open {
+  text-align: right;
+}
+
+.project-catalog-open strong {
+  font-size: 0.9rem;
+  font-weight: 850;
+}
+
+.project-catalog-open small {
+  color: var(--destructive);
+  font-size: 0.64rem;
+  font-weight: 750;
+}
+
+.project-catalog-due {
+  margin-top: 0;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.project-catalog-due.is-late {
+  color: var(--destructive);
+  font-weight: 800;
+}
+
+.project-catalog-empty {
+  border: 1px dashed var(--border-strong);
+  border-radius: 1rem;
+  padding: 2.2rem 1rem;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  .request-bulk-bar,
+  .project-catalog-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .project-scope-tabs {
+    overflow-x: auto;
+  }
+
+  .project-catalog-head {
+    display: none;
+  }
+
+  .project-catalog-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.55rem 0.8rem;
+    padding: 0.9rem;
+  }
+
+  .project-catalog-identity {
+    grid-column: 1 / -1;
+  }
+
+  .project-catalog-progress {
+    grid-column: 1 / 2;
+    justify-content: flex-start;
+  }
+
+  .project-catalog-open,
+  .project-catalog-due {
+    text-align: right;
+  }
+
+  .project-catalog-row > .chevron {
+    display: none;
+  }
+}
+
 /* Control room: a task-first workspace with inbox, queue, and context visible together. */
 .control-room {
   display: flex;
