@@ -8,7 +8,7 @@
  *   本番  : docker compose -f docker/compose.yml run --rm app node scripts/seed.mjs
  *
  * パスワードは環境変数から読む。**スクリプトに直書きしない。**
- * 既に同じメールの actor が居る場合は何もしない（再実行してもパスワードを上書きしない）。
+ * 既に同じユーザーIDの actor が居る場合は何もしない（再実行してもパスワードを上書きしない）。
  */
 import { hash } from '@node-rs/argon2';
 import { Pool } from 'pg';
@@ -31,19 +31,19 @@ const SEED_ACTORS = [
 ];
 
 function readActorConfig({ role, envPrefix, defaultName }) {
-  const email = process.env[`${envPrefix}_EMAIL`];
+  const userId = process.env[`${envPrefix}_USER_ID`] ?? process.env[`${envPrefix}_EMAIL`];
   const password = process.env[`${envPrefix}_PASSWORD`];
   const name = process.env[`${envPrefix}_NAME`] ?? defaultName;
 
-  if (!email || !password) {
-    throw new Error(`${envPrefix}_EMAIL と ${envPrefix}_PASSWORD を設定してください`);
+  if (!userId || !password) {
+    throw new Error(`${envPrefix}_USER_ID と ${envPrefix}_PASSWORD を設定してください`);
   }
   if (password.length < PASSWORD_MIN_LENGTH) {
     // どのアカウントかは出すが、値そのものは出さない
     throw new Error(`${envPrefix}_PASSWORD は${PASSWORD_MIN_LENGTH}文字以上にしてください`);
   }
 
-  return { role, name, email: email.trim().toLowerCase(), password };
+  return { role, name, userId: userId.trim().toLowerCase(), password };
 }
 
 async function main() {
@@ -57,19 +57,19 @@ async function main() {
 
   try {
     for (const config of configs) {
-      const existing = await pool.query('SELECT id FROM actor WHERE email = $1', [config.email]);
+      const existing = await pool.query('SELECT id FROM actor WHERE user_id = $1', [config.userId]);
       if (existing.rowCount > 0) {
-        console.log(`スキップ（既に存在）: ${config.email}`);
+        console.log(`スキップ（既に存在）: ${config.userId}`);
         continue;
       }
 
       const passwordHash = await hash(config.password, ARGON2_OPTIONS);
       await pool.query(
-        `INSERT INTO actor (type, name, email, role, password_hash)
+        `INSERT INTO actor (type, name, user_id, role, password_hash)
          VALUES ('human', $1, $2, $3, $4)`,
-        [config.name, config.email, config.role, passwordHash],
+        [config.name, config.userId, config.role, passwordHash],
       );
-      console.log(`作成: ${config.email} (${config.role})`);
+      console.log(`作成: ${config.userId} (${config.role})`);
     }
   } finally {
     await pool.end();
