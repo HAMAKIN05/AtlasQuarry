@@ -120,7 +120,9 @@ export function MemberRow({ member, isSelf }: { member: MemberItem; isSelf: bool
           <Badge tone={member.isActive ? 'neutral' : 'muted'}>{ROLE_LABELS[member.role]}</Badge>
           {!member.isActive && <Badge tone="muted">利用停止中</Badge>}
           {member.hasTotp && <Badge tone="done">2要素認証あり</Badge>}
-          <span className="basis-full text-xs text-muted-foreground">{member.email}</span>
+          <span className="basis-full text-xs text-muted-foreground">
+            ユーザーID: {member.userId ?? '—'}{member.email ? ` · ${member.email}` : ''}
+          </span>
 
           <span className="ml-auto flex gap-1">
             <button type="button" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold min-h-11 text-primary hover:bg-primary-soft disabled:opacity-50" onClick={() => setEditing(true)}>
