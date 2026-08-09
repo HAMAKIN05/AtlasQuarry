@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { Badge, PageHeader, requestStatusTone, BackLink } from '@/components/app-ui';
+import { Badge, requestStatusTone, BackLink } from '@/components/app-ui';
 import { db } from '@/db/client';
 import { actor as actorTable } from '@/db/schema';
 import { asc, eq } from 'drizzle-orm';
@@ -51,48 +51,24 @@ export default async function RequestDetailPage({ params }: Props) {
   const canTriage = can(actor, 'request.triage');
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="request-detail-workspace">
       <BackLink href="/requests" label="要望一覧" />
 
-      <PageHeader title={req.title} />
+      <header className="request-detail-cockpit">
+        <div>
+          <p className="eyebrow">Request inbox</p>
+          <h1>{req.title}</h1>
+          <p>内容を確認し、プロジェクトと次の仕事を決める画面です。</p>
+        </div>
+        <Badge tone={requestStatusTone(req.status)}>{labels[`request.status.${req.status}`]}</Badge>
+      </header>
 
-      <div className="grid overflow-hidden rounded-lg border bg-surface sm:grid-cols-2">
-        <div>
-          <dt>状態</dt>
-          <dd>
-            <Badge tone={requestStatusTone(req.status)}>
-              {labels[`request.status.${req.status}`]}
-            </Badge>
-          </dd>
-        </div>
-        <div>
-          <dt>出した人</dt>
-          <dd>{req.reporterName}さん</dd>
-        </div>
-        <div>
-          <dt>出した日時</dt>
-          <dd>{formatDateTime(req.createdAt)}</dd>
-        </div>
-        {req.productName && (
-          <div>
-            <dt>プロジェクト</dt>
-            <dd>
-              {/* 案件の全体像へ戻れるようにする。判断するには進捗と予定が要る */}
-              <Link href={`/projects/${req.productId}`} className="text-primary">
-                {req.productName}
-              </Link>
-            </dd>
-          </div>
-        )}
-        {req.decidedByName && (
-          <div>
-            <dt>判断した人</dt>
-            <dd>
-              {req.decidedByName}さん・{formatDateTime(req.decidedAt)}
-            </dd>
-          </div>
-        )}
-      </div>
+      <dl className="request-detail-summary" aria-label="要望の概要">
+        <div><dt>出した人</dt><dd>{req.reporterName}さん</dd></div>
+        <div><dt>受け取った日時</dt><dd>{formatDateTime(req.createdAt)}</dd></div>
+        <div><dt>プロジェクト</dt><dd>{req.productName ? <Link href={`/projects/${req.productId}`} className="text-primary">{req.productName}</Link> : '未設定'}</dd></div>
+        {req.decidedByName && <div><dt>判断した人</dt><dd>{req.decidedByName}さん・{formatDateTime(req.decidedAt)}</dd></div>}
+      </dl>
 
       {bodyHtml ? (
         <section className="surface p-4">
