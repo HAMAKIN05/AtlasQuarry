@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 
 import { GanttChart } from '@/components/GanttChart';
 import { MobileSchedule } from '@/components/MobileSchedule';
-import { Badge, EmptyState, Loading, PageHeader, taskStatusTone, BackLink } from '@/components/app-ui';
+import { Badge, EmptyState, Loading, taskStatusTone, BackLink } from '@/components/app-ui';
 import { getProductById } from '@/domain/product/service';
 import { loadLabels } from '@/domain/setting/labels';
 import { DOCUMENT_TYPE_LABELS, listDocuments, type DocumentListItem } from '@/domain/document/service';
@@ -15,7 +15,7 @@ import { requireActor } from '@/lib/auth/cookies';
 import { can } from '@/lib/auth/rbac';
 import { NotFoundError } from '@/lib/errors';
 import { dueLabel, formatDate, isOverdue } from '@/lib/format';
-import type { Labels } from '@/lib/labels';
+import { PROJECT_STATUS_LABELS, type Labels } from '@/lib/labels';
 import { cn } from '@/lib/cn';
 
 import { NewDocButton } from './NewDocButton';
@@ -62,13 +62,30 @@ export default async function ProjectHomePage({ params, searchParams }: Props) {
   const project = await loadProject(id);
   if (!project) notFound();
 
+  const canCreateTask = can(actor, 'task.create');
+
   return (
-    <div className="flex flex-col gap-5">
-      <BackLink href="/" label="プロジェクト" />
+    <div className="project-workspace">
+      <BackLink href="/projects" label="プロジェクト一覧" />
 
-      <PageHeader title={project.name} description={project.description ?? undefined} />
+      <header className="project-cockpit">
+        <div className="project-cockpit-copy">
+          <div className="project-cockpit-kicker">
+            <span className="tabular">{project.key}</span>
+            <span className="project-status-label">{PROJECT_STATUS_LABELS[project.status]}</span>
+          </div>
+          <h1>{project.name}</h1>
+          <p>{project.description ?? 'このプロジェクトの状況・仕事・資料をここで確認できます。'}</p>
+        </div>
+        <div className="project-primary-actions">
+          <Link href={`/projects/${project.id}?view=tasks`} className="primary-action">仕事を見る</Link>
+          {canCreateTask && (
+            <Link href={`/tasks?projectId=${project.id}&new=1`} className="secondary-action">タスクを追加</Link>
+          )}
+        </div>
+      </header>
 
-      <nav className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 py-1" aria-label="この案件の見方">
+      <nav className="project-nav" aria-label="このプロジェクトの見方">
         {VIEWS.map((v) => (
           <Link
             key={v.key}
@@ -263,6 +280,7 @@ async function Effort({ projectId, actorId }: { projectId: string; actorId: stri
 
 async function ProjectSchedule({ projectId }: { projectId: string }) {
   const tasks = await listTasks({ productId: projectId });
+  const today = new Date().toISOString().slice(0, 10);
   const rows = tasks
     .filter((t) => t.startDate !== null || t.dueDate !== null)
     .map((t) => ({
@@ -290,9 +308,9 @@ async function ProjectSchedule({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <MobileSchedule rows={rows} projectId={projectId} />
+      <MobileSchedule rows={rows} projectId={projectId} today={today} />
       <div className="hidden lg:block">
-        <GanttChart rows={rows} />
+        <GanttChart rows={rows} today={today} />
       </div>
     </>
   );
