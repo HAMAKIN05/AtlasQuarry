@@ -131,16 +131,20 @@ export function TaskWorkspace({
     () => visible.filter((t) => t.status === 'done' || t.status === 'cancelled'),
     [visible],
   );
+  const nextTasks = visible.filter((t) => t.status === 'todo' || t.status === 'backlog');
+  const doingTasks = visible.filter((t) => t.status === 'in_progress');
 
   function replaceTask(id: string, patch: Partial<TaskListItem>) {
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
   }
 
   return (
-    <>
-      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">タスク</h1>
+    <div className="tasks-workspace-shell">
+      <header className="tasks-workspace-hero">
+        <div className="tasks-workspace-copy">
+          <p className="eyebrow">Work list</p>
+          <div className="tasks-workspace-title-row">
+            <h1>プロジェクトの仕事</h1>
           {/*
             プロジェクトの切替だけは常に出す。タスクは必ずどれかに属していて、
             いまどれを見ているかが分からないと一覧の意味が変わってしまう。
@@ -157,9 +161,11 @@ export function TaskWorkspace({
               </option>
             ))}
           </select>
+          </div>
+          <p>いま進める仕事を上から確認し、状態をその場で更新できます。</p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="tasks-workspace-actions">
           {/*
             一覧とかんばんを同格の主操作としては並べない（この画面の主操作は
             タスクを追加すること・進めることで、表示形式の選択ではない）。
@@ -194,6 +200,12 @@ export function TaskWorkspace({
           </button>
         </div>
       </header>
+
+      <section className="task-overview-strip" aria-label="このプロジェクトのタスク状況">
+        <div><span>次に進める</span><strong>{nextTasks.length}</strong></div>
+        <div><span>進行中</span><strong>{doingTasks.length}</strong></div>
+        <div><span>完了</span><strong>{doneTasks.length}</strong></div>
+      </section>
 
       {/*
         **フォームは見出しの外に、全幅で出す。**
@@ -246,6 +258,7 @@ export function TaskWorkspace({
           <label className="inline-flex min-h-11 items-center gap-2 text-sm">
             <input
               type="checkbox"
+              aria-label="終わったものも表示"
               checked={showClosed}
               onChange={(e) => setShowClosed(e.target.checked)}
             />
@@ -352,6 +365,6 @@ export function TaskWorkspace({
         </div>
       )}
 
-    </>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 import { asc, eq } from 'drizzle-orm';
 
-import { EmptyState, PageHeader } from '@/components/app-ui';
+import { EmptyState } from '@/components/app-ui';
 import { db } from '@/db/client';
 import { actor as actorTable, product as productTable } from '@/db/schema';
 import { listFeatures } from '@/domain/product/service';
@@ -41,13 +41,19 @@ export default async function TasksPage({ searchParams }: Props) {
 
   if (projects.length === 0) {
     return (
-      <div className="flex flex-col gap-5">
-        <PageHeader title="タスク" />
+      <div className="tasks-workspace-shell">
+        <header className="tasks-workspace-hero">
+          <div className="tasks-workspace-copy">
+            <p className="eyebrow">Work list</p>
+            <h1>プロジェクトの仕事</h1>
+            <p>タスクはプロジェクトに紐づけて管理します。</p>
+          </div>
+        </header>
         <EmptyState
           title="先にプロジェクトを作ってください"
-          description="タスクはどれかのプロジェクトに属します。内製化する対象ごとに1つ作ります。"
+          description="タスクはどれかのプロジェクトに属します。プロジェクトを作ると、仕事を登録できるようになります。"
           actionLabel="プロジェクトを作る"
-          actionHref="/projects"
+          actionHref="/projects/new"
         />
       </div>
     );
