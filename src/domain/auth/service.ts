@@ -223,8 +223,8 @@ export async function changePassword(
  *
  * 決めていること:
  *
- *   - **役割は必ず `requester`。** 作成・判断・メンバー管理はできない。
- *     必要になったときだけ、既存の owner / manager が設定画面で上げる
+ *   - **役割は必ず `manager`（管理者）。** 登録直後からタスク・プロジェクト・要望・
+ *     メンバー管理を行える。登録ユーザー間で権限差を作らない
  *   - **登録しても自動ログインしない。** 成功も失敗も同じ文言を返し、
  *     メールアドレスが既に存在するかどうかを外から判別させない
  *   - **利用停止済みのアカウントを復活させない。** 停止の解除は設定画面から明示的に行う
@@ -302,7 +302,7 @@ export async function register(input: RegisterInput, meta: SessionMeta): Promise
         type: 'human',
         name: input.name.trim(),
         email,
-        role: 'requester',
+        role: 'manager',
         passwordHash,
         isActive: true,
       })
@@ -314,7 +314,7 @@ export async function register(input: RegisterInput, meta: SessionMeta): Promise
       entityType: 'actor',
       entityId: created!.id,
       action: 'create',
-      diff: { name: created!.name, role: 'requester', via: 'self-register' },
+      diff: { name: created!.name, role: 'manager', via: 'self-register' },
       ip,
       userAgent: meta.userAgent,
     });

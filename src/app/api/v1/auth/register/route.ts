@@ -16,7 +16,7 @@ const registerSchema = z.object({
  * POST /api/v1/auth/register。認証不要。
  *
  * **公開URLなので、素の自己登録にはしない。** 環境変数の合言葉を知る人だけが登録でき、
- * 作られるのは常に `requester`（作成・判断・メンバー管理はできない役割）。
+ * 作られるのは常に `manager`（管理者）で、登録直後から全員が同じ管理権限を持つ。
  * 登録しても自動ログインしない。詳細は `domain/auth/service.ts` の `register`。
  */
 export const POST = publicRoute(async ({ request, meta }) => {

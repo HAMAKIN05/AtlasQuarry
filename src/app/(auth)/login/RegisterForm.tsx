@@ -10,7 +10,7 @@ import { ApiError, api } from '@/lib/api/client';
 import { PASSWORD_MIN_LENGTH } from '@/lib/auth/policy';
 
 /**
- * 自己登録。
+ * ログイン画面からのアカウント登録。
  *
  * **合言葉を知っている人だけが登録できる。** このアプリは公開URLで動いているので、
  * 素の自己登録にすると第三者がアカウントを作れてしまう。
@@ -53,8 +53,8 @@ export function RegisterForm({ onDone }: { onDone: () => void }) {
           <div className="flex flex-col gap-4">
             <p className="text-[17px] font-semibold">{done}</p>
             <p className="text-sm text-muted-foreground">
-              使える範囲は最初は「要望を出す」までです。タスクの作成などが必要になったら、
-              経営者か上司に権限を上げてもらってください。
+              登録したアカウントには管理者権限が付与されます。すぐにタスク・プロジェクト・
+              要望の管理を始められます。
             </p>
             <Button type="button" onClick={onDone}>
               ログイン画面へ

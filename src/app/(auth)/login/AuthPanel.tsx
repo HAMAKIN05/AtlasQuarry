@@ -10,7 +10,7 @@ import { RegisterForm } from './RegisterForm';
  *
  * **登録を別画面にしない。** 初めて来た人がまず見るのはログイン画面で、
  * そこに入口が無いと「どこから始めるのか」が分からない。
- * ただし主操作はあくまでログインなので、登録は下の控えめなリンクにする。
+ * 登録はログイン画面から切り替えられ、登録後は全員が管理者として使い始められる。
  */
 export function AuthPanel() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
