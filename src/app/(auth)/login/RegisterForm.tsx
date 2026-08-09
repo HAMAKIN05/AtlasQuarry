@@ -69,6 +69,10 @@ export function RegisterForm({ onDone }: { onDone: () => void }) {
     <Card>
       <CardContent>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
+          <p className="rounded-md bg-primary-soft px-3 py-2 text-sm text-primary">
+            登録したアカウントは全員、管理者として使い始められます。
+          </p>
+
           {error && <Alert tone="error">{error}</Alert>}
 
           <Field label="名前" htmlFor="reg-name">
