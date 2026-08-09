@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 
 import { Badge, EmptyState, Loading } from '@/components/app-ui';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MIN_QUERY_LENGTH, search } from '@/domain/search/service';
 import { requireActor } from '@/lib/auth/cookies';
@@ -26,26 +27,34 @@ export default async function SearchPage({ searchParams }: Props) {
   const query = (q ?? '').trim();
 
   return (
-    <div className="flex flex-col gap-5">
-      <h1 className="large-title">探す</h1>
+    <div className="search-workspace">
+      <header className="workspace-home-header search-workspace-header">
+        <div>
+          <p className="eyebrow">見つける</p>
+          <h1 className="large-title">探す</h1>
+          <p className="mt-2 text-sm text-muted-foreground">タスク・要望・資料を横断して、必要な情報へすぐ移動できます。</p>
+        </div>
+      </header>
 
       {/* 素の form。JS が無くても引ける */}
-      <form action="/search" className="flex gap-2">
+      <form action="/search" className="search-form" role="search">
+        <label htmlFor="search-query" className="sr-only">探す言葉</label>
         <Input
+          id="search-query"
           name="q"
           defaultValue={query}
           placeholder="タスク・要望・資料をまとめて探す"
           autoFocus
-          aria-label="探す言葉"
         />
+        <Button type="submit">検索</Button>
       </form>
 
       {query.length === 0 ? (
-        <p className="px-1 text-sm text-muted-foreground">
+        <p className="search-help">
           {MIN_QUERY_LENGTH}文字以上で探せます。タスク・要望・資料の題名と本文が対象です。
         </p>
       ) : query.length < MIN_QUERY_LENGTH ? (
-        <p className="px-1 text-sm text-muted-foreground">
+        <p className="search-help" role="status">
           {MIN_QUERY_LENGTH}文字以上を入れてください。
         </p>
       ) : (
@@ -70,8 +79,11 @@ async function Results({ query }: { query: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <p className="px-1 text-[13px] text-muted-foreground">{hits.length} 件</p>
+    <div className="search-results">
+      <div className="search-results-heading">
+        <h2>検索結果</h2>
+        <p>{hits.length} 件</p>
+      </div>
       <div className="card-list">
         {hits.map((hit) => (
           <Link key={`${hit.kind}-${hit.id}`} href={hit.url} className="card">
