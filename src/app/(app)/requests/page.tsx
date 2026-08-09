@@ -1,12 +1,11 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
 
-import { Badge, EmptyState, Loading, PageHeader, requestStatusTone } from '@/components/app-ui';
+import { Badge, EmptyState, Loading, requestStatusTone } from '@/components/app-ui';
 import { REQUEST_STATUSES, type RequestStatus } from '@/db/schema/enums';
 import { countRequestsByStatus, listRequests } from '@/domain/request/service';
 import { loadLabels } from '@/domain/setting/labels';
 import { requireActor } from '@/lib/auth/cookies';
-import { cn } from '@/lib/cn';
 import { formatRelative } from '@/lib/format';
 import { REQUEST_TABS } from '@/lib/labels';
 
@@ -16,69 +15,78 @@ type Props = { searchParams: Promise<{ status?: string }> };
 
 export const metadata = { title: '要望 | AtlasQuarry' };
 
-/**
- * S-10 要望一覧。
- *
- * **この画面が「開発してほしいことを言う場所」**。トップに何のための場所かを書き、
- * 主操作（要望を出す）を常に見える位置に置く。
- */
 export default async function RequestsPage({ searchParams }: Props) {
   await requireActor();
   const { status } = await searchParams;
-
   const active: RequestStatus | 'all' =
     status && (REQUEST_STATUSES as readonly string[]).includes(status)
       ? (status as RequestStatus)
       : 'all';
 
   return (
-    <div className="flex flex-col gap-8">
-      {/*
-        **毎日開く画面に初見向けの説明を常設しない。**
-        何のための場所かは「要望を出す」ボタンと、1件も無いときの空状態で足りる。
-      */}
-      <PageHeader title="要望" action={<NewRequestButton />} />
+    <div className="request-workspace">
+      <header className="request-hero">
+        <div>
+          <p className="eyebrow">Requests inbox</p>
+          <h1>相談・改善を、次の仕事につなげる</h1>
+          <p>
+            思いつきや困りごとをここに集め、確認・判断・タスク化までを一つの流れで進めます。
+          </p>
+        </div>
+        <NewRequestButton />
+      </header>
 
       <Suspense fallback={<Loading />}>
-        <RequestTabs active={active} />
+        <RequestOverview active={active} />
       </Suspense>
 
-      <Suspense key={active} fallback={<Loading />}>
-        <RequestList active={active} />
-      </Suspense>
+      <div className="request-workspace-grid">
+        <Suspense key={active} fallback={<Loading />}>
+          <RequestList active={active} />
+        </Suspense>
+        <aside className="request-guide" aria-label="要望の進め方">
+          <p className="section-eyebrow">この画面でやること</p>
+          <h2>判断を止めない</h2>
+          <ol className="request-flow-list">
+            <li><span>1</span><div><strong>受け取る</strong><small>まずは要望を残す</small></div></li>
+            <li><span>2</span><div><strong>確認する</strong><small>内容とプロジェクトを整理する</small></div></li>
+            <li><span>3</span><div><strong>仕事にする</strong><small>採用したらタスクへ変換する</small></div></li>
+          </ol>
+          <Link href="/requests/new" className="request-guide-link">要望を登録する →</Link>
+        </aside>
+      </div>
     </div>
   );
 }
 
-async function RequestTabs({ active }: { active: RequestStatus | 'all' }) {
+async function RequestOverview({ active }: { active: RequestStatus | 'all' }) {
   const [counts, labels] = await Promise.all([countRequestsByStatus(), loadLabels()]);
   const total = Object.values(counts).reduce((sum, n) => sum + n, 0);
-
-  const item = (href: string, label: string, count: number, current: boolean) => (
-    <Link
-      key={href}
-      href={href}
-      aria-current={current ? 'page' : undefined}
-      /* 丸い札にする。押せることと、いまどれを見ているかを形で示す */
-      className={cn('chip shrink-0 whitespace-nowrap', current && 'font-bold')}
-    >
-      {label}
-      <span className="tabular text-xs opacity-80">{count}</span>
-    </Link>
-  );
+  const pending = (counts.received ?? 0) + (counts.reviewing ?? 0);
 
   return (
-    <nav aria-label="要望の絞り込み" className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 py-1">
-      {item('/requests', 'すべて', total, active === 'all')}
-      {REQUEST_TABS.map((status) =>
-        item(
-          `/requests?status=${status}`,
-          labels[`request.status.${status}`],
-          counts[status] ?? 0,
-          active === status,
-        ),
-      )}
-    </nav>
+    <section className="request-overview" aria-label="要望の状況">
+      <div className="request-overview-intro">
+        <p className="section-eyebrow">現在の状況</p>
+        <strong>{pending > 0 ? `${pending}件が確認待ちです` : '確認待ちの要望はありません'}</strong>
+        <span>{total}件の要望を状態ごとに整理しています。</span>
+      </div>
+      <nav className="request-stage-tabs" aria-label="要望を絞り込む">
+        <Link href="/requests" className={active === 'all' ? 'is-active' : undefined} aria-current={active === 'all' ? 'page' : undefined}>
+          すべて <b>{total}</b>
+        </Link>
+        {REQUEST_TABS.map((status) => (
+          <Link
+            key={status}
+            href={`/requests?status=${status}`}
+            className={active === status ? 'is-active' : undefined}
+            aria-current={active === status ? 'page' : undefined}
+          >
+            {labels[`request.status.${status}`]} <b>{counts[status] ?? 0}</b>
+          </Link>
+        ))}
+      </nav>
+    </section>
   );
 }
 
@@ -90,43 +98,40 @@ async function RequestList({ active }: { active: RequestStatus | 'all' }) {
 
   if (requests.length === 0) {
     return (
-      <EmptyState
-        title={active === 'all' ? 'まだ要望がありません' : 'この状態の要望はありません'}
-        description={
-          active === 'all'
-            ? '思いついたことを短く書くだけで大丈夫です。細かい仕様は後で詰めます。'
-            : '別の状態のタブを見てみてください。'
-        }
-      />
+      <section className="section-card request-inbox-card" aria-label="要望一覧">
+        <EmptyState
+          title={active === 'all' ? '要望はまだありません' : 'この状態の要望はありません'}
+          description={active === 'all' ? '気づいたことや相談したいことを、まずは短く登録できます。' : '別の状態を選ぶと、該当する要望を確認できます。'}
+          actionLabel={active === 'all' ? '要望を登録する' : undefined}
+          actionHref={active === 'all' ? '/requests/new' : undefined}
+        />
+      </section>
     );
   }
 
   return (
-    <section className="content-section" aria-label="要望一覧">
-      <div className="section-heading">
+    <section className="section-card request-inbox-card" aria-label="要望一覧">
+      <div className="section-card-header">
         <div>
-          <h2>
-            要望 <span className="tabular text-primary">{requests.length}</span>
-          </h2>
+          <p className="section-eyebrow">受信トレイ</p>
+          <h2>要望一覧</h2>
         </div>
+        <span className="section-count">{requests.length}件</span>
       </div>
-
-      {/* **1件ずつ独立したカードにする。** 表に見せない */}
-      <div className="card-list">
-        {requests.map((r) => (
-          <Link key={r.id} href={`/requests/${r.id}`} className="card">
-            <span className="flex items-start gap-2">
-              <span className="card-title min-w-0 flex-1">{r.title}</span>
-              <Badge tone={requestStatusTone(r.status)}>
-                {labels[`request.status.${r.status}`]}
-              </Badge>
-            </span>
-            <span className="stack-meta mt-2">
-              {r.productName && <span>{r.productName}</span>}
-              <span>{r.reporterName}さんから</span>
-              <span>{formatRelative(r.createdAt)}</span>
-              {r.convertedTaskKey && <span className="tabular">{r.convertedTaskKey}</span>}
-            </span>
+      <div className="request-inbox-list">
+        {requests.map((request) => (
+          <Link key={request.id} href={`/requests/${request.id}`} className="request-inbox-row">
+            <div className="request-inbox-main">
+              <span className="request-inbox-title">{request.title}</span>
+              <span className="request-inbox-meta">
+                {request.productName ?? 'プロジェクト未設定'} ・ {request.reporterName} ・ {formatRelative(request.createdAt)}
+              </span>
+            </div>
+            <div className="request-inbox-state">
+              <Badge tone={requestStatusTone(request.status)}>{labels[`request.status.${request.status}`]}</Badge>
+              {request.convertedTaskKey && <span className="tabular">{request.convertedTaskKey}</span>}
+            </div>
+            <span className="chevron" aria-hidden="true" />
           </Link>
         ))}
       </div>
