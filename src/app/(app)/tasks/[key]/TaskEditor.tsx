@@ -86,12 +86,12 @@ export function TaskEditor({
   }
 
   return (
-    <section className="surface p-4" aria-labelledby="edit-heading">
+    <section className="surface task-editor p-4" aria-labelledby="edit-heading">
       <h2 id="edit-heading" className="mb-3 text-base font-bold">
         編集
       </h2>
 
-      <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
+      <form id="task-editor-form" className="task-editor-form flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
         {error && (
           <p className="rounded-md bg-destructive-soft px-3 py-2 text-sm text-destructive" role="alert">
             {error}
@@ -181,7 +181,7 @@ export function TaskEditor({
           />
         </label>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="task-editor-actions-original flex flex-wrap items-center gap-2">
           <button type="submit" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" disabled={saving}>
             {saving ? '保存中…' : '保存'}
           </button>
@@ -192,6 +192,18 @@ export function TaskEditor({
           )}
         </div>
       </form>
+      <div className="task-editor-actions" role="group" aria-label="タスクの編集操作">
+        <div className="task-editor-actions-inner">
+          <button type="submit" form="task-editor-form" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90" disabled={saving}>
+            {saving ? '保存中…' : '保存'}
+          </button>
+          {canDelete && (
+            <button type="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold min-h-11 px-4 disabled:opacity-50 disabled:pointer-events-none border border-destructive bg-surface text-destructive hover:bg-destructive-soft" onClick={handleDelete} disabled={saving}>
+              削除
+            </button>
+          )}
+        </div>
+      </div>
     </section>
   );
 }

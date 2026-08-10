@@ -2651,6 +2651,50 @@
   }
 }
 
+.task-editor-actions-original {
+  display: none;
+}
+
+.task-editor-form {
+  padding-bottom: 0.5rem;
+}
+
+.task-editor-actions {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 40;
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  padding: 0.65rem max(1rem, calc((100vw - 64rem) / 2)) calc(0.65rem + env(safe-area-inset-bottom));
+  box-shadow: 0 -0.5rem 1.5rem rgb(15 23 42 / 8%);
+  backdrop-filter: blur(16px);
+}
+
+.task-editor-actions-inner {
+  display: flex;
+  width: 100%;
+  max-width: 64rem;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 auto;
+}
+
+.task-editor-actions-inner button {
+  min-width: 4.25rem;
+}
+
+.task-editor-actions-inner button:first-child {
+  margin-left: auto;
+}
+
+@media (max-width: 640px) {
+  .task-editor-actions-inner button {
+    flex: 1;
+  }
+}
+
 .saved-view-menu {
   position: relative;
 }
