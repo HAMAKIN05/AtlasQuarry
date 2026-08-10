@@ -14,7 +14,8 @@ COMPOSE_FILE="${COMPOSE_FILE:-docker/compose.yml}"
 PROJECT="${COMPOSE_PROJECT_NAME:-atlasquarry}"
 
 DB_USER="${POSTGRES_USER:-atlasquarry}"
-DB_NAME="${POSTGRES_DB:-atlasquarry}"
+# 検証用の別DBへ復元するときは RESTORE_DB を指定する。本番DBを誤って上書きしないため、明示的に分離する。
+DB_NAME="${RESTORE_DB:-${POSTGRES_DB:-atlasquarry}}"
 
 DUMP_FILE="${1:-}"
 ATTACH_FILE="${2:-}"
