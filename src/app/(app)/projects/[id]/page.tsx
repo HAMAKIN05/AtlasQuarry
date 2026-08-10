@@ -170,7 +170,9 @@ async function Overview({ projectId }: { projectId: string }) {
       {open.length === 0 ? (
         <EmptyState
           title="動いているタスクはありません"
-          description="右下の「＋」から追加できます。押した時点でこのプロジェクトが入ります。"
+          description="このプロジェクトのタスクを、ここからすぐに追加できます。"
+          actionLabel="タスクを追加"
+          actionHref={`/tasks?projectId=${projectId}&new=1`}
         />
       ) : (
         <GroupedTaskList tasks={open} labels={labels} />
@@ -365,7 +367,9 @@ async function ProjectTasks({ projectId }: { projectId: string }) {
     return (
       <EmptyState
         title="このプロジェクトのタスクはまだありません"
-        description="右下の「＋」から追加できます。押した時点でこのプロジェクトが入ります。"
+        description="このプロジェクトのタスクを、ここからすぐに追加できます。"
+        actionLabel="タスクを追加"
+        actionHref={`/tasks?projectId=${projectId}&new=1`}
       />
     );
   }
