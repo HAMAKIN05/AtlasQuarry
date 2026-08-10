@@ -66,17 +66,21 @@ export function ProjectCatalog({ items }: { items: ProjectItem[] }) {
       ) : (
         <div className="project-catalog-list">
           <div className="project-catalog-head" aria-hidden="true">
-            <span>プロジェクト</span><span>進捗</span><span>未完了</span><span>次の期限</span><span />
+            <span>プロジェクト（押すとかんばん）</span><span>進捗</span><span>未完了</span><span>次の期限</span><span>詳細</span>
           </div>
           {visible.map(({ project, open, overdue, unassigned }) => (
-            <Link key={project.id} href={`/projects/${project.id}`} className="project-catalog-row">
-              <span className="project-catalog-identity">
+            <div key={project.id} className="project-catalog-row">
+              <Link
+                href={`/tasks?projectId=${project.id}&view=board`}
+                className="project-catalog-identity project-catalog-board-link"
+                aria-label={`${project.name}のかんばんを開く`}
+              >
                 <Dot seed={project.key} />
                 <span className="min-w-0">
                   <strong>{project.name}</strong>
                   <small>{project.key} ・ {PROJECT_STATUS_LABELS[project.status]}</small>
                 </span>
-              </span>
+              </Link>
               <span className="project-catalog-progress"><Progress done={project.progress.doneTasks} total={project.progress.totalTasks} /></span>
               <span className="project-catalog-open">
                 <strong>{open}</strong>
@@ -85,8 +89,8 @@ export function ProjectCatalog({ items }: { items: ProjectItem[] }) {
               <span className={project.nextDueDate && overdue > 0 ? 'project-catalog-due is-late' : 'project-catalog-due'}>
                 {project.nextDueDate ? formatDate(project.nextDueDate) : '期限なし'}
               </span>
-              <span className="chevron" aria-hidden="true" />
-            </Link>
+              <Link href={`/projects/${project.id}`} className="project-catalog-detail-link">詳細</Link>
+            </div>
           ))}
         </div>
       )}

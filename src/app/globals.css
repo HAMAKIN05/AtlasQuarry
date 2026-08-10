@@ -3138,6 +3138,31 @@
   background: var(--surface-raised);
 }
 
+.project-catalog-board-link {
+  min-height: 3rem;
+  border-radius: 0.6rem;
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.project-catalog-board-link:hover strong {
+  color: var(--primary);
+}
+
+.project-catalog-detail-link {
+  justify-self: end;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.project-catalog-detail-link:hover {
+  background: var(--primary-soft);
+}
+
 .project-catalog-identity,
 .project-catalog-progress,
 .project-catalog-open,
@@ -3248,8 +3273,9 @@
     text-align: right;
   }
 
-  .project-catalog-row > .chevron {
-    display: none;
+  .project-catalog-detail-link {
+    grid-column: 2;
+    grid-row: 3;
   }
 }
 
