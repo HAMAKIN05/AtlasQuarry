@@ -28,6 +28,7 @@ export default async function WorkspaceHomePage() {
   const active = ordered[0] ?? null;
   const queue = ordered.slice(1, 7);
   const activeProjects = projects.filter((project) => project.status === 'active' || project.status === 'planning');
+  const dashboardProjects = activeProjects.length > 0 ? activeProjects : projects.slice(0, 5);
   const overdue = tasks.filter((task) => task.dueDate !== null && task.dueDate < today).length;
 
   return (
@@ -43,6 +44,30 @@ export default async function WorkspaceHomePage() {
           {can(actor, 'task.create') && <Button asChild><Link href="/tasks?new=1">＋ タスク</Link></Button>}
         </div>
       </header>
+
+      <section className="control-project-strip control-project-overview" aria-labelledby="project-strip-title">
+        <header>
+          <div>
+            <p className="control-room-kicker">01 / PROJECTS</p>
+            <h2 id="project-strip-title">{activeProjects.length > 0 ? '進行中のプロジェクト' : 'プロジェクト'}</h2>
+          </div>
+          <Link href="/projects" className="control-text-link">すべて見る →</Link>
+        </header>
+        {dashboardProjects.length > 0 ? (
+          <div className="control-project-list">
+            {dashboardProjects.slice(0, 5).map((project) => (
+              <Link key={project.id} href={`/tasks?projectId=${project.id}&view=board`} className="control-project-row">
+                <span className="control-project-row-name">{project.name}</span>
+                <span className="control-project-row-status">{PROJECT_STATUS_LABELS[project.status]}</span>
+                <Progress done={project.progress.doneTasks} total={project.progress.totalTasks} />
+                <span className="control-project-row-action">かんばん</span>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <Link href="/projects/new" className="control-project-empty">最初のプロジェクトを作る →</Link>
+        )}
+      </section>
 
       <div className="control-room-grid">
         <aside className="control-rail">
@@ -69,10 +94,6 @@ export default async function WorkspaceHomePage() {
           {active ? <ActiveTask task={active} today={today} /> : <EmptyState title="作業リストは空です" description="タスクを追加するか、受信箱から要望を仕事に変えられます。" actionLabel={can(actor, 'task.create') ? 'タスクを追加' : '受信箱を見る'} actionHref={can(actor, 'task.create') ? '/tasks?new=1' : '/requests'} />}
           {queue.length > 0 && <div className="control-queue" aria-label="次に続くタスク">{queue.map((task, index) => <QueueRow key={task.id} task={task} index={index + 2} today={today} />)}</div>}
 
-          <section className="control-project-strip" aria-labelledby="project-strip-title">
-            <header><div><p className="control-room-kicker">03 / CONTEXT</p><h2 id="project-strip-title">プロジェクトで見る</h2></div><Link href="/projects" className="control-text-link">一覧 →</Link></header>
-            <div className="control-project-list">{activeProjects.slice(0, 5).map((project) => <Link key={project.id} href={`/projects/${project.id}`} className="control-project-row"><span className="control-project-row-name">{project.name}</span><span className="control-project-row-status">{PROJECT_STATUS_LABELS[project.status]}</span><Progress done={project.progress.doneTasks} total={project.progress.totalTasks} /><span className="chevron" aria-hidden="true" /></Link>)}</div>
-          </section>
         </main>
 
         <aside className="control-inspector" aria-label="作業状況">

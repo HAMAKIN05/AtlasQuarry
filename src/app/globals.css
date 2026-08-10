@@ -3713,6 +3713,19 @@
   border-top: 1px solid var(--border);
 }
 
+.control-project-overview {
+  margin-top: 0;
+  padding: 1.15rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.control-project-overview .control-project-list {
+  margin-top: 0.85rem;
+}
+
 .control-project-list {
   margin-top: 0.7rem;
 }
@@ -3730,6 +3743,24 @@
 
 .control-project-row:hover {
   color: var(--primary);
+}
+
+.control-project-row-action {
+  border: 1px solid var(--border-strong);
+  border-radius: 0.55rem;
+  padding: 0.35rem 0.55rem;
+  color: var(--primary);
+  font-size: 0.68rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.control-project-empty {
+  display: inline-flex;
+  margin-top: 0.85rem;
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 
 .control-project-row-name {
