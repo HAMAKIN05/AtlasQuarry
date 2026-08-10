@@ -1,3 +1,4 @@
+import { ColumnsIcon } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
@@ -78,7 +79,10 @@ export default async function ProjectHomePage({ params, searchParams }: Props) {
           <p>{project.description ?? 'このプロジェクトの状況・仕事・資料をここで確認できます。'}</p>
         </div>
         <div className="project-primary-actions">
-          <Link href={`/projects/${project.id}?view=tasks`} className="primary-action">仕事を見る</Link>
+          <Link href={`/tasks?projectId=${project.id}&view=board`} className="primary-action">
+            <ColumnsIcon className="size-4" aria-hidden="true" />
+            かんばんを開く
+          </Link>
           {canCreateTask && (
             <Link href={`/tasks?projectId=${project.id}&new=1`} className="secondary-action">タスクを追加</Link>
           )}
@@ -379,6 +383,16 @@ async function ProjectTasks({ projectId }: { projectId: string }) {
 
   return (
     <div className="flex flex-col gap-5">
+      <Link href={`/tasks?projectId=${projectId}&view=board`} className="kanban-entry-card">
+        <span className="kanban-entry-card-icon" aria-hidden="true">
+          <ColumnsIcon className="size-5" />
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <strong>かんばんで見る</strong>
+          <span>タスクを状態ごとの列で並べ替え、進み具合を更新できます。</span>
+        </span>
+        <span className="chevron" aria-hidden="true" />
+      </Link>
       <GroupedTaskList tasks={open} labels={labels} />
 
       {closed > 0 && (
@@ -390,9 +404,6 @@ async function ProjectTasks({ projectId }: { projectId: string }) {
         </Link>
       )}
 
-      <Link href={`/tasks?projectId=${projectId}&view=board`} className="chip self-start">
-        かんばんで見る
-      </Link>
     </div>
   );
 }

@@ -1967,6 +1967,77 @@
   background: var(--surface-raised);
 }
 
+.kanban-entry-card {
+  display: flex;
+  min-height: 4.25rem;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--border));
+  border-radius: 0.85rem;
+  background: linear-gradient(110deg, var(--primary-soft), var(--surface));
+  padding: 0.75rem 1rem;
+  color: var(--foreground);
+}
+
+.kanban-entry-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0.35rem 1.1rem rgb(37 99 235 / 10%);
+}
+
+.kanban-entry-card-icon {
+  display: grid;
+  flex-shrink: 0;
+  width: 2.35rem;
+  height: 2.35rem;
+  place-items: center;
+  border-radius: 0.65rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.kanban-entry-card strong {
+  font-size: 0.9rem;
+}
+
+.kanban-entry-card span:not(.kanban-entry-card-icon):not(.chevron) {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+.task-view-switch {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: stretch;
+  gap: 0.15rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.75rem;
+  background: var(--surface);
+  padding: 0.2rem;
+}
+
+.task-view-switch button {
+  display: inline-flex;
+  min-height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border-radius: 0.55rem;
+  padding: 0.35rem 0.65rem;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.task-view-switch button:hover {
+  color: var(--foreground);
+}
+
+.task-view-switch button[aria-pressed='true'] {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
 .project-nav {
   display: flex;
   gap: 0.25rem;

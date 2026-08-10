@@ -198,27 +198,30 @@ export function TaskWorkspace({
             主操作より弱く、しかし**押せると分かる形**にする。丸い札にして、
             いま出ていない方の名前を出す。
           */}
-          <button
-            type="button"
-            onClick={() => {
-              const nextView = view === 'list' ? 'board' : 'list';
-              setView(nextView);
-              syncUrl({ view: nextView });
-            }}
-            className="chip shrink-0"
-          >
-            {view === 'list' ? (
-              <>
-                <ColumnsIcon className="size-4" aria-hidden="true" />
-                かんばんで見る
-              </>
-            ) : (
-              <>
-                <ListIcon className="size-4" aria-hidden="true" />
-                一覧で見る
-              </>
-            )}
-          </button>
+          <div className="task-view-switch" role="group" aria-label="タスクの表示方法">
+            <button
+              type="button"
+              aria-pressed={view === 'list'}
+              onClick={() => {
+                setView('list');
+                syncUrl({ view: 'list' });
+              }}
+            >
+              <ListIcon className="size-4" aria-hidden="true" />
+              一覧
+            </button>
+            <button
+              type="button"
+              aria-pressed={view === 'board'}
+              onClick={() => {
+                setView('board');
+                syncUrl({ view: 'board' });
+              }}
+            >
+              <ColumnsIcon className="size-4" aria-hidden="true" />
+              かんばん
+            </button>
+          </div>
 
           <SavedTaskViews
             initialViews={savedViews}
