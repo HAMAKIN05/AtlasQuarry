@@ -12,6 +12,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:quality": "npm run check:routes && npm run typecheck && npm test -- --run",
+    "test:smoke": "node scripts/smoke.mjs",
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file-if-exists=.env scripts/migrate.mjs",

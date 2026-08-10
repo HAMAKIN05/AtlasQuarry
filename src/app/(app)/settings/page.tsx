@@ -5,6 +5,7 @@ import {
   FolderKanbanIcon,
   KeyRoundIcon,
   LanguagesIcon,
+  ShieldCheckIcon,
   UserCircleIcon,
   UsersIcon,
 } from 'lucide-react';
@@ -69,6 +70,13 @@ export default async function SettingsPage() {
       title: '呼び名',
       description: 'ステータスや優先度の表示名を会社に合わせる',
       Icon: LanguagesIcon,
+      show: isManager,
+    },
+    {
+      href: '/settings/activity',
+      title: '監査ログ',
+      description: 'チームの操作履歴と変更内容を確認する',
+      Icon: ShieldCheckIcon,
       show: isManager,
     },
   ].filter((item) => item.show);

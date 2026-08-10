@@ -16,6 +16,8 @@ import { dueLabel, isOverdue } from '@/lib/format';
 import { KanbanBoard } from './KanbanBoard';
 import { NewTaskForm } from './NewTaskForm';
 import { TaskStatusMenu } from './TaskStatusMenu';
+import { SavedTaskViews } from './SavedTaskViews';
+import type { SavedTaskView } from '@/domain/task/saved-views';
 
 type Option = { id: string; name: string };
 
@@ -39,6 +41,8 @@ type Props = {
    * **開発項目は画面から無くした**ので、絞り込みの UI は出さない。
    */
   initialFeatureId: string;
+  initialShowClosed: boolean;
+  savedViews: SavedTaskView[];
   /** 他の画面の「タスクを追加」から来たか。来ていれば追加フォームを開いて始める */
   startAdding: boolean;
   /** まとまり（親タスク）の中に足すとき */
@@ -98,6 +102,8 @@ export function TaskWorkspace({
   currentActorId,
   initialAssigneeId,
   initialFeatureId,
+  initialShowClosed,
+  savedViews,
   startAdding,
   parentTaskId,
 }: Props) {
@@ -108,7 +114,7 @@ export function TaskWorkspace({
   // 既定は自分（担当が無い人は全員）。**開いた瞬間に自分の仕事が見えるのが普通**
   const [assigneeId, setAssigneeId] = useState(initialAssigneeId);
   const [featureId] = useState(initialFeatureId);
-  const [showClosed, setShowClosed] = useState(false);
+  const [showClosed, setShowClosed] = useState(initialShowClosed);
   /* 追加フォームの開閉は**ここで持つ。** 見出しの中で開かせない */
   const [adding, setAdding] = useState(startAdding);
 
@@ -125,6 +131,25 @@ export function TaskWorkspace({
 
   const project = projects.find((p) => p.id === projectId);
   const filtered = assigneeId !== '' || featureId !== '' || showClosed;
+
+  function currentQuery(next?: Partial<{ projectId: string; view: 'list' | 'board'; assigneeId: string; showClosed: boolean }>) {
+    const query = {
+      projectId: next?.projectId ?? projectId,
+      view: next?.view ?? view,
+      assigneeId: next?.assigneeId ?? assigneeId,
+      showClosed: next?.showClosed ?? showClosed,
+      ...(featureId ? { featureId } : {}),
+    } as const;
+    const params = new URLSearchParams({ projectId: query.projectId, view: query.view });
+    params.set('assigneeId', query.assigneeId);
+    if (query.showClosed) params.set('closed', '1');
+    if (query.featureId) params.set('featureId', query.featureId);
+    return params;
+  }
+
+  function syncUrl(next: Partial<{ projectId: string; view: 'list' | 'board'; assigneeId: string; showClosed: boolean }>) {
+    window.history.replaceState(null, '', `/tasks?${currentQuery(next).toString()}`);
+  }
 
   /* 完了は段に混ぜず、畳んだまま帳面の末尾に置く */
   const doneTasks = useMemo(
@@ -153,7 +178,7 @@ export function TaskWorkspace({
             aria-label="プロジェクト"
             className="!min-h-11 !w-auto !border-0 !bg-transparent !px-1 text-base font-semibold"
             value={projectId}
-            onChange={(e) => router.push(`/tasks?projectId=${e.target.value}&view=${view}`)}
+            onChange={(e) => router.push(`/tasks?${currentQuery({ projectId: e.target.value }).toString()}`)}
           >
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
@@ -175,7 +200,11 @@ export function TaskWorkspace({
           */}
           <button
             type="button"
-            onClick={() => setView(view === 'list' ? 'board' : 'list')}
+            onClick={() => {
+              const nextView = view === 'list' ? 'board' : 'list';
+              setView(nextView);
+              syncUrl({ view: nextView });
+            }}
             className="chip shrink-0"
           >
             {view === 'list' ? (
@@ -190,6 +219,17 @@ export function TaskWorkspace({
               </>
             )}
           </button>
+
+          <SavedTaskViews
+            initialViews={savedViews}
+            query={{
+              projectId,
+              view,
+              assigneeId,
+              showClosed,
+              ...(featureId ? { featureId } : {}),
+            }}
+          />
 
           <button
             type="button"
@@ -243,7 +283,13 @@ export function TaskWorkspace({
         <div className="flex flex-wrap items-end gap-x-4 gap-y-3 pb-3">
           <label className="flex min-w-0 flex-1 basis-40 flex-col gap-1.5">
             <span className="text-sm font-semibold text-muted-foreground">担当</span>
-            <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}>
+            <select
+              value={assigneeId}
+              onChange={(e) => {
+                setAssigneeId(e.target.value);
+                syncUrl({ assigneeId: e.target.value });
+              }}
+            >
               <option value="">全員</option>
               {members.map((m) => (
                 <option key={m.id} value={m.id}>
@@ -260,7 +306,10 @@ export function TaskWorkspace({
               type="checkbox"
               aria-label="終わったものも表示"
               checked={showClosed}
-              onChange={(e) => setShowClosed(e.target.checked)}
+              onChange={(e) => {
+                setShowClosed(e.target.checked);
+                syncUrl({ showClosed: e.target.checked });
+              }}
             />
             終わったものも表示
           </label>

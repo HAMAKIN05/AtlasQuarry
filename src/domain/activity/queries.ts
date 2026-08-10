@@ -1,7 +1,7 @@
 import { and, desc, eq, sql } from 'drizzle-orm';
 
 import { db } from '@/db/client';
-import { activity, actor } from '@/db/schema';
+import { activity, actor, document as documentTable, product, request, task } from '@/db/schema';
 import type { ActivityAction, EntityType } from '@/db/schema/enums';
 
 /**
@@ -20,6 +20,7 @@ export type ActivityItem = {
   diffJson: Record<string, unknown> | null;
   weight: number;
   createdAt: Date;
+  targetTitle?: string | null;
 };
 
 const COLUMNS = {
@@ -37,9 +38,13 @@ const COLUMNS = {
 /** タスク詳細のタイムライン（S-06）。古い順に並べる。 */
 export async function listTaskTimeline(taskId: string): Promise<ActivityItem[]> {
   const rows = await db
-    .select(COLUMNS)
+    .select({ ...COLUMNS, targetTitle: sql<string | null>`coalesce(${task.title}, ${documentTable.title}, ${request.title}, ${product.name})` })
     .from(activity)
     .innerJoin(actor, eq(actor.id, activity.actorId))
+    .leftJoin(task, and(eq(activity.entityType, 'task'), eq(task.id, activity.entityId)))
+    .leftJoin(documentTable, and(eq(activity.entityType, 'document'), eq(documentTable.id, activity.entityId)))
+    .leftJoin(request, and(eq(activity.entityType, 'request'), eq(request.id, activity.entityId)))
+    .leftJoin(product, and(eq(activity.entityType, 'product'), eq(product.id, activity.entityId)))
     .where(and(eq(activity.entityType, 'task'), eq(activity.entityId, taskId)))
     .orderBy(activity.createdAt);
 

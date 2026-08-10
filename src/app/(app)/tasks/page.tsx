@@ -5,6 +5,7 @@ import { db } from '@/db/client';
 import { actor as actorTable, product as productTable } from '@/db/schema';
 import { listFeatures } from '@/domain/product/service';
 import { listTasks } from '@/domain/task/service';
+import { listSavedTaskViews } from '@/domain/task/saved-views';
 import { requireActor } from '@/lib/auth/cookies';
 
 import { TaskWorkspace } from './TaskWorkspace';
@@ -15,6 +16,7 @@ type Props = {
     view?: string;
     assigneeId?: string;
     featureId?: string;
+    closed?: string;
     /** 他の画面の「タスクを追加」から来たときに立つ。追加フォームを開いて始める */
     new?: string;
     /** まとまり（親タスク）の中に足すとき。押した文脈をそのまま引き継ぐ */
@@ -60,7 +62,7 @@ export default async function TasksPage({ searchParams }: Props) {
   }
 
   const projectId = params.projectId ?? projects[0]!.id;
-  const [tasks, features, members] = await Promise.all([
+  const [tasks, features, members, savedViews] = await Promise.all([
     listTasks({ productId: projectId }),
     listFeatures(projectId),
     db
@@ -68,6 +70,7 @@ export default async function TasksPage({ searchParams }: Props) {
       .from(actorTable)
       .where(eq(actorTable.isActive, true))
       .orderBy(asc(actorTable.name)),
+    listSavedTaskViews(actor.id),
   ]);
 
   /*
@@ -94,8 +97,18 @@ export default async function TasksPage({ searchParams }: Props) {
          * 開発項目から来たときは、担当の既定より**そちらを優先**する。
          * 「この開発項目を見る」で来た人は、自分の担当だけを見たいわけではない。
          */
-        initialAssigneeId={params.featureId ? '' : hasOwnTasks ? actor.id : ''}
+        initialAssigneeId={
+          params.assigneeId !== undefined
+            ? params.assigneeId
+            : params.featureId
+              ? ''
+              : hasOwnTasks
+                ? actor.id
+                : ''
+        }
         initialFeatureId={params.featureId ?? ''}
+        initialShowClosed={params.closed === '1'}
+        savedViews={savedViews}
         startAdding={params.new === '1'}
         parentTaskId={params.parentTaskId ?? null}
       />
